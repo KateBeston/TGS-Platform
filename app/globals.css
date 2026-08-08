@@ -374,3 +374,216 @@ img { max-width: 100%; height: auto; display: block; }
 
 .footer-legal-links { display: flex; gap: var(--s4); }
 .footer-legal-links a { display: inline; padding: 0; font-size: 12px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   VENUES
+
+   Four card treatments, ordered by tier and never labelled by it. A
+   guest reading "Essentials Listings" is being told which venue paid the
+   least — unflattering to the venue and useless to them. The size and
+   the position carry the same commercial weight silently.
+
+   Every treatment has a photo and a rating. The mockup gave the lowest
+   tier neither, which reads as broken rather than modest.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.page-head { padding: var(--s7) 0 var(--s5); }
+.page-head h1 { margin: 12px 0 var(--s3); }
+.page-sub {
+  max-width: 620px; font-size: 18px; color: var(--ink-quiet);
+  margin-bottom: 0;
+}
+
+/* ── the search ───────────────────────────────────────────────────── */
+
+.filters {
+  background: var(--warm-cream);
+  border: 1px solid var(--border);
+  padding: var(--s5);
+  margin-bottom: var(--s6);
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: var(--s4);
+  align-items: end;
+}
+
+.filter label {
+  display: block; margin-bottom: 7px;
+  font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.filter select, .filter input {
+  width: 100%;
+  background: var(--warm-white);
+  border: 1px solid var(--border-input);
+  padding: 11px 12px;
+  font-family: var(--sans); font-size: 14px; font-weight: 300;
+  color: var(--charcoal);
+}
+.filter select:focus, .filter input:focus {
+  outline: none; border-color: var(--ink-gold);
+}
+.filter select:disabled {
+  color: var(--muted); background: var(--warm-cream); cursor: not-allowed;
+}
+.filter-narrow { max-width: 150px; }
+
+.filter-go {
+  background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal); cursor: pointer;
+  padding: 12px 32px;
+  font-family: var(--sans); font-size: 10.5px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.filter-go:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+
+.filter-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s4); margin-top: var(--s4);
+  padding-top: var(--s4); border-top: 1px solid var(--border);
+  font-size: 13px; color: var(--ink-quiet);
+}
+
+.filter-clear {
+  background: none; border: 0; cursor: pointer;
+  font-family: var(--sans); font-size: 13px;
+  color: var(--ink-gold); text-decoration: underline;
+}
+
+/* ── the grids ────────────────────────────────────────────────────── */
+
+.vgrid { display: grid; gap: var(--s5); margin-bottom: var(--s6); }
+
+/* auto-fill rather than auto-fit. auto-fit collapses the empty tracks,
+   so two cards in a four-column grid stretch to half the page each and
+   every tier ends up the same size — which defeats the whole point.
+   auto-fill keeps the columns, so a card is the width it was meant to
+   be however few of them there are. */
+
+/* Premium — two across, tall image, the full blurb. */
+.vgrid-1 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); }
+/* Featured — three across. */
+.vgrid-2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
+/* Standard — four across. */
+.vgrid-3 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 262px), 1fr)); }
+/* Essentials — compact, and still with a photo. */
+.vgrid-4 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 216px), 1fr));
+           gap: var(--s4); }
+
+@media (max-width: 720px) {
+  .vgrid, .vgrid-1, .vgrid-2, .vgrid-3, .vgrid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── the card ─────────────────────────────────────────────────────── */
+
+.vcard {
+  display: flex; flex-direction: column;
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+}
+
+.vcard-image {
+  display: block; overflow: hidden;
+  background: var(--warm-cream);
+  aspect-ratio: 3 / 2;
+}
+.vcard-1 .vcard-image { aspect-ratio: 16 / 10; }
+.vcard-4 .vcard-image { aspect-ratio: 4 / 3; }
+
+.vcard-image img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .5s cubic-bezier(.4, 0, .2, 1);
+}
+.vcard:hover .vcard-image img { transform: scale(1.03); }
+
+.vcard-image-none {
+  display: block; width: 100%; height: 100%;
+  background: var(--warm-cream);
+}
+
+.vcard-body {
+  padding: var(--s4); display: flex; flex-direction: column; flex: 1;
+}
+.vcard-1 .vcard-body { padding: var(--s5); }
+.vcard-4 .vcard-body { padding: var(--s3) var(--s4) var(--s4); }
+
+.vcard-kind {
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--ink-gold); margin-bottom: 9px;
+}
+
+.vcard-name {
+  font-family: var(--serif); font-weight: 300;
+  font-size: 21px; line-height: 1.25; margin: 0 0 7px;
+}
+.vcard-1 .vcard-name { font-size: 28px; }
+.vcard-4 .vcard-name { font-size: 17.5px; }
+
+.vcard-name a { color: var(--charcoal); }
+.vcard-name a:hover { color: var(--ink-gold); text-decoration: none; }
+
+.vcard-place {
+  font-size: 13px; color: var(--ink-quiet); margin-bottom: var(--s3);
+}
+.vcard-4 .vcard-place { font-size: 12.5px; margin-bottom: 10px; }
+
+.vcard-blurb {
+  font-size: 14.5px; line-height: 1.65; color: var(--ink-quiet);
+  margin: 0 0 var(--s4);
+}
+.vcard-1 .vcard-blurb { font-size: 15.5px; }
+/* Three lines, so a long description and a short one produce cards of
+   the same height in a row. */
+.vcard-2 .vcard-blurb, .vcard-3 .vcard-blurb {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vcard-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s3); flex-wrap: wrap;
+  margin-top: auto; padding-top: var(--s3);
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.card-rating {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  color: var(--charcoal);
+}
+.card-rating .star { color: var(--gold); font-size: 13px; }
+.card-rating-count { color: var(--muted); font-size: 12px; }
+
+/* Said rather than left blank. A gap where a number should be reads as a
+   fault; "not yet reviewed" is a fact. */
+.card-rating-none { color: var(--muted); font-size: 12.5px; }
+
+.vcard-capacity { color: var(--ink-quiet); font-size: 12.5px; }
+
+/* ── nothing found ────────────────────────────────────────────────── */
+
+.empty {
+  text-align: center; max-width: 520px;
+  margin: var(--s7) auto; padding: var(--s6) var(--s5);
+  background: var(--warm-cream); border: 1px solid var(--border);
+}
+.empty h2 { font-size: 26px; margin-bottom: var(--s3); }
+.empty p { color: var(--ink-quiet); margin-bottom: var(--s5); }
+
+.btn-solid {
+  display: inline-block;
+  background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal);
+  padding: 13px 30px;
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+}
+.btn-solid:hover {
+  background: var(--gold-dark); border-color: var(--gold-dark);
+  text-decoration: none;
+}
