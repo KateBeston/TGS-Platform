@@ -7,6 +7,39 @@ import {
 } from './Section';
 import { duration, money } from '@/lib/venue';
 
+/* A space's attribute tags, built from the structured record — capacity,
+ * size, floor, whether it is outdoors, and what it suits. The mockup's
+ * feature-block carries these as pills beneath the copy. */
+function fmtArea(area: any, unit: string | null): string | null {
+  if (!area) return null;
+  const u = unit ?? 'sqm';
+  return u === 'sqm' ? `${area}m²` : `${area} ${u}`;
+}
+
+function spaceTags(s: any): string[] {
+  return [
+    s.capacity ? `Holds ${s.capacity}` : null,
+    fmtArea(s.area, s.area_unit),
+    s.flooring || null,
+    s.is_outdoor ? 'Outdoor' : s.is_covered ? 'Covered' : null,
+    ...((s.suitable_for ?? []) as string[]),
+  ].filter(Boolean) as string[];
+}
+
+/* The image half of a feature-block. A space carries its own photo once
+ * one is uploaded; until then it degrades to the house placeholder rather
+ * than borrowing the venue hero, which would repeat one image down the
+ * whole tab. */
+function SpaceImage({ s }: { s: any }) {
+  return (
+    <div className="feature-image">
+      {s.image_url
+        ? <img src={s.image_url} alt={s.name} loading="lazy" />
+        : <span className="placeholder-img">The Global Sanctum</span>}
+    </div>
+  );
+}
+
 /* The retreat venue template.
  *
  * A retreat host is deciding whether their group fits and whether the
@@ -133,32 +166,25 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       {/* ── spaces ─────────────────────────────────────────────────── */}
       {!!v.spaces.length && (
         <div id="panel-spaces" className="vpanel" hidden>
-          <TabHero image={v.image_url} label="The spaces"
-            title="Spaces that hold whatever you bring"
-            subtitle={`${v.spaces.length} across the property`} />
+          <TabHero image={v.image_url} label="Retreat Spaces"
+            title="Spaces That Hold Whatever You Bring"
+            subtitle={`${v.spaces.length} distinct environments for practice, ceremony, and transformation`} />
 
+          {/* Featured space — image beside the copy, the way the mockup opens */}
           {featured && (
             <Section tone="white">
-              <div className="feature-split">
-                <div>
-                  {v.image_url && <img src={v.image_url} alt="" />}
-                </div>
-                <div>
-                  <div className="feature-eyebrow">Featured space</div>
-                  <h3 className="feature-title">{featured.name}</h3>
-                  <div className="feature-meta">
-                    {[featured.space_type,
-                      featured.capacity ? `Holds ${featured.capacity}` : null,
-                      featured.area ? `${featured.area} ${featured.area_unit ?? 'sqm'}` : null,
-                      featured.flooring,
-                      featured.step_free_access ? 'Step-free' : null,
-                    ].filter(Boolean).join(' · ')}
-                  </div>
-                  <p className="feature-body">{featured.description}</p>
-                  {!!featured.equipment_provided?.length && (
-                    <div className="amenity-pill-row" style={{ marginTop: 22 }}>
-                      {featured.equipment_provided.map((e: string) => (
-                        <span key={e} className="amenity-pill">{e}</span>
+              <div className="feature-block">
+                <SpaceImage s={featured} />
+                <div className="feature-content">
+                  <p className="feature-label">Featured Space</p>
+                  <h2 className="feature-title">{featured.name}</h2>
+                  {featured.description && (
+                    <p className="feature-text">{featured.description}</p>
+                  )}
+                  {!!spaceTags(featured).length && (
+                    <div className="feature-tags">
+                      {spaceTags(featured).map((t) => (
+                        <span key={t} className="tag">{t}</span>
                       ))}
                     </div>
                   )}
@@ -167,28 +193,46 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             </Section>
           )}
 
+          {/* Every other space — full image cards, alternating side to side */}
           {!!rest.length && (
-            <Section tone="cream" label="And also">
-              <div className="item-grid">
-                {rest.map((s: any) => (
-                  <article key={s.id} className="item">
-                    <h3>{s.name}</h3>
-                    <div className="item-meta">
-                      {[s.space_type,
-                        s.capacity ? `Holds ${s.capacity}` : null,
-                        s.area ? `${s.area} ${s.area_unit ?? 'sqm'}` : null,
-                        s.is_outdoor ? 'Outdoor' : null,
-                      ].filter(Boolean).join(' · ')}
-                    </div>
-                    {s.description && <p>{s.description}</p>}
-                    {!!s.equipment_provided?.length && (
-                      <div className="item-note">{s.equipment_provided.join(' · ')}</div>
+            <Section tone="cream" label="All Practice Spaces">
+              {rest.map((s: any, i: number) => {
+                const reverse = i % 2 === 1;
+                const copy = (
+                  <div className="feature-content">
+                    <h2 className="feature-title">{s.name}</h2>
+                    {s.description && <p className="feature-text">{s.description}</p>}
+                    {!!spaceTags(s).length && (
+                      <div className="feature-tags">
+                        {spaceTags(s).map((t) => <span key={t} className="tag">{t}</span>)}
+                      </div>
                     )}
-                  </article>
-                ))}
-              </div>
+                  </div>
+                );
+                return (
+                  <div key={s.id}
+                    className={`feature-block${reverse ? ' feature-block--reverse' : ''}`}
+                    style={i < rest.length - 1 ? { marginBottom: 60 } : undefined}>
+                    {reverse
+                      ? <>{copy}<SpaceImage s={s} /></>
+                      : <><SpaceImage s={s} />{copy}</>}
+                  </div>
+                );
+              })}
             </Section>
           )}
+
+          {/* CTA — the charcoal band that closes the tab in the mockup */}
+          <section className="section section--charcoal cta">
+            <p className="cta-title">Questions About Our Spaces?</p>
+            <p className="cta-text">
+              We&rsquo;re happy to arrange a video tour or answer any questions
+              about how our spaces might work for your retreat format.
+            </p>
+            <div className="cta-buttons">
+              <a href="#enquire" className="btn btn--primary">Enquire About This Venue</a>
+            </div>
+          </section>
         </div>
       )}
 
