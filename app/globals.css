@@ -1743,3 +1743,23 @@ img { max-width: 100%; height: auto; display: block; }
   .edit-lead { grid-template-columns: 1fr; }
   .edit-lead-body { padding: var(--s5); }
 }
+
+/* ── not found ────────────────────────────────────────────────────── */
+
+.notfound { padding: var(--s8) 0; max-width: 900px; }
+.notfound h1 { margin: var(--s3) 0 var(--s4); }
+.notfound-sub {
+  max-width: 560px; font-size: 18px; line-height: 1.75;
+  color: var(--charcoal-70); margin-bottom: var(--s6);
+}
+.notfound-links {
+  display: flex; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s8);
+}
+.notfound-venues { padding-top: var(--s6); border-top: 1px solid var(--charcoal-08); }
+.notfound-venues h2 {
+  font-family: var(--serif); font-size: 25px; font-weight: 400;
+  margin: 0 0 var(--s5);
+}
+.notfound-foot {
+  padding-top: var(--s5); font-size: 13.5px; color: var(--muted);
+}
