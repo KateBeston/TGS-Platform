@@ -673,9 +673,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .tb-crumb a { color: var(--ink-gold); }
 
-.hero-simple { padding: var(--s8) 0 var(--s7); }
-.hero-simple h1 { margin: 14px 0 var(--s4); }
-
 .btn-line {
   display: inline-block;
   border: 1px solid var(--charcoal); color: var(--charcoal);
@@ -1980,3 +1977,360 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 12.5px; line-height: 1.8; color: var(--muted);
 }
 .pricing-terms a { color: var(--ink-gold); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   HOME
+
+   From tgs_home_v6. Two departures, both for the same reason: the
+   carousels are grids, because a carousel hides two thirds of what it
+   holds behind a control, and the settings mosaic reads real settings
+   rather than six hardcoded ones, so it cannot drift from the filter on
+   /venues the way the old site did.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hero {
+  position: relative; height: 100vh; min-height: 720px; max-height: 1000px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; color: #fff;
+}
+.hero-bg { position: absolute; inset: 0; z-index: 1; }
+.hero-bg img { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(58,58,58,.42) 0%, rgba(58,58,58,.66) 100%);
+}
+.hero-content {
+  position: relative; z-index: 3; max-width: 1100px;
+  padding: 0 var(--s5); text-align: center; width: 100%;
+}
+.hero-eyebrow {
+  font-family: var(--sans); font-size: 11px; font-weight: 400;
+  letter-spacing: .32em; text-transform: uppercase;
+  color: rgba(255,255,255,.85); margin-bottom: 28px;
+}
+.hero-headline {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(38px, 5.5vw, 68px); line-height: 1.1;
+  margin-bottom: 24px; color: #fff;
+}
+.hero-subtext {
+  font-family: var(--serif); font-size: 18px; font-weight: 300;
+  line-height: 1.7; max-width: 620px; margin: 0 auto 40px;
+  color: rgba(255,255,255,.92);
+}
+
+/* The glass search. Plain selects rather than a custom panel per field —
+   three states to manage over a hero image, for no gain over a control
+   the browser already renders well on a phone. */
+.hero-glass {
+  background: rgba(255,255,255,.10);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.20);
+  padding: 6px; max-width: 760px; margin: 0 auto 36px;
+}
+.hero-search {
+  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr auto;
+  align-items: center;
+}
+.search-divider { width: 1px; height: 34px; background: rgba(255,255,255,.22); }
+.search-field { padding: 10px 18px; text-align: left; min-width: 0; }
+.search-field-label {
+  display: block; font-family: var(--sans); font-size: 9px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.75); margin-bottom: 5px;
+}
+.search-field select {
+  width: 100%; background: transparent; border: 0; cursor: pointer;
+  color: #fff; font-family: var(--sans); font-size: 13px;
+  padding: 0; outline: none;
+}
+.search-field select option { color: var(--charcoal); background: var(--warm-white); }
+
+.hero-search-go {
+  background: var(--warm-white); color: var(--charcoal);
+  border: 0; cursor: pointer; padding: 17px 34px; margin: 0;
+  font-family: var(--sans); font-size: 10.5px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.hero-search-go:hover { background: var(--gold); }
+
+.hero-ctas { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+.hero-cta-link {
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.85);
+}
+.hero-cta-link:hover { color: #fff; text-decoration: none; }
+
+/* ── intro ────────────────────────────────────────────────────────── */
+
+.intro { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.intro-inner {
+  max-width: 1280px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.intro-content { padding-right: 24px; }
+
+.intro-eyebrow {
+  font-family: var(--sans); font-size: 9px; font-weight: 600;
+  letter-spacing: .3em; text-transform: uppercase;
+  color: var(--gold-dark); margin-bottom: 20px;
+}
+.intro-title {
+  font-family: var(--serif); font-weight: 300;
+  font-size: clamp(27px, 3.4vw, 40px); line-height: 1.25;
+  color: var(--charcoal); margin-bottom: 28px;
+}
+.intro-text {
+  font-size: 15px; line-height: 1.75; color: var(--charcoal-80);
+  margin-bottom: 16px;
+}
+.intro-link {
+  display: inline-block; margin-top: 16px;
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--charcoal); border-bottom: 1px solid var(--gold);
+  padding-bottom: 4px;
+}
+.intro-link:hover { color: var(--ink-gold); text-decoration: none; }
+
+.intro-image { position: relative; }
+.intro-image img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.intro-image-accent {
+  position: absolute; bottom: -20px; right: -20px;
+  width: 140px; height: 140px; border: 1px solid var(--gold); z-index: -1;
+}
+
+/* ── settings mosaic ──────────────────────────────────────────────── */
+
+.explore { padding: var(--s8) 0; background: var(--warm-cream); }
+.explore-header {
+  text-align: center; max-width: 720px; margin: 0 auto 64px; padding: 0 var(--s5);
+}
+.explore-mosaic {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+}
+.mosaic-tile {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: block;
+}
+.mosaic-tile img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+}
+.mosaic-tile:hover img { transform: scale(1.05); }
+.mosaic-tile:hover { text-decoration: none; }
+.mosaic-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(58,58,58,0) 45%, rgba(58,58,58,.72) 100%);
+}
+.mosaic-label {
+  position: absolute; bottom: 26px; left: 26px; right: 26px; z-index: 2;
+  font-family: var(--serif); font-size: 24px; font-weight: 400; color: #fff;
+}
+.mosaic-label span {
+  display: block; margin-top: 5px;
+  font-family: var(--sans); font-size: 10px; letter-spacing: 1.8px;
+  text-transform: uppercase; color: rgba(255,255,255,.75);
+}
+
+/* ── three paths ──────────────────────────────────────────────────── */
+
+.paths { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.paths-inner { max-width: 1400px; margin: 0 auto; }
+.paths-header { text-align: center; max-width: 720px; margin: 0 auto 64px; }
+.paths-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+.path-card {
+  position: relative; overflow: hidden; aspect-ratio: 3 / 4; min-height: 420px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.path-card:hover { text-decoration: none; }
+.path-card-bg { position: absolute; inset: 0; z-index: 1; }
+.path-card-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+}
+.path-card:hover .path-card-bg img { transform: scale(1.05); }
+.path-card-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(58,58,58,0) 40%, rgba(58,58,58,.78) 100%);
+}
+.path-card-content { position: relative; z-index: 3; padding: 32px; color: #fff; }
+.path-card-title {
+  font-family: var(--serif); font-size: 26px; font-weight: 400; margin: 0 0 12px;
+}
+.path-card-text {
+  font-size: 14px; font-weight: 300; line-height: 1.6;
+  color: rgba(255,255,255,.85); margin: 0 0 20px;
+}
+.path-card-cta {
+  font-family: var(--sans); font-size: 10px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--gold);
+}
+
+/* ── venue selections ─────────────────────────────────────────────── */
+
+.premium { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.featured { padding: var(--s8) var(--s5); background: var(--warm-cream); }
+.premium-inner, .featured-inner { max-width: 1400px; margin: 0 auto; }
+
+.premium-header, .featured-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 48px; margin-bottom: 56px; flex-wrap: wrap;
+}
+.premium-subtitle {
+  font-size: 15px; line-height: 1.65; color: var(--charcoal-80); margin-top: 8px;
+}
+.premium-link, .featured-link {
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--charcoal);
+  border-bottom: 1px solid var(--gold); padding-bottom: 4px; white-space: nowrap;
+}
+.premium-link:hover, .featured-link:hover {
+  color: var(--ink-gold); text-decoration: none;
+}
+
+.premium-slide, .featured-slide {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 32px;
+}
+
+.premium-card { display: flex; flex-direction: column; color: inherit; }
+.premium-card:hover { text-decoration: none; }
+.premium-card-image {
+  position: relative; height: 320px; overflow: hidden; margin-bottom: 24px;
+}
+.premium-card-image img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+}
+.premium-card:hover .premium-card-image img { transform: scale(1.04); }
+.premium-card-tag {
+  position: absolute; top: 16px; left: 16px; z-index: 2;
+  background: rgba(253,252,249,.94); color: var(--charcoal);
+  padding: 7px 16px; font-family: var(--sans); font-size: 9px; font-weight: 500;
+  letter-spacing: 1.8px; text-transform: uppercase;
+}
+.premium-card-content { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.premium-card-location {
+  font-family: var(--sans); font-size: 9px; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--charcoal-50); margin: 0;
+}
+.premium-card-name {
+  font-family: var(--serif); font-size: 28px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.2; margin: 0;
+}
+.premium-card:hover .premium-card-name { color: var(--ink-gold); }
+.premium-card-desc {
+  font-size: 15px; line-height: 1.6; color: var(--charcoal-80); margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.premium-card-type {
+  font-family: var(--sans); font-size: 11px; color: var(--charcoal-70);
+  margin: 4px 0 0; padding-top: 16px; border-top: 1px solid var(--charcoal-08);
+}
+.premium-card-cta {
+  font-family: var(--sans); font-size: 10px; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--gold-dark);
+  margin-top: auto; padding-top: 12px;
+}
+
+/* ── quote ────────────────────────────────────────────────────────── */
+
+.quote-section {
+  padding: var(--s8) var(--s5); background: #3A3A3A;
+  text-align: center; color: #fff;
+}
+.quote-text {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(25px, 3.4vw, 40px); font-weight: 300; line-height: 1.4;
+  max-width: 900px; margin: 0 auto 32px; color: rgba(255,255,255,.9);
+}
+.quote-close { color: var(--gold); }
+.quote-author {
+  font-family: var(--sans); font-size: 11px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gold);
+}
+
+/* ── trending ─────────────────────────────────────────────────────── */
+
+.trending { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.trending-inner { max-width: 1400px; margin: 0 auto; }
+.trending-header { text-align: center; max-width: 720px; margin: 0 auto 64px; }
+/* Three columns, not four. With four destinations and the first
+   spanning two by two, a four-column grid has eight cells and fills
+   seven — one hole, bottom right. Three columns fills exactly. */
+.trending-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 290px 290px; gap: 16px;
+}
+.trending-item { position: relative; overflow: hidden; display: block; }
+.trending-item:hover { text-decoration: none; }
+.trending-item-large { grid-column: span 2; grid-row: span 2; }
+.trending-item img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+}
+.trending-item:hover img { transform: scale(1.05); }
+.trending-item-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(58,58,58,0) 40%, rgba(58,58,58,.78) 100%);
+}
+.trending-item-content {
+  position: absolute; bottom: 28px; left: 28px; right: 28px; z-index: 2; color: #fff;
+}
+.trending-item-name {
+  font-family: var(--serif); font-size: 26px; font-weight: 400; margin-bottom: 4px;
+}
+.trending-item-tagline {
+  font-family: var(--sans); font-size: 12px; letter-spacing: 1.6px;
+  text-transform: uppercase; color: rgba(255,255,255,.8);
+}
+
+/* ── search features and philosophy ───────────────────────────────── */
+
+.search-features { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.philosophy { padding: var(--s8) var(--s5); background: var(--warm-cream); }
+.search-features-inner, .philosophy-inner {
+  max-width: 1400px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.search-features-image { position: relative; height: 600px; }
+.search-features-image img { width: 100%; height: 100%; object-fit: cover; }
+
+.search-features-list, .philosophy-principles {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 40px;
+}
+.search-feature-title {
+  font-family: var(--serif); font-size: 20px; font-weight: 400;
+  color: var(--charcoal); margin-bottom: 8px;
+}
+.search-feature-text {
+  font-size: 14px; line-height: 1.65; color: var(--charcoal-80); margin: 0;
+}
+
+.philosophy-images { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.philosophy-images img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+
+@media (max-width: 1000px) {
+  .intro-inner, .search-features-inner, .philosophy-inner {
+    grid-template-columns: 1fr; gap: 48px;
+  }
+  .search-features-image { height: 420px; }
+  .explore-mosaic { grid-template-columns: repeat(2, 1fr); }
+  .paths-grid { grid-template-columns: 1fr; }
+  .trending-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+  .trending-item { aspect-ratio: 4 / 3; }
+  .trending-item-large { grid-column: span 2; grid-row: span 1; }
+}
+
+@media (max-width: 700px) {
+  .hero-search { grid-template-columns: 1fr; }
+  .search-divider { display: none; }
+  .hero-search-go { width: 100%; }
+  .hero-ctas { gap: 16px; flex-direction: column; }
+  .explore-mosaic { grid-template-columns: 1fr; }
+  .search-features-list, .philosophy-principles { grid-template-columns: 1fr; }
+}
