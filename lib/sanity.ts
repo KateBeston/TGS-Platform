@@ -78,7 +78,7 @@ export async function articles(limit = 24) {
   return (await query<Article[]>(
     `*[_type == "article" && defined(slug.current) && defined(publishedAt)
        && ${NOT_A_TEST}]
-     | order(publishedAt desc)[0...${limit}]{${FIELDS}}`
+     | order(publishedAt desc)[0...${limit}]{${FIELDS}, body}`
   )) ?? [];
 }
 
@@ -111,6 +111,14 @@ export async function moreArticles(slug: string, category: string | null, n = 3)
 
   const seen = new Set(same.map((a) => a.slug));
   return [...same, ...rest.filter((a) => !seen.has(a.slug))].slice(0, n);
+}
+
+export async function authors() {
+  const list = (await query<string[]>(
+    `array::unique(*[_type == "article" && defined(publishedAt)
+       && ${NOT_A_TEST}].author)`
+  )) ?? [];
+  return list.filter(Boolean).sort();
 }
 
 export async function categories() {
@@ -156,5 +164,13 @@ export function heroUrl(a: Article, w: number, h?: number) {
  *  lowercase words. */
 export function categoryName(c: string | null) {
   if (!c) return null;
-  return c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, ' ');
+  // The sections are named — Form, Pulse, Portraits, The Compass — and
+  // already carry their capitals. Only a value stored lowercase needs
+  // help, and title-casing one that does not would turn "The Compass"
+  // into "The compass".
+  if (/[A-Z]/.test(c)) return c;
+  return c.split(/[-\s]+/)
+    .map((w, i) => i === 0 || w.length > 3
+      ? w.charAt(0).toUpperCase() + w.slice(1) : w)
+    .join(' ');
 }
