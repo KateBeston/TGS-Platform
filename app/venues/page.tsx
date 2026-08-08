@@ -42,20 +42,27 @@ function Results({ cards }: { cards: Card[] }) {
   // largest card on the page, which is the opposite of intended.
   const bucket = (t: number | null) => Math.min(t ?? 4, 4) as 1 | 2 | 3 | 4;
 
+  const grids = ['premium-grid', 'featured-grid', 'standard-grid', 'essentials-grid'];
+
   const groups = ([1, 2, 3, 4] as const)
     .map((t) => ({ size: t, cards: cards.filter((c) => bucket(c.tier_order) === t) }))
     .filter((g) => g.cards.length);
 
   return (
     <>
-      {groups.map((group, i) => {
-        const size = group.size;
-        return (
-          <div key={i} className={`vgrid vgrid-${size}`}>
-            {group.cards.map((c) => <VenueCard key={c.id} card={c} size={size} />)}
+      {groups.map((group) => (
+        // No heading. The mockup labelled these "Premium Sanctuaries" and
+        // "Essentials Listings", which shows a guest the pricing model
+        // and tells them which venue paid the least. The shape and the
+        // order carry the same commercial weight silently.
+        <div key={group.size} className="tier-block">
+          <div className={grids[group.size - 1]}>
+            {group.cards.map((c) => (
+              <VenueCard key={c.id} card={c} size={group.size} />
+            ))}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </>
   );
 }

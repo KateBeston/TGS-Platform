@@ -1,68 +1,168 @@
 import Link from 'next/link';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 
-/* A listing card.
+/* A listing card, four treatments.
  *
- * Four treatments by tier. The tier is never named — a guest reading
- * "Essentials Listings" is being told which venue paid the least, which
- * is unflattering to the venue and useless to them. What they see is a
- * hierarchy; what the venue gets is position and size.
+ * Lifted from tgs_venues_v2 rather than reinterpreted — the ladder is
+ * Premium and Featured as horizontal splits with the image on the left,
+ * Standard as a vertical card, Essentials as a row with a thumbnail.
+ * Four genuinely different shapes, not four sizes of one shape.
  *
- * Every tier carries a photo and a rating. The mockup gave Essentials
- * neither, which reads as broken rather than modest. */
+ * Two departures, both asked for. The tier is never named — a guest
+ * reading "Essentials Listings" is being told which venue paid the least.
+ * And every treatment carries a rating, including where there is none to
+ * show, because a gap where a number should be reads as a fault. */
 
-function Rating({ rating, count }: { rating: number | null; count: number }) {
+function Rating({ rating, count, size }: {
+  rating: number | null; count: number; size: string;
+}) {
   if (!rating) {
-    // Said rather than left blank. A gap where a number should be looks
-    // like a fault; "not yet reviewed" is a fact.
-    return <span className="card-rating card-rating-none">Not yet reviewed</span>;
+    return <span className={`${size}-card-rating none`}>Not yet reviewed</span>;
   }
   return (
-    <span className="card-rating">
-      <span className="star" aria-hidden="true">&#9733;</span>
-      {Number(rating).toFixed(1)}
-      <span className="card-rating-count">
-        {count} review{count === 1 ? '' : 's'}
-      </span>
+    <span className={`${size}-card-rating`}>
+      <span className="star" aria-hidden="true">&#9733;</span>{' '}
+      {Number(rating).toFixed(1)}{' '}
+      <span className="count">({count})</span>
     </span>
+  );
+}
+
+function Tags({ tags }: { tags: string[] }) {
+  if (!tags.length) return null;
+  return (
+    <div className="card-tags">
+      {tags.slice(0, 4).map((t) => <span key={t} className="card-tag">{t}</span>)}
+    </div>
+  );
+}
+
+function Eyebrow({ card }: { card: Card }) {
+  return (
+    <div className="card-eyebrow">
+      <span className="type-primary">
+        {card.marketplace === 'Wellness' ? 'Wellness Venue' : 'Retreat Venue'}
+      </span>
+      {card.venue_type && (
+        <>
+          <span className="eyebrow-divider">&middot;</span>
+          <span className="type-secondary">{card.venue_type}</span>
+        </>
+      )}
+    </div>
   );
 }
 
 export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 | 4 }) {
   const href = venueHref(card);
   const blurb = card.listing_description ?? card.venue_short_description;
+  const name = card.headline ?? card.venue_name;
+  const tags = (card.tags ?? []) as string[];
 
-  return (
-    <article className={`vcard vcard-${size}`}>
-      <Link href={href} className="vcard-image" aria-hidden="true" tabIndex={-1}>
-        {card.image_url
-          ? <img src={card.image_url} alt="" loading="lazy" />
-          : <span className="vcard-image-none" />}
-      </Link>
+  const image = (
+    <div className={`${['premium','featured','standard','essentials'][size - 1]}-card-image`}>
+      {card.image_url
+        ? <img src={card.image_url} alt="" loading="lazy" />
+        : <span className="placeholder-img">The Global Sanctum</span>}
+    </div>
+  );
 
-      <div className="vcard-body">
-        <div className="vcard-kind">
-          {card.venue_type ?? (card.marketplace === 'Wellness'
-            ? 'Wellness venue' : 'Retreat venue')}
+  // Premium — image left at 46%, the editor's note, tags, and the whole
+  // excerpt.
+  if (size === 1) {
+    return (
+      <Link href={href} className="premium-card">
+        {image}
+        <div className="premium-card-body">
+          <Eyebrow card={card} />
+          <div className="premium-card-name">{name}</div>
+          <div className="premium-card-location">{placeOf(card)}</div>
+          {card.editor_note && (
+            <div className="premium-card-editor-note">{card.editor_note}</div>
+          )}
+          {blurb && <p className="premium-card-excerpt">{blurb}</p>}
+          <Tags tags={tags} />
+          <div className="premium-card-meta">
+            <Rating rating={card.rating} count={card.review_count} size="premium" />
+            {card.max_guests && (
+              <span className="premium-card-price">
+                Sleeps <strong>{card.max_guests}</strong>
+              </span>
+            )}
+          </div>
         </div>
+      </Link>
+    );
+  }
 
-        <h3 className="vcard-name">
-          <Link href={href}>{card.headline ?? card.venue_name}</Link>
-        </h3>
+  // Featured — the same shape, smaller, without the editor's note.
+  if (size === 2) {
+    return (
+      <Link href={href} className="featured-card">
+        {image}
+        <div className="featured-card-body">
+          <Eyebrow card={card} />
+          <div className="featured-card-name">{name}</div>
+          <div className="featured-card-location">{placeOf(card)}</div>
+          {blurb && <p className="featured-card-excerpt">{blurb}</p>}
+          <Tags tags={tags} />
+          <div className="featured-card-meta">
+            <Rating rating={card.rating} count={card.review_count} size="featured" />
+            {card.max_guests && (
+              <span className="featured-card-price">
+                Sleeps <strong>{card.max_guests}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
-        <div className="vcard-place">{placeOf(card)}</div>
+  // Standard — vertical, image on top.
+  if (size === 3) {
+    return (
+      <Link href={href} className="standard-card">
+        {image}
+        <div className="standard-card-body">
+          <Eyebrow card={card} />
+          <div className="standard-card-name">{name}</div>
+          <div className="standard-card-location">{placeOf(card)}</div>
+          {blurb && <p className="standard-card-excerpt">{blurb}</p>}
+          <Tags tags={tags} />
+          <div className="standard-card-meta">
+            <Rating rating={card.rating} count={card.review_count} size="standard" />
+            {card.max_guests && (
+              <span className="standard-card-price">
+                Sleeps <strong>{card.max_guests}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
-        {size <= 3 && blurb && (
-          <p className="vcard-blurb">{blurb}</p>
-        )}
-
-        <div className="vcard-foot">
-          <Rating rating={card.rating} count={card.review_count} />
+  // Essentials — a row with a thumbnail. Modest rather than absent, which
+  // is the difference between restrained and broken.
+  return (
+    <Link href={href} className="essentials-card">
+      {image}
+      <div className="essentials-card-body">
+        <div className="essentials-card-eyebrow">
+          {card.marketplace === 'Wellness' ? 'Wellness' : 'Retreat'}
+        </div>
+        <div className="essentials-card-name">{name}</div>
+        <div className="essentials-card-location">{placeOf(card)}</div>
+        <div className="essentials-card-meta">
+          <Rating rating={card.rating} count={card.review_count} size="essentials" />
           {card.max_guests && (
-            <span className="vcard-capacity">Sleeps {card.max_guests}</span>
+            <span className="essentials-card-price">
+              <strong>{card.max_guests}</strong>
+            </span>
           )}
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

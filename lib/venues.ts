@@ -30,6 +30,12 @@ export type Card = {
   rating: number | null;
   review_count: number;
   is_test_record: boolean;
+  /** In our voice rather than the venue's, on the Premium card. A venue
+   *  describing itself is marketing; a line saying why we chose it is
+   *  the reason somebody comes here rather than searching. */
+  editor_note: string | null;
+  /** What the venue is in, not what it is near. */
+  tags: string[] | null;
 };
 
 export type Filters = {

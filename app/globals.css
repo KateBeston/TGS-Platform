@@ -82,6 +82,21 @@
   --side-w:266px;
 }
 
+:root {
+  /* Charcoal at fixed opacities, from the mockups. A tint rather than a
+     separate grey, so the same rule reads correctly over warm white and
+     over the cream panels without a second palette. */
+  --charcoal-80: rgba(49, 49, 49, .80);
+  --charcoal-70: rgba(49, 49, 49, .70);
+  --charcoal-50: rgba(49, 49, 49, .50);
+  --charcoal-30: rgba(49, 49, 49, .30);
+  --charcoal-15: rgba(49, 49, 49, .15);
+  --charcoal-10: rgba(49, 49, 49, .10);
+  --charcoal-08: rgba(49, 49, 49, .08);
+  --charcoal-05: rgba(49, 49, 49, .05);
+  --ink: #46423B;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -376,238 +391,6 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-legal-links a { display: inline; padding: 0; font-size: 12px; }
 
 /* ═══════════════════════════════════════════════════════════════════
-   VENUES
-
-   Four card treatments, ordered by tier and never labelled by it. A
-   guest reading "Essentials Listings" is being told which venue paid the
-   least — unflattering to the venue and useless to them. The size and
-   the position carry the same commercial weight silently.
-
-   Every treatment has a photo and a rating. The mockup gave the lowest
-   tier neither, which reads as broken rather than modest.
-   ═══════════════════════════════════════════════════════════════════ */
-
-.page-head { padding: var(--s7) 0 var(--s5); }
-.page-head h1 { margin: 12px 0 var(--s3); }
-.page-sub {
-  max-width: 620px; font-size: 18px; color: var(--ink-quiet);
-  margin-bottom: 0;
-}
-
-/* ── the search ───────────────────────────────────────────────────── */
-
-.filters {
-  background: var(--warm-cream);
-  border: 1px solid var(--border);
-  padding: var(--s5);
-  margin-bottom: var(--s6);
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
-  gap: var(--s4);
-  align-items: end;
-}
-
-.filter label {
-  display: block; margin-bottom: 7px;
-  font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--muted);
-}
-
-.filter select, .filter input {
-  width: 100%;
-  background: var(--warm-white);
-  border: 1px solid var(--border-input);
-  padding: 11px 12px;
-  font-family: var(--sans); font-size: 14px; font-weight: 300;
-  color: var(--charcoal);
-}
-.filter select:focus, .filter input:focus {
-  outline: none; border-color: var(--ink-gold);
-}
-.filter select:disabled {
-  color: var(--muted); background: var(--warm-cream); cursor: not-allowed;
-}
-.filter-narrow { max-width: 150px; }
-
-.filter-go {
-  background: var(--charcoal); color: var(--warm-white);
-  border: 1px solid var(--charcoal); cursor: pointer;
-  padding: 12px 32px;
-  font-family: var(--sans); font-size: 10.5px;
-  letter-spacing: .2em; text-transform: uppercase;
-}
-.filter-go:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
-
-.filter-foot {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--s4); margin-top: var(--s4);
-  padding-top: var(--s4); border-top: 1px solid var(--border);
-  font-size: 13px; color: var(--ink-quiet);
-}
-
-.filter-clear {
-  background: none; border: 0; cursor: pointer;
-  font-family: var(--sans); font-size: 13px;
-  color: var(--ink-gold); text-decoration: underline;
-}
-
-/* ── the grids ────────────────────────────────────────────────────── */
-
-.vgrid { display: grid; gap: var(--s5); margin-bottom: var(--s6); }
-
-/* auto-fill rather than auto-fit. auto-fit collapses the empty tracks,
-   so two cards in a four-column grid stretch to half the page each and
-   every tier ends up the same size — which defeats the whole point.
-   auto-fill keeps the columns, so a card is the width it was meant to
-   be however few of them there are. */
-
-/* Premium — two across, tall image, the full blurb. */
-.vgrid-1 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); }
-/* Featured — three across. */
-.vgrid-2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); }
-/* Standard — four across. */
-.vgrid-3 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 262px), 1fr)); }
-/* Essentials — compact, and still with a photo. */
-.vgrid-4 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 216px), 1fr));
-           gap: var(--s4); }
-
-@media (max-width: 720px) {
-  .vgrid, .vgrid-1, .vgrid-2, .vgrid-3, .vgrid-4 {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ── the card ─────────────────────────────────────────────────────── */
-
-.vcard {
-  display: flex; flex-direction: column;
-  background: var(--warm-white);
-  border: 1px solid var(--border);
-}
-
-.vcard-image {
-  display: block; overflow: hidden;
-  background: var(--warm-cream);
-  aspect-ratio: 3 / 2;
-}
-.vcard-1 .vcard-image { aspect-ratio: 16 / 10; }
-.vcard-4 .vcard-image { aspect-ratio: 4 / 3; }
-
-.vcard-image img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform .5s cubic-bezier(.4, 0, .2, 1);
-}
-.vcard:hover .vcard-image img { transform: scale(1.03); }
-
-.vcard-image-none {
-  display: block; width: 100%; height: 100%;
-  background: var(--warm-cream);
-}
-
-.vcard-body {
-  padding: var(--s4); display: flex; flex-direction: column; flex: 1;
-}
-.vcard-1 .vcard-body { padding: var(--s5); }
-.vcard-4 .vcard-body { padding: var(--s3) var(--s4) var(--s4); }
-
-.vcard-kind {
-  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--ink-gold); margin-bottom: 9px;
-}
-
-.vcard-name {
-  font-family: var(--serif); font-weight: 300;
-  font-size: 21px; line-height: 1.25; margin: 0 0 7px;
-}
-.vcard-1 .vcard-name { font-size: 28px; }
-.vcard-4 .vcard-name { font-size: 17.5px; }
-
-.vcard-name a { color: var(--charcoal); }
-.vcard-name a:hover { color: var(--ink-gold); text-decoration: none; }
-
-.vcard-place {
-  font-size: 13px; color: var(--ink-quiet); margin-bottom: var(--s3);
-}
-.vcard-4 .vcard-place { font-size: 12.5px; margin-bottom: 10px; }
-
-.vcard-blurb {
-  font-size: 14.5px; line-height: 1.65; color: var(--ink-quiet);
-  margin: 0 0 var(--s4);
-}
-.vcard-1 .vcard-blurb { font-size: 15.5px; }
-/* Three lines, so a long description and a short one produce cards of
-   the same height in a row. */
-.vcard-2 .vcard-blurb, .vcard-3 .vcard-blurb {
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.vcard-foot {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--s3); flex-wrap: wrap;
-  margin-top: auto; padding-top: var(--s3);
-  border-top: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.card-rating {
-  display: inline-flex; align-items: baseline; gap: 6px;
-  color: var(--charcoal);
-}
-.card-rating .star { color: var(--gold); font-size: 13px; }
-.card-rating-count { color: var(--muted); font-size: 12px; }
-
-/* Said rather than left blank. A gap where a number should be reads as a
-   fault; "not yet reviewed" is a fact. */
-.card-rating-none { color: var(--muted); font-size: 12.5px; }
-
-.vcard-capacity { color: var(--ink-quiet); font-size: 12.5px; }
-
-/* ── nothing found ────────────────────────────────────────────────── */
-
-.empty {
-  text-align: center; max-width: 520px;
-  margin: var(--s7) auto; padding: var(--s6) var(--s5);
-  background: var(--warm-cream); border: 1px solid var(--border);
-}
-.empty h2 { font-size: 26px; margin-bottom: var(--s3); }
-.empty p { color: var(--ink-quiet); margin-bottom: var(--s5); }
-
-.btn-solid {
-  display: inline-block;
-  background: var(--charcoal); color: var(--warm-white);
-  border: 1px solid var(--charcoal);
-  padding: 13px 30px;
-  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
-}
-.btn-solid:hover {
-  background: var(--gold-dark); border-color: var(--gold-dark);
-  text-decoration: none;
-}
-
-.tb-crumb {
-  font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-  color: var(--muted);
-}
-.tb-crumb a { color: var(--ink-gold); }
-
-.hero-simple { padding: var(--s8) 0 var(--s7); }
-.hero-simple h1 { margin: 14px 0 var(--s4); }
-
-.btn-line {
-  display: inline-block;
-  border: 1px solid var(--charcoal); color: var(--charcoal);
-  padding: 13px 30px;
-  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
-}
-.btn-line:hover {
-  background: var(--charcoal); color: var(--warm-white); text-decoration: none;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
    ONE VENUE
 
    Eight panels, all rendered into the HTML and hidden by the tabs. A
@@ -790,4 +573,294 @@ img { max-width: 100%; height: auto; display: block; }
   .vrow { flex-direction: column; gap: var(--s3); }
   .vrow-price { text-align: left; }
   .vtabs { position: static; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VENUES — the listing
+
+   Card rules lifted from tgs_venues_v2 rather than reinterpreted. The
+   ladder is four genuinely different shapes, not four sizes of one:
+
+     Premium     horizontal split, image left at 46%, editor's note
+     Featured    the same shape, smaller
+     Standard    vertical card, image on top
+     Essentials  a row with a 130px thumbnail
+
+   Two departures, both asked for: no tier is named anywhere, and every
+   treatment carries a rating including where there is none to show.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.page-head { padding: var(--s7) 0 var(--s5); }
+.page-head h1 { margin: 12px 0 var(--s3); }
+.page-sub { max-width: 620px; font-size: 18px; color: var(--ink-quiet); margin-bottom: 0; }
+
+/* ── the search ───────────────────────────────────────────────────── */
+
+.filters {
+  background: var(--warm-cream); border: 1px solid var(--border);
+  padding: var(--s5); margin-bottom: var(--s6);
+}
+.filter-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: var(--s4); align-items: end;
+}
+.filter label {
+  display: block; margin-bottom: 7px;
+  font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.filter select, .filter input {
+  width: 100%; background: var(--warm-white);
+  border: 1px solid var(--border-input); padding: 11px 12px;
+  font-family: var(--sans); font-size: 14px; font-weight: 300;
+  color: var(--charcoal);
+}
+.filter select:focus, .filter input:focus { outline: none; border-color: var(--ink-gold); }
+.filter select:disabled { color: var(--muted); background: var(--warm-cream); }
+.filter-narrow { max-width: 150px; }
+
+.filter-go {
+  background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal); cursor: pointer; padding: 12px 32px;
+  font-family: var(--sans); font-size: 10.5px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.filter-go:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+
+.filter-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s4); margin-top: var(--s4); padding-top: var(--s4);
+  border-top: 1px solid var(--border); font-size: 13px; color: var(--ink-quiet);
+}
+.filter-clear {
+  background: none; border: 0; cursor: pointer; font-family: var(--sans);
+  font-size: 13px; color: var(--ink-gold); text-decoration: underline;
+}
+
+/* ── the grids, one per treatment ─────────────────────────────────── */
+
+.premium-grid { display: flex; flex-direction: column; gap: 24px; }
+.featured-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.standard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.essentials-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.tier-block { margin-bottom: 56px; }
+.tier-block:last-child { margin-bottom: 0; }
+
+/* ── shared card parts ────────────────────────────────────────────── */
+
+.premium-card, .featured-card, .standard-card, .essentials-card {
+  background: #FFFFFF; border: 1px solid var(--charcoal-08);
+  position: relative; overflow: hidden; text-decoration: none;
+  color: inherit; display: block;
+}
+.premium-card:hover, .featured-card:hover,
+.standard-card:hover, .essentials-card:hover { text-decoration: none; }
+
+.premium-card-image img, .featured-card-image img,
+.standard-card-image img, .essentials-card-image img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .6s cubic-bezier(.4, 0, .2, 1);
+}
+.premium-card:hover .premium-card-image img,
+.featured-card:hover .featured-card-image img,
+.standard-card:hover .standard-card-image img { transform: scale(1.04); }
+
+.placeholder-img {
+  width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  background: var(--warm-cream);
+  font-size: 10px; color: var(--charcoal-30);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+.card-eyebrow {
+  font-family: var(--sans); font-size: 10px; font-weight: 500;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-dark); margin-bottom: 14px;
+}
+.card-eyebrow .type-primary { font-weight: 600; }
+.card-eyebrow .eyebrow-divider { color: var(--charcoal-30); margin: 0 6px; }
+.card-eyebrow .type-secondary {
+  font-weight: 400; text-transform: none; letter-spacing: .5px;
+  font-size: 11px; color: var(--charcoal-70);
+}
+
+.card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+.card-tag {
+  padding: 5px 12px; background: var(--warm-cream);
+  font-size: 10px; font-weight: 500; letter-spacing: .5px;
+  color: var(--gold-dark);
+}
+
+/* Said rather than left blank. A gap where a number should be reads as a
+   fault; "not yet reviewed" is a fact. */
+.premium-card-rating.none, .featured-card-rating.none,
+.standard-card-rating.none, .essentials-card-rating.none {
+  color: var(--charcoal-50); font-weight: 400; font-size: 11.5px;
+}
+
+/* ── premium ──────────────────────────────────────────────────────── */
+
+.premium-card {
+  display: grid; grid-template-columns: 46% 1fr; min-height: 380px;
+  transition: box-shadow .3s, transform .3s;
+}
+.premium-card:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,.08); transform: translateY(-2px);
+}
+.premium-card-image { position: relative; overflow: hidden; }
+.premium-card-body { padding: 36px 40px; display: flex; flex-direction: column; }
+.premium-card-name {
+  font-family: var(--serif); font-size: 32px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.15; margin-bottom: 6px;
+}
+.premium-card-location { font-size: 12px; color: var(--charcoal-50); margin-bottom: 18px; }
+.premium-card-editor-note {
+  font-family: var(--sans); font-style: italic; font-size: 14px;
+  line-height: 1.6; color: var(--ink); margin-bottom: 18px;
+  padding-left: 14px; border-left: 2px solid var(--gold);
+}
+.premium-card-excerpt {
+  font-size: 13px; font-weight: 300; color: var(--charcoal-70);
+  line-height: 1.7; margin-bottom: 20px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.premium-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 18px; border-top: 1px solid var(--charcoal-08); margin-top: auto;
+}
+.premium-card-rating { font-size: 14px; font-weight: 500; }
+.premium-card-rating .star { color: var(--gold-dark); }
+.premium-card-rating .count { font-weight: 400; color: var(--charcoal-50); font-size: 12px; }
+.premium-card-price { font-size: 13px; color: var(--charcoal-70); }
+.premium-card-price strong { font-size: 20px; font-weight: 500; color: var(--charcoal); }
+
+/* ── featured ─────────────────────────────────────────────────────── */
+
+.featured-card {
+  display: grid; grid-template-columns: 44% 1fr; min-height: 340px;
+  transition: box-shadow .3s, transform .3s;
+}
+.featured-card:hover {
+  box-shadow: 0 10px 30px rgba(0,0,0,.07); transform: translateY(-3px);
+}
+.featured-card-image { position: relative; overflow: hidden; }
+.featured-card-body { padding: 28px 30px; display: flex; flex-direction: column; }
+.featured-card-name {
+  font-family: var(--serif); font-size: 26px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.2; margin-bottom: 5px;
+}
+.featured-card-location { font-size: 12px; color: var(--charcoal-50); margin-bottom: 16px; }
+.featured-card-excerpt {
+  font-size: 13px; font-weight: 300; color: var(--charcoal-70);
+  line-height: 1.6; margin-bottom: 16px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.featured-card .card-tags { gap: 5px; margin-bottom: 18px; }
+.featured-card .card-tag { padding: 4px 10px; }
+.featured-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px; border-top: 1px solid var(--charcoal-08); margin-top: auto;
+}
+.featured-card-rating { font-size: 13px; font-weight: 500; }
+.featured-card-rating .star { color: var(--gold-dark); }
+.featured-card-rating .count { font-weight: 400; color: var(--charcoal-50); font-size: 12px; }
+.featured-card-price { font-size: 13px; color: var(--charcoal-70); }
+.featured-card-price strong { font-size: 18px; font-weight: 500; color: var(--charcoal); }
+
+/* ── standard ─────────────────────────────────────────────────────── */
+
+.standard-card { transition: box-shadow .3s, transform .3s; }
+.standard-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,.06); transform: translateY(-3px);
+}
+.standard-card-image { position: relative; height: 190px; overflow: hidden; }
+.standard-card-body { padding: 18px 20px 20px; }
+.standard-card .card-eyebrow { font-size: 9px; letter-spacing: 1.5px; margin-bottom: 6px; }
+.standard-card .card-eyebrow .type-secondary { font-size: 10px; letter-spacing: .3px; }
+.standard-card-name {
+  font-family: var(--serif); font-size: 20px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.25; margin-bottom: 6px;
+}
+.standard-card-location { font-size: 11px; color: var(--charcoal-50); margin-bottom: 10px; }
+.standard-card-excerpt {
+  font-size: 12px; font-weight: 300; color: var(--charcoal-70);
+  line-height: 1.6; margin-bottom: 14px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.standard-card .card-tags { gap: 5px; margin-bottom: 14px; }
+.standard-card .card-tag { padding: 3px 9px; }
+.standard-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 14px; border-top: 1px solid var(--charcoal-08);
+}
+.standard-card-rating { font-size: 12px; font-weight: 500; }
+.standard-card-rating .star { color: var(--gold-dark); }
+.standard-card-rating .count { font-weight: 400; color: var(--charcoal-50); font-size: 11px; }
+.standard-card-price { font-size: 12px; color: var(--charcoal-70); }
+.standard-card-price strong { font-size: 16px; font-weight: 500; color: var(--charcoal); }
+
+/* ── essentials ───────────────────────────────────────────────────── */
+
+.essentials-card { display: flex; flex-direction: row; transition: box-shadow .3s; }
+.essentials-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+.essentials-card-image { width: 130px; flex-shrink: 0; overflow: hidden; }
+.essentials-card-body { flex: 1; padding: 14px 16px; }
+.essentials-card-eyebrow {
+  font-family: var(--sans); font-size: 9px; font-weight: 600;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--gold-dark); margin-bottom: 4px;
+}
+.essentials-card-name {
+  font-family: var(--serif); font-size: 17px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.25; margin-bottom: 8px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.essentials-card-location { font-size: 10px; color: var(--charcoal-50); margin-bottom: 6px; }
+.essentials-card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid var(--charcoal-08);
+}
+.essentials-card-rating { font-size: 11px; font-weight: 500; }
+.essentials-card-rating .star { color: var(--gold-dark); }
+.essentials-card-price { font-size: 11px; color: var(--charcoal-70); }
+.essentials-card-price strong { font-size: 14px; font-weight: 500; color: var(--charcoal); }
+
+@media (max-width: 1024px) {
+  .standard-grid { grid-template-columns: repeat(2, 1fr); }
+  .essentials-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 760px) {
+  .premium-card, .featured-card { grid-template-columns: 1fr; }
+  .premium-card-image { height: 260px; }
+  .featured-card-image { height: 220px; }
+  .premium-card-body { padding: 24px 22px; }
+  .premium-card-name { font-size: 26px; }
+  .featured-grid, .standard-grid, .essentials-grid {
+    grid-template-columns: 1fr; gap: 20px;
+  }
+}
+
+/* ── nothing found ────────────────────────────────────────────────── */
+
+.empty {
+  text-align: center; max-width: 520px; margin: var(--s7) auto;
+  padding: var(--s6) var(--s5);
+  background: var(--warm-cream); border: 1px solid var(--border);
+}
+.empty h2 { font-size: 26px; margin-bottom: var(--s3); }
+.empty p { color: var(--ink-quiet); margin-bottom: var(--s5); }
+
+.btn-solid {
+  display: inline-block; background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal); padding: 13px 30px;
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+}
+.btn-solid:hover {
+  background: var(--gold-dark); border-color: var(--gold-dark); text-decoration: none;
 }
