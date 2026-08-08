@@ -2315,44 +2315,48 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .carousel-dot.is-on { background: var(--charcoal); border-color: var(--charcoal); }
 
-.premium-card { display: flex; flex-direction: column; color: inherit; }
-.premium-card:hover { text-decoration: none; }
-.premium-card-image {
+/* Scoped to the home page's premium carousel. These names collide with
+   the /venues listing cards (.premium-card etc.); unscoped they were
+   added later and overrode the listing's horizontal-split treatment,
+   which is why the venue cards rendered oddly. */
+.premium .premium-card { display: flex; flex-direction: column; color: inherit; }
+.premium .premium-card:hover { text-decoration: none; }
+.premium .premium-card-image {
   position: relative; height: 320px; overflow: hidden; margin-bottom: 24px;
 }
-.premium-card-image img {
+.premium .premium-card-image img {
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
-.premium-card:hover .premium-card-image img { transform: scale(1.04); }
-.premium-card-tag {
+.premium .premium-card:hover .premium-card-image img { transform: scale(1.04); }
+.premium .premium-card-tag {
   position: absolute; top: 16px; left: 16px; z-index: 2;
   background: rgba(253,252,249,.94); color: var(--charcoal);
   padding: 7px 16px; font-family: var(--sans); font-size: 9px; font-weight: 500;
   letter-spacing: 1.8px; text-transform: uppercase;
 }
-.premium-card-content { display: flex; flex-direction: column; gap: 12px; flex: 1; }
-.premium-card-location {
+.premium .premium-card-content { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.premium .premium-card-location {
   font-family: var(--sans); font-size: 9px; font-weight: 600;
   letter-spacing: .22em; text-transform: uppercase;
   color: var(--charcoal-50); margin: 0;
 }
-.premium-card-name {
+.premium .premium-card-name {
   font-family: var(--serif); font-size: 28px; font-weight: 400;
   color: var(--charcoal); line-height: 1.2; margin: 0;
 }
-.premium-card:hover .premium-card-name { color: var(--ink-gold); }
-.premium-card-desc {
+.premium .premium-card:hover .premium-card-name { color: var(--ink-gold); }
+.premium .premium-card-desc {
   font-size: 15px; line-height: 1.6; color: var(--charcoal-80); margin: 0;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.premium-card-type {
+.premium .premium-card-type {
   font-family: var(--sans); font-size: 11px; color: var(--charcoal-70);
   margin: 4px 0 0; padding-top: 16px; border-top: 1px solid var(--charcoal-08);
 }
-.premium-card-cta {
+.premium .premium-card-cta {
   font-family: var(--sans); font-size: 10px; font-weight: 500;
   letter-spacing: .22em; text-transform: uppercase; color: var(--gold-dark);
   margin-top: auto; padding-top: 12px;
