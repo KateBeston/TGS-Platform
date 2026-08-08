@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
-import { Glance, Section, TabHero } from './Section';
+import { Accessibility, ExperienceBlock, Glance, Section, TabHero, VenueLinks } from './Section';
 import { duration, money } from '@/lib/venue';
 
 /* The retreat venue template.
@@ -77,6 +77,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
               {v.listing_description ?? v.venue_short_description}
             </p>
             {v.venue_full_description && <p>{v.venue_full_description}</p>}
+            {(v.property_type || v.architecture_style) && (
+              <p className="muted-small">
+                {[v.property_type, v.architecture_style].filter(Boolean).join(' · ')}
+              </p>
+            )}
           </div>
         </Section>
 
@@ -84,8 +89,10 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           <Glance stats={[
             ['Guests', v.max_guests],
             ['Bedrooms', v.total_bedrooms],
+            ['Bathrooms', v.total_bathrooms],
             ['Spaces', v.spaces.length || null],
             ['Practices', v.categories.length || null],
+            ['Established', v.established_year],
           ]} />
         </Section>
 
@@ -113,6 +120,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
         )}
+
+        <ExperienceBlock v={v} tone="white" />
       </div>
 
       {/* ── spaces ─────────────────────────────────────────────────── */}
@@ -185,6 +194,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             subtitle={`${v.rooms.reduce((n: number, r: any) => n + (r.quantity ?? 1), 0)} rooms across ${v.rooms.length} types`} />
 
           <Section tone="white">
+            {v.accommodation_description && (
+              <div className="prose-narrow" style={{ marginBottom: 40 }}>
+                <p>{v.accommodation_description}</p>
+              </div>
+            )}
             <div className="item-grid">
               {v.rooms.map((r: any) => (
                 <article key={r.id} className="item">
@@ -297,11 +311,22 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
-        {v.climate_intro && (
+        {(v.climate_intro || v.best_months) && (
           <Section tone="white" label="Climate" title="What to expect">
-            <div className="prose-narrow"><p>{v.climate_intro}</p></div>
+            <div className="prose-narrow">
+              {v.climate_intro && <p>{v.climate_intro}</p>}
+              {v.best_months && (
+                <p className="muted-small">
+                  Best months to visit: {Array.isArray(v.best_months)
+                    ? v.best_months.join(', ') : v.best_months}
+                </p>
+              )}
+            </div>
           </Section>
         )}
+
+        <Accessibility v={v} tone="cream" />
+        <VenueLinks v={v} tone="white" />
       </div>
 
       {/* ── reviews ────────────────────────────────────────────────── */}

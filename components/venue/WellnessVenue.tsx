@@ -1,7 +1,7 @@
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import { Review, ReviewScores } from './RetreatVenue';
-import { Glance, Section, TabHero } from './Section';
+import { Accessibility, ExperienceBlock, Glance, Section, TabHero, VenueLinks } from './Section';
 import { duration, money } from '@/lib/venue';
 
 /* The wellness venue template.
@@ -85,6 +85,11 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
               {v.listing_description ?? v.venue_short_description}
             </p>
             {v.venue_full_description && <p>{v.venue_full_description}</p>}
+            {(v.property_type || v.architecture_style) && (
+              <p className="muted-small">
+                {[v.property_type, v.architecture_style].filter(Boolean).join(' · ')}
+              </p>
+            )}
           </div>
         </Section>
 
@@ -95,6 +100,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             ['Capacity', v.max_guests],
             ['Rooms', v.rooms.length ? v.rooms.reduce(
               (n: number, r: any) => n + (r.quantity ?? 1), 0) : null],
+            ['Bathrooms', v.total_bathrooms],
+            ['Established', v.established_year],
           ]} />
         </Section>
 
@@ -108,6 +115,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
         )}
+
+        <ExperienceBlock v={v} tone="cream" />
       </div>
 
       {/* Services first, because that is the question a guest is here to
@@ -174,6 +183,11 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       {!!v.rooms.length && (
         <div id="panel-stay" className="vpanel" hidden>
           <Section tone="white" label="Stay" title="If you are staying">
+            {v.accommodation_description && (
+              <div className="prose-narrow" style={{ marginBottom: 40 }}>
+                <p>{v.accommodation_description}</p>
+              </div>
+            )}
             <div className="item-grid">
               {v.rooms.map((r: any) => (
                 <article key={r.id} className="item">
@@ -246,6 +260,9 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
         )}
+
+        <Accessibility v={v} tone="white" />
+        <VenueLinks v={v} tone="cream" />
       </div>
 
       {!!v.reviews.length && (
