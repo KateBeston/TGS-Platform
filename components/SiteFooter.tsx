@@ -54,9 +54,10 @@ export default function SiteFooter() {
             58 Wellington Street, Virginia QLD 4014, Australia
           </div>
           <div className="footer-legal-links">
-            <Link href="/legal#terms">Terms</Link>
-            <Link href="/legal#privacy">Privacy</Link>
-            <Link href="/legal#cookies">Cookies</Link>
+            <Link href="/legal#terms-and-conditions">Terms</Link>
+            <Link href="/legal#privacy-policy">Privacy</Link>
+            <Link href="/legal#cookie-policy">Cookies</Link>
+            <Link href="/legal">All policies</Link>
           </div>
         </div>
       </div>

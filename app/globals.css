@@ -1258,3 +1258,107 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 860px) {
   .founder { grid-template-columns: 1fr; gap: 30px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LEGAL
+
+   Eight documents on one route, every word from the register. Editing a
+   document in the portal changes this page on the next load — no
+   redeploy and no HTML to find, which was the point of putting legal
+   copy in a database.
+
+   All eight render into the HTML and are hidden. Seven policies that
+   only exist after JavaScript runs are seven policies nobody can find.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.legal-tabs {
+  display: flex; flex-wrap: wrap; gap: 0;
+  border-bottom: 1px solid var(--charcoal-08);
+  margin-bottom: var(--s6);
+}
+.legal-tabs button {
+  background: none; border: 0; cursor: pointer;
+  border-bottom: 2px solid transparent; padding: 15px 18px;
+  font-family: var(--sans); font-size: 11px; font-weight: 400;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--charcoal-50); text-align: left;
+}
+.legal-tabs button:hover { color: var(--charcoal); }
+.legal-tabs button.is-on { color: var(--charcoal); border-bottom-color: var(--gold); }
+
+.legal-panel { padding-bottom: var(--s8); max-width: 760px; }
+.legal-panel[hidden] { display: none; }
+
+.legal-head { margin-bottom: var(--s6); }
+.legal-head h2 {
+  font-family: var(--serif); font-size: clamp(27px, 3.4vw, 36px);
+  font-weight: 400; margin: 0 0 14px;
+}
+
+.legal-meta {
+  display: flex; gap: var(--s4); flex-wrap: wrap;
+  font-family: var(--sans); font-size: 11px;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted);
+}
+.legal-summary {
+  margin-top: var(--s4); font-size: 17px; line-height: 1.75;
+  color: var(--charcoal-70);
+}
+
+/* Set for reading rather than for scrolling past. A policy nobody can
+   read is a policy nobody agreed to in any meaningful sense. */
+.legal-body { font-size: 16px; line-height: 1.85; color: var(--charcoal-80); }
+.legal-body h3 {
+  font-family: var(--serif); font-size: 21px; font-weight: 400;
+  color: var(--charcoal); margin: var(--s6) 0 var(--s3);
+}
+.legal-body h3:first-child { margin-top: 0; }
+.legal-body p { margin: 0 0 var(--s4); }
+
+.legal-bullet {
+  padding-left: 22px; position: relative;
+  margin-bottom: var(--s3) !important;
+}
+.legal-bullet::before {
+  content: '·'; position: absolute; left: 6px; top: -2px;
+  color: var(--gold-dark); font-size: 20px;
+}
+
+.legal-index {
+  padding: var(--s6) 0; border-top: 1px solid var(--charcoal-08);
+  max-width: 900px;
+}
+.legal-index h2 {
+  font-family: var(--serif); font-size: 25px; font-weight: 400; margin: 0 0 10px;
+}
+.legal-index-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0 var(--s5); margin-top: var(--s4);
+}
+.legal-index-item {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 14px 0; border-bottom: 1px solid var(--charcoal-08);
+}
+.legal-index-item:hover { text-decoration: none; }
+.legal-index-name { font-size: 15px; color: var(--charcoal); }
+.legal-index-item:hover .legal-index-name { color: var(--ink-gold); }
+.legal-index-cat {
+  font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.muted { color: var(--charcoal-50); }
+
+.legal-foot {
+  padding: var(--s5) 0 var(--s8);
+  font-size: 12.5px; line-height: 1.8; color: var(--muted);
+  max-width: 720px;
+}
+
+/* ── the footer's legal column ────────────────────────────────────── */
+
+.footer-legal-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 4px var(--s4); margin-top: var(--s3);
+}

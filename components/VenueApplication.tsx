@@ -47,13 +47,22 @@ const HEARD = ['Google or web search', 'Instagram', 'LinkedIn', 'Pinterest',
   'The Sanctum Journal', 'A friend or colleague', 'Industry referral',
   'An event or retreat', 'Press or a publication'];
 
+/* Each agreement at its own URL rather than as an anchor on /legal.
+ *
+ * These are not tabs — nobody browses to a Data Accuracy Declaration —
+ * and a hash naming something not on the page opens the first tab
+ * instead, which is silently wrong. Somebody clicking through to read
+ * what they are signing must land on it. */
 const AGREEMENTS: [string, string, string][] = [
-  ['website-terms-of-use', 'Website Terms & Conditions', '/legal#terms'],
-  ['venue-owner-agreement', 'Venue Owner Agreement', '/legal#venue-owner'],
-  ['concierge-introduction-terms', 'Concierge Introduction Terms', '/legal#concierge'],
-  ['venue-data-accuracy-declaration', 'Venue Data Accuracy Declaration', '/legal#accuracy'],
+  ['website-terms-of-use', 'Website Terms of Use', '/legal/website-terms-of-use'],
+  ['venue-owner-agreement', 'Venue Owner Agreement', '/legal/venue-owner-agreement'],
+  ['concierge-introduction-terms', 'Concierge Introduction Terms',
+   '/legal/concierge-introduction-terms'],
+  ['venue-data-accuracy-declaration', 'Venue Data Accuracy Declaration',
+   '/legal/venue-data-accuracy-declaration'],
   ['health-safety-liability-declaration',
-   'Venue Owner Health, Safety and Liability Declaration', '/legal#health'],
+   'Venue Owner Health, Safety and Liability Declaration',
+   '/legal/health-safety-liability-declaration'],
 ];
 
 export default function VenueApplication({
