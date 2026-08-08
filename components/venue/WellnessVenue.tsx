@@ -1,0 +1,274 @@
+import VenueTabs from '@/components/VenueTabs';
+import VenueEnquiry from '@/components/VenueEnquiry';
+import { Review, ReviewScores } from './RetreatVenue';
+import { Glance, Section, TabHero } from './Section';
+import { duration, money } from '@/lib/venue';
+
+/* The wellness venue template.
+ *
+ * A wellness guest is deciding what to book and for when. So the menu
+ * comes first — before the building, before the setting — because that
+ * is the question. A retreat host wants the shala; a guest wants to know
+ * what ninety minutes costs and whether they can have it in their room.
+ *
+ * Deliberately not the retreat template. Same data underneath, different
+ * order, different emphasis, and different words. */
+
+export default function WellnessVenue({ v }: { v: Record<string, any> }) {
+  const immediate = v.settings.filter((s: any) => s.relation === 'Immediate');
+  const reachable = v.settings.filter((s: any) => s.relation === 'Reachable');
+
+  const place = [v.what_they_call_it ?? v.locality, v.city, v.country]
+    .filter(Boolean).filter((x: string, i: number, a: string[]) => a.indexOf(x) === i)
+    .join(', ');
+
+  // Grouped by what it is, so somebody after a massage is not reading
+  // past the thermal circuit to find it.
+  const byCategory = v.services.reduce((acc: Record<string, any[]>, s: any) => {
+    const k = s.category ?? 'Other';
+    (acc[k] ??= []).push(s);
+    return acc;
+  }, {});
+
+  const facilitiesByCategory = v.facilities.reduce(
+    (acc: Record<string, any[]>, f: any) => {
+      const k = f.category ?? 'Other';
+      (acc[k] ??= []).push(f);
+      return acc;
+    }, {});
+
+  const cheapest = v.services
+    .map((s: any) => s.base_price).filter((p: any) => p != null && p > 0)
+    .sort((a: number, b: number) => a - b)[0];
+
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    v.services.length && { id: 'services', label: 'Services' },
+    v.spaces.length && { id: 'space', label: 'The space' },
+    v.rooms.length && { id: 'stay', label: 'Stay' },
+    v.facilities.length && { id: 'facilities', label: 'Facilities' },
+    { id: 'visiting', label: 'Visiting' },
+    v.reviews.length && { id: 'reviews', label: 'Reviews' },
+    { id: 'enquire', label: 'Book' },
+  ].filter(Boolean) as { id: string; label: string }[];
+
+  return (
+    <>
+      <div className="hero-gallery">
+        {v.image_url && <img className="hero-main-img" src={v.image_url} alt={v.venue_name} />}
+        <div className="hero-overlay" />
+        <div className="hero-content">
+          <div className="hero-eyebrow">{v.venue_type}</div>
+          <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
+          <div className="hero-location">{place}</div>
+          {v.rating && (
+            <span className="hero-rating">
+              <span className="star">&#9733;</span>
+              {Number(v.rating).toFixed(1)} · {v.review_count} reviews
+            </span>
+          )}
+        </div>
+      </div>
+
+      <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
+
+      <div id="panel-overview" className="vpanel">
+        <Section tone="white">
+          <div className="prose-narrow">
+            {v.editor_note && (
+              <p className="prose-lead" style={{ fontStyle: 'italic',
+                     borderLeft: '2px solid var(--gold)', paddingLeft: 20 }}>
+                {v.editor_note}
+              </p>
+            )}
+            <p className="prose-lead">
+              {v.listing_description ?? v.venue_short_description}
+            </p>
+            {v.venue_full_description && <p>{v.venue_full_description}</p>}
+          </div>
+        </Section>
+
+        <Section tone="cream" label="At a glance">
+          <Glance stats={[
+            ['Services', v.services.length || null],
+            ['From', cheapest ? money(cheapest, v.services[0]?.currency) : null],
+            ['Capacity', v.max_guests],
+            ['Rooms', v.rooms.length ? v.rooms.reduce(
+              (n: number, r: any) => n + (r.quantity ?? 1), 0) : null],
+          ]} />
+        </Section>
+
+        {!!v.categories.length && (
+          <Section tone="white" label="What is offered here"
+            title="Modalities and traditions">
+            <div className="amenity-pill-row" style={{ justifyContent: 'center' }}>
+              {v.categories.map((c: any) => (
+                <span key={c.category_id} className="amenity-pill">{c.name}</span>
+              ))}
+            </div>
+          </Section>
+        )}
+      </div>
+
+      {/* Services first, because that is the question a guest is here to
+          answer. Grouped, so somebody after a massage is not reading past
+          the thermal circuit to find it. */}
+      {!!v.services.length && (
+        <div id="panel-services" className="vpanel" hidden>
+          <TabHero image={v.image_url} label="The menu" title="What is offered"
+            subtitle={cheapest
+              ? `From ${money(cheapest, v.services[0]?.currency)}`
+              : undefined} />
+
+          {Object.entries(byCategory).map(([cat, items], i) => (
+            <Section key={cat} tone={i % 2 ? 'cream' : 'white'} label={cat}>
+              <div className="item-grid">
+                {(items as any[]).map((s) => (
+                  <article key={s.id} className="item priced">
+                    <div>
+                      <h3>{s.name}</h3>
+                      <div className="item-meta">
+                        {[duration(s.duration_minutes),
+                          s.couples_available ? 'For two' : null,
+                          s.available_in_room ? 'In your room' : null,
+                        ].filter(Boolean).join(' · ')}
+                      </div>
+                      {s.description && <p>{s.description}</p>}
+                    </div>
+                    <div className="priced-amount">
+                      {s.price_is_from && <span className="from">from</span>}
+                      {money(s.base_price, s.currency)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          ))}
+        </div>
+      )}
+
+      {!!v.spaces.length && (
+        <div id="panel-space" className="vpanel" hidden>
+          <TabHero image={v.image_url} label="The space"
+            title={v.setting_headline ?? 'Inside'} />
+          <Section tone="white">
+            <div className="item-grid">
+              {v.spaces.map((s: any) => (
+                <article key={s.id} className="item">
+                  <h3>{s.name}</h3>
+                  <div className="item-meta">
+                    {[s.space_type,
+                      s.capacity ? `Holds ${s.capacity}` : null,
+                      s.is_outdoor ? 'Outdoor' : null,
+                      s.step_free_access ? 'Step-free' : null,
+                    ].filter(Boolean).join(' · ')}
+                  </div>
+                  {s.description && <p>{s.description}</p>}
+                </article>
+              ))}
+            </div>
+          </Section>
+        </div>
+      )}
+
+      {!!v.rooms.length && (
+        <div id="panel-stay" className="vpanel" hidden>
+          <Section tone="white" label="Stay" title="If you are staying">
+            <div className="item-grid">
+              {v.rooms.map((r: any) => (
+                <article key={r.id} className="item">
+                  <h3>{r.name}</h3>
+                  <div className="item-meta">
+                    {[r.sleeps ? `Sleeps ${r.sleeps}` : null,
+                      r.bed_configuration, r.bathroom_type,
+                      r.is_accessible ? 'Accessible' : null,
+                    ].filter(Boolean).join(' · ')}
+                  </div>
+                  {r.description && <p>{r.description}</p>}
+                </article>
+              ))}
+            </div>
+          </Section>
+        </div>
+      )}
+
+      {!!v.facilities.length && (
+        <div id="panel-facilities" className="vpanel" hidden>
+          <Section tone="white" label="Facilities" title="What is here">
+            <div className="amenity-columns">
+              {Object.entries(facilitiesByCategory).map(([cat, items]) => (
+                <div key={cat}>
+                  <div className="amenity-cat">{cat}</div>
+                  <div className="amenity-pill-row">
+                    {(items as any[]).map((f) => (
+                      <span key={f.facility_id} className="amenity-pill">
+                        {f.name}{f.detail ? ` — ${f.detail}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+      )}
+
+      <div id="panel-visiting" className="vpanel" hidden>
+        <TabHero image={v.image_url} label="Visiting"
+          title={v.location_tagline ?? 'Finding us'} subtitle={place} />
+
+        {!!immediate.length && (
+          <Section tone="white" label="The setting">
+            <div className="distance-list">
+              {immediate.map((s: any) => (
+                <div key={s.setting_id} className="distance-row">
+                  <span className="distance-name">{s.name}</span>
+                  <span className="distance-time">{s.detail ?? 'At the venue'}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {!!reachable.length && (
+          <Section tone="cream" label="Nearby">
+            <div className="distance-list">
+              {reachable.map((s: any) => (
+                <div key={s.setting_id} className="distance-row">
+                  <span className="distance-name">{s.detail ?? s.name}</span>
+                  <span className="distance-time">
+                    {s.travel_minutes
+                      ? `${s.travel_minutes} minutes${s.travel_mode ? ` by ${s.travel_mode.toLowerCase()}` : ''}`
+                      : 'Nearby'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+      </div>
+
+      {!!v.reviews.length && (
+        <div id="panel-reviews" className="vpanel" hidden>
+          <Section tone="white" label="Reviews"
+            title={v.rating ? `${Number(v.rating).toFixed(1)} from ${v.review_count} visits` : 'Reviews'}
+            subtitle="From guests who booked through us">
+            <ReviewScores reviews={v.reviews} />
+            <div style={{ maxWidth: 760, margin: '0 auto' }}>
+              {v.reviews.map((r: any) => <Review key={r.id} r={r} venue={v.venue_name} />)}
+            </div>
+          </Section>
+        </div>
+      )}
+
+      <div id="panel-enquire" className="vpanel" hidden>
+        <Section tone="cream" label="Book" title="Arrange your visit"
+          subtitle="We answer within a day. Nothing is charged and nothing is committed.">
+          <div style={{ maxWidth: 720, margin: '0 auto' }}>
+            <VenueEnquiry venueId={v.id} venueName={v.venue_name} marketplace="Wellness" />
+          </div>
+        </Section>
+      </div>
+    </>
+  );
+}
