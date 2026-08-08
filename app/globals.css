@@ -776,6 +776,12 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--charcoal); border-bottom-color: var(--gold);
 }
 
+/* The rule that makes the tabs work.
+ *
+ * Every panel is server-rendered so a crawler reads all eight; this
+ * hides seven of them. Without it they stack, and the page is every tab
+ * at once — which is what happens when a stylesheet loses a rule and
+ * nothing checks. */
 .vpanel[hidden] { display: none; }
 
 /* ── each tab's own hero ──────────────────────────────────────────── */
