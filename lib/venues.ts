@@ -51,16 +51,21 @@ export type Filters = {
 export async function filterOptions() {
   const supabase = await createClient();
 
-  const [countries, types, settings, categories] = await Promise.all([
-    // Only countries that have something in them. Offering a filter that
-    // returns nothing is worse than not offering it.
+  const [countries, types, settings, categories, counts] = await Promise.all([
     supabase.from('venue_cards').select('country, country_slug')
       .not('country', 'is', null),
     supabase.from('venue_types').select('id,name,slug,applies_to').order('name'),
     supabase.from('venue_settings').select('id,name,slug').order('display_order'),
     supabase.from('modality_categories')
       .select('id,name,slug,in_retreat,in_wellness').order('display_order'),
+    // How many published venues sit behind each. A filter that returns
+    // nothing is worse than one that is not offered, so the count is
+    // shown and the empty ones are pushed down.
+    supabase.from('filter_counts').select('kind,slug,venues'),
   ]);
+
+  const countFor = (kind: string, slug: string) =>
+    (counts.data ?? []).find((c: any) => c.kind === kind && c.slug === slug)?.venues ?? 0;
 
   const seen = new Map<string, { name: string; slug: string; count: number }>();
   for (const r of countries.data ?? []) {
@@ -75,8 +80,15 @@ export async function filterOptions() {
   return {
     countries: [...seen.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     types: types.data ?? [],
-    settings: settings.data ?? [],
-    categories: categories.data ?? [],
+    // Every setting is offered, ordered so the ones with venues come
+    // first. The empty ones stay listed rather than disappearing, since
+    // a list that changes shape as venues are added is confusing.
+    settings: (settings.data ?? []).map((s: any) => ({
+      ...s, count: countFor('setting', s.slug),
+    })).sort((a: any, b: any) => b.count - a.count),
+    categories: (categories.data ?? []).map((c: any) => ({
+      ...c, count: countFor('category', c.slug),
+    })),
   };
 }
 
@@ -89,8 +101,39 @@ export async function filterOptions() {
 export async function venueCards(f: Filters = {}) {
   const supabase = await createClient();
 
+  // Setting and modality are many-to-many, so they cannot be a column on
+  // the card. The ids are fetched first and the cards filtered to them —
+  // two round trips rather than a join the browser would have to do.
+  let only: number[] | null = null;
+
+  const narrow = async (ids: number[]) => {
+    only = only === null ? ids : only.filter((i) => ids.includes(i));
+  };
+
+  if (f.setting) {
+    const { data } = await supabase.from('venue_settings_public')
+      .select('venue_id')
+      // Immediate only. A venue twenty minutes from a beach is not
+      // beachfront, and returning it when somebody asked for beachfront
+      // is how a filter loses trust in one click.
+      .eq('slug', f.setting).eq('relation', 'Immediate');
+    await narrow((data ?? []).map((r: any) => r.venue_id));
+  }
+
+  if (f.practice) {
+    const { data } = await supabase.from('venue_categories_public')
+      .select('venue_id').eq('slug', f.practice);
+    await narrow((data ?? []).map((r: any) => r.venue_id));
+  }
+
+  // Nothing matched one of them, so nothing matches all of them.
+  if (only !== null && (only as number[]).length === 0) {
+    return { cards: [] as Card[], error: null };
+  }
+
   let q = supabase.from('venue_cards').select('*');
 
+  if (only !== null) q = q.in('id', only as number[]);
   if (f.marketplace) q = q.eq('marketplace', f.marketplace);
   if (f.country) q = q.eq('country_slug', f.country);
   if (f.type) q = q.eq('venue_type', f.type);

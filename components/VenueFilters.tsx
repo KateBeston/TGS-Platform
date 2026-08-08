@@ -109,8 +109,15 @@ export default function VenueFilters({
           <select id="setting" value={f.setting}
             onChange={(e) => set('setting', e.target.value)}>
             <option value="">Any setting</option>
+            {/* All twenty-one, with the ones that have venues first and
+                the count shown. An empty setting stays listed rather than
+                disappearing — a list that changes shape as venues are
+                added is harder to trust than one that is honest. */}
             {settings.map((s) => (
-              <option key={s.slug ?? s.name} value={s.slug ?? s.name}>{s.name}</option>
+              <option key={s.slug ?? s.name} value={s.slug ?? s.name}
+                      disabled={s.count === 0}>
+                {s.name}{s.count ? ` (${s.count})` : ' — none yet'}
+              </option>
             ))}
           </select>
         </div>
@@ -126,7 +133,10 @@ export default function VenueFilters({
               {f.marketplace ? 'Any modality' : 'Choose what you are looking for first'}
             </option>
             {categoriesShown.map((c) => (
-              <option key={c.slug ?? c.name} value={c.slug ?? c.name}>{c.name}</option>
+              <option key={c.slug ?? c.name} value={c.slug ?? c.name}
+                      disabled={c.count === 0}>
+                {c.name}{c.count ? ` (${c.count})` : ' — none yet'}
+              </option>
             ))}
           </select>
         </div>
