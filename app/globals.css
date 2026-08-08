@@ -606,3 +606,188 @@ img { max-width: 100%; height: auto; display: block; }
 .btn-line:hover {
   background: var(--charcoal); color: var(--warm-white); text-decoration: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ONE VENUE
+
+   Eight panels, all rendered into the HTML and hidden by the tabs. A
+   panel that only exists after JavaScript runs is a panel a crawler
+   never sees — seven eighths of the page, invisible.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.vhead { padding: var(--s5) 0 var(--s4); }
+.vhead h1 { margin: 10px 0 8px; }
+.vhead-place { font-size: 17px; color: var(--ink-quiet); margin-bottom: var(--s3); }
+
+.vhead-facts {
+  display: flex; gap: var(--s4); flex-wrap: wrap;
+  font-size: 14px; color: var(--charcoal);
+}
+.vhead-facts .star { color: var(--gold); }
+.vhead-facts .muted { color: var(--muted); }
+
+.vhero { margin-bottom: var(--s5); }
+.vhero img {
+  width: 100%; max-height: 520px; object-fit: cover;
+}
+
+/* ── tabs ─────────────────────────────────────────────────────────── */
+
+.vtabs {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s6);
+  position: sticky; top: 76px; z-index: 40;
+  background: var(--warm-white);
+}
+
+.vtabs button {
+  background: none; border: 0; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  padding: 14px 18px;
+  font-family: var(--sans); font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-quiet);
+}
+.vtabs button:hover { color: var(--charcoal); }
+.vtabs button.is-on {
+  color: var(--charcoal); border-bottom-color: var(--gold);
+}
+.vtab-count { margin-left: 7px; color: var(--muted); }
+
+.vpanel { padding-bottom: var(--s7); }
+.vpanel[hidden] { display: none; }
+
+.vsub {
+  font-family: var(--serif); font-weight: 300;
+  font-size: 27px; margin: 0 0 var(--s4);
+}
+.vsub-small {
+  font-family: var(--sans); font-size: 9.5px;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); margin: var(--s5) 0 var(--s3);
+}
+
+.vprose { max-width: 680px; }
+.vlead { font-size: 19px; line-height: 1.7; }
+.vprose h2 { font-size: 24px; margin: var(--s5) 0 var(--s3); }
+
+.pills { display: flex; gap: 8px; flex-wrap: wrap; margin: var(--s4) 0; }
+.pill {
+  border: 1px solid var(--border); padding: 7px 14px;
+  font-size: 12.5px; color: var(--ink-quiet);
+  background: var(--warm-cream);
+}
+.pill-gold { border-color: var(--gold); color: var(--charcoal); }
+.pill-note { color: var(--muted); }
+
+/* ── lists ────────────────────────────────────────────────────────── */
+
+.vlist { display: flex; flex-direction: column; }
+
+.vrow {
+  display: flex; justify-content: space-between; gap: var(--s5);
+  padding: var(--s4) 0; border-bottom: 1px solid var(--border);
+}
+.vrow h3 {
+  font-family: var(--serif); font-weight: 300;
+  font-size: 21px; margin: 0 0 6px;
+}
+.vrow p { margin: 8px 0 0; color: var(--ink-quiet); max-width: 660px; }
+
+.vrow-meta { font-size: 13px; color: var(--muted); }
+.vrow-note { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+.vrow-price {
+  font-family: var(--serif); font-size: 22px;
+  white-space: nowrap; text-align: right;
+}
+.vrow-price .from {
+  display: block; font-family: var(--sans); font-size: 10px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+}
+
+.vlist-tight { display: flex; flex-direction: column; gap: 9px; }
+.vrow-line { font-size: 15px; color: var(--ink-quiet); }
+.vrow-line strong { color: var(--charcoal); font-weight: 400; }
+
+.vfacilities {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--s3) var(--s5);
+}
+.vfacility {
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.vfacility-name { font-size: 15px; }
+.vfacility-detail { font-size: 12.5px; color: var(--muted); }
+
+/* ── reviews ──────────────────────────────────────────────────────── */
+
+.vreview { padding: var(--s5) 0; border-bottom: 1px solid var(--border); }
+.vreview-top {
+  display: flex; justify-content: space-between; gap: var(--s4);
+  align-items: baseline; margin-bottom: 10px; font-size: 14px;
+}
+.vreview h3 {
+  font-family: var(--serif); font-weight: 300; font-size: 20px; margin: 0 0 8px;
+}
+.vreview p { margin: 0; color: var(--ink-quiet); max-width: 720px; }
+
+.vreview-verified {
+  margin-top: 12px; font-size: 12px; color: var(--ink-gold);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+
+.vreview-response {
+  margin-top: var(--s4); padding: var(--s4);
+  background: var(--warm-cream); border-left: 2px solid var(--gold);
+}
+.vreview-response strong {
+  display: block; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+
+/* ── the enquiry ──────────────────────────────────────────────────── */
+
+.enquiry {
+  max-width: 720px; padding: var(--s6);
+  background: var(--warm-cream); border: 1px solid var(--border);
+}
+.enquiry h3 {
+  font-family: var(--serif); font-weight: 300; font-size: 27px; margin: 0 0 8px;
+}
+.enquiry-sub { color: var(--ink-quiet); margin-bottom: var(--s5); }
+
+.enquiry-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--s4); margin-bottom: var(--s4);
+}
+
+.enquiry .f { margin-bottom: var(--s4); }
+.enquiry label {
+  display: block; margin-bottom: 7px;
+  font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+}
+.enquiry input, .enquiry textarea {
+  width: 100%; background: var(--warm-white);
+  border: 1px solid var(--border-input); padding: 12px;
+  font-family: var(--sans); font-size: 14.5px; font-weight: 300;
+  color: var(--charcoal);
+}
+.enquiry input:focus, .enquiry textarea:focus {
+  outline: none; border-color: var(--ink-gold);
+}
+
+.enquiry-problem { color: var(--bad); font-size: 14px; margin: 0 0 var(--s3); }
+.enquiry-fine {
+  margin: var(--s4) 0 0; font-size: 12.5px; color: var(--muted);
+}
+.enquiry-done { text-align: center; }
+
+@media (max-width: 720px) {
+  .vrow { flex-direction: column; gap: var(--s3); }
+  .vrow-price { text-align: left; }
+  .vtabs { position: static; }
+}
