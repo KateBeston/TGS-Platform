@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import FirstTouch from '@/components/FirstTouch';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
@@ -30,6 +31,10 @@ export default function RootLayout({
   return (
     <html lang="en-AU">
       <body>
+        {/* Records how somebody arrived, once per session. First touch
+            rather than last — a Journal reader who later searches for us
+            was brought here by the Journal. */}
+        <FirstTouch />
         <SiteHeader />
         <main id="main">{children}</main>
         {/* Above the footer on every page, from the layout rather than
