@@ -1,6 +1,20 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+/** Whether the environment is set up at all.
+ *
+ *  Checked rather than asserted. createServerClient throws when the URL
+ *  or key is undefined, and it throws before any error handling in a page
+ *  can run — so a missing variable becomes a blank server error rather
+ *  than a sentence saying which variable is missing.
+ */
+export function environmentIsReady(): { ready: boolean; missing: string[] } {
+  const missing: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missing.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  return { ready: missing.length === 0, missing };
+}
+
 /** The database, read from the server.
  *
  *  The platform site never signs anybody in and never writes, so this
@@ -9,6 +23,11 @@ import { cookies } from 'next/headers';
  *  rather than being refused, which is the behaviour a public site wants.
  */
 export async function createClient() {
+  const { ready, missing } = environmentIsReady();
+  if (!ready) {
+    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(

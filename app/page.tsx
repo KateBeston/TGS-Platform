@@ -1,27 +1,49 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, environmentIsReady } from '@/lib/supabase/server';
 
 // Read fresh while there is nothing to cache. Caching comes once there
 // are pages worth caching, and guessing at it now would hide whether the
 // connection works.
 export const dynamic = 'force-dynamic';
 
+type Venue = {
+  id: number;
+  venue_name: string | null;
+  city: string | null;
+  country: string | null;
+  venue_type: string | null;
+  max_guests: number | null;
+};
+
 export default async function Home() {
-  const supabase = await createClient();
+  // Checked before connecting. A missing variable throws inside the
+  // Supabase client, before any try/catch in this page can run — which
+  // produces a blank server error rather than a sentence naming the
+  // variable.
+  const env = environmentIsReady();
 
-  // The published view rather than the table. It carries only public
-  // columns, so a mistake here cannot reach a commission rate.
-  const { data: venues, error } = await supabase
-    .from('published_venues')
-    .select('id, venue_name, city, country, venue_type, max_guests')
-    .order('venue_name')
-    .limit(12);
+  let venues: Venue[] = [];
+  let count: number | null = null;
+  let problem: string | null = null;
 
-  // Counted separately, because "nothing published yet" and "the
-  // connection is broken" look identical otherwise and only one of them
-  // is a problem.
-  const { count } = await supabase
-    .from('published_venues')
-    .select('id', { count: 'exact', head: true });
+  if (env.ready) {
+    try {
+      const supabase = await createClient();
+
+      const [list, total] = await Promise.all([
+        supabase.from('published_venues')
+          .select('id, venue_name, city, country, venue_type, max_guests')
+          .order('venue_name').limit(12),
+        supabase.from('published_venues')
+          .select('id', { count: 'exact', head: true }),
+      ]);
+
+      if (list.error) problem = list.error.message;
+      venues = (list.data ?? []) as Venue[];
+      count = total.count ?? 0;
+    } catch (e: any) {
+      problem = String(e?.message ?? e);
+    }
+  }
 
   return (
     <main className="wrap" style={{ paddingTop: 90, paddingBottom: 90 }}>
@@ -32,27 +54,45 @@ export default async function Home() {
 
       <p style={{ maxWidth: 560, color: 'var(--ink-quiet)', fontSize: 18 }}>
         The platform site. Nothing is built yet — this page exists to prove
-        the connection to the database, and it does.
+        the connection to the database.
       </p>
 
       <div style={{
         marginTop: 48, padding: '28px 32px',
         background: 'var(--warm-cream)',
-        borderLeft: '2px solid var(--gold)',
+        borderLeft: `2px solid ${env.ready && !problem ? 'var(--gold)' : 'var(--bad)'}`,
       }}>
         <div className="eyebrow">Connection</div>
 
-        {error ? (
+        {!env.ready ? (
           <>
-            <p style={{ margin: '10px 0 0', color: 'var(--bad)' }}>
-              Could not reach the database.
+            <p style={{ margin: '10px 0 0', fontSize: 18 }}>
+              Not configured yet.
             </p>
-            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-quiet)' }}>
-              {error.message}
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: 'var(--ink-quiet)' }}>
+              Missing:{' '}
+              {env.missing.map((m, i) => (
+                <span key={m}>
+                  {i > 0 && ', '}
+                  <code style={{ fontFamily: 'ui-monospace, Menlo, monospace',
+                                 fontSize: 13.5 }}>{m}</code>
+                </span>
+              ))}
             </p>
-            <p style={{ margin: '12px 0 0', fontSize: 14, color: 'var(--ink-quiet)' }}>
-              Usually the environment variables. Check both are set in
-              Vercel, for Production as well as Preview.
+            <p style={{ margin: '14px 0 0', fontSize: 15, color: 'var(--ink-quiet)' }}>
+              In Vercel, under Settings → Environment Variables. Add both, tick
+              Production, Preview and Development, then redeploy — Vercel only
+              picks up new variables on a fresh build, so saving them is not
+              enough on its own.
+            </p>
+          </>
+        ) : problem ? (
+          <>
+            <p style={{ margin: '10px 0 0', fontSize: 18 }}>
+              Reached the environment but not the data.
+            </p>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: 'var(--ink-quiet)' }}>
+              {problem}
             </p>
           </>
         ) : (
@@ -60,7 +100,7 @@ export default async function Home() {
             <p style={{ margin: '10px 0 0', fontSize: 18 }}>
               Reached Supabase and read the published venues.
             </p>
-            <p style={{ margin: '6px 0 0', fontSize: 15, color: 'var(--ink-quiet)' }}>
+            <p style={{ margin: '8px 0 0', fontSize: 15, color: 'var(--ink-quiet)' }}>
               {count === 0
                 ? 'None are published yet, which is the expected answer today — '
                   + 'an empty list means the whole chain works.'
@@ -70,7 +110,7 @@ export default async function Home() {
         )}
       </div>
 
-      {!!venues?.length && (
+      {!!venues.length && (
         <div style={{ marginTop: 48 }}>
           <h2>Published</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
