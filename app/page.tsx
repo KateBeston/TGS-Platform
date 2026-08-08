@@ -1,86 +1,94 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
+import QuoteBand from '@/components/QuoteBand';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'The Global Sanctum — curated retreat venues and wellness sanctuaries worldwide',
+  title: 'The Global Sanctum — Curated Wellness Retreats & Sanctuaries Worldwide',
   description:
-    'Discover exceptional retreat venues and wellness sanctuaries around the world. '
-    + 'Curated for depth rather than volume.',
+    'Discover exceptional retreat venues and wellness sanctuaries around the world.',
   alternates: { canonical: '/' },
 };
 
-/* The home page.
+/* The home page, from tgs_home_v6.
  *
- * Built from tgs_home_v6 — hero with search, the two paths, settings
- * mosaic, a premium selection, a quote, trending destinations, and the
- * philosophy.
- *
- * Two departures from the mockup, both for the same reason. The premium
- * and featured carousels are grids: a carousel hides two thirds of what
- * it holds behind a control, which on the page that has to make a first
- * impression is the wrong trade. And the settings mosaic reads real
- * settings from the database rather than six hardcoded ones, so it
- * cannot drift from the filter on /venues the way the old site did.
+ * The copy is the mockup's, word for word. Where a venue or a count is
+ * shown it comes from the database, so the page cannot claim a venue it
+ * does not have — but nothing that was written has been rewritten.
  */
 
 const PATHS = [
-  { title: 'Retreat venues', image: '/images/path-retreat-venues.jpg',
-    text: 'Curated spaces for immersive retreat experiences.',
-    href: '/venues?marketplace=Retreat' },
-  { title: 'Wellness venues', image: '/images/path-wellness-venues.jpg',
-    text: 'Day spas, bathhouses and thermal sanctuaries for restoration.',
-    href: '/venues?marketplace=Wellness' },
-  { title: 'Wellness experiences', image: '/images/path-experiences.jpg',
-    text: 'Find a venue by the practice you are looking for.',
-    href: '/wellness-experiences' },
+  { title: 'Retreat Venues', text: 'Curated spaces for immersive retreat experiences.',
+    cta: 'Explore Venues', href: '/venues?marketplace=Retreat',
+    image: '/images/path-retreat-venues.jpg' },
+  { title: 'Wellness Venues', text: 'Sanctuaries where restoration becomes routine.',
+    cta: 'Explore Venues', href: '/venues?marketplace=Wellness',
+    image: '/images/path-wellness-venues.jpg' },
+  { title: 'Wellness Experiences', text: 'Single sessions and ancient healing traditions.',
+    cta: 'Explore Experiences', href: '/wellness-experiences',
+    image: '/images/path-experiences.jpg' },
+  { title: 'The Wellness Edit', text: 'Stories, guides, and inspiration for the path.',
+    cta: 'Explore The Edit', href: '/the-wellness-edit',
+    image: '/images/experience-forest.jpg' },
 ];
 
-const SETTING_IMAGES: Record<string, string> = {
-  coastal: '/images/setting-coastal.jpg',
-  beachfront: '/images/setting-coastal.jpg',
-  desert: '/images/setting-desert.jpg',
-  tropical: '/images/setting-tropical.jpg',
-  urban: '/images/setting-urban.jpg',
-  forest: '/images/philosophy-forest.jpg',
-  rainforest: '/images/philosophy-forest.jpg',
-  mountain: '/images/philosophy-meditation.jpg',
-};
+const SETTINGS = [
+  ['Coastal Sanctuaries', 'coastal', '/images/setting-coastal.jpg'],
+  ['Forest Hideaways', 'forest', '/images/philosophy-forest.jpg'],
+  ['Desert Retreats', 'desert', '/images/setting-desert.jpg'],
+  ['Tropical Sanctuaries', 'tropical', '/images/setting-tropical.jpg'],
+  ['Urban Sanctuaries', 'urban', '/images/setting-urban.jpg'],
+  ['Mountain Sanctuaries', 'mountain', '/images/philosophy-meditation.jpg'],
+];
 
-const FEATURES = [
-  ['Filter by what happens there',
-   'Not just where a venue is, but which practices it actually holds — and whether the space suits them.'],
-  ['Capacity that means something',
-   'How many the shala seats, not how many the building sleeps. The two are rarely the same.'],
-  ['Access, stated plainly',
-   'Step-free routes, accessible bathrooms, and who a venue is open to. Asked before you enquire, not after.'],
-  ['Setting, not postcode',
-   'Beachfront and twenty minutes from a beach are different things, and we record which is which.'],
+const DESTINATIONS = [
+  ['Australia', 'Vast landscapes, ancient wellness', 'australia',
+   '/images/destination-australia.jpg'],
+  ['Bali', 'Sacred island, spiritual sanctuary', 'indonesia',
+   '/images/destination-thailand.jpg'],
+  ['Japan', 'Ancient traditions, thermal waters', 'japan',
+   '/images/destination-japan.jpg'],
+  ['India', 'Ayurvedic wisdom, sacred rituals', 'india',
+   '/images/destination-india.jpg'],
+  ['Thailand', 'Tropical healing, mindful traditions', 'thailand',
+   '/images/setting-tropical.jpg'],
+];
+
+const SEARCH_BY = [
+  ['By Modality',
+   'Yoga, breathwork, plant medicine, somatic work, sound healing, permaculture and more.'],
+  ['By Location',
+   'Coastal sanctuaries, mountain temples, thermal springs, tropical hideaways.'],
+  ['By Wellness Type',
+   'Ayurvedic, traditional Chinese medicine, thermal hydrotherapy, cryotherapy.'],
+  ['By Architecture',
+   'Eco lodges, heritage properties, purpose-built centres, minimalist sanctuaries.'],
 ];
 
 const PRINCIPLES = [
-  ['Curated with intention',
-   'Every venue is read by a person. The collection is smaller than it could be, on purpose.'],
-  ['Transparency first',
-   'Accurate information about what a venue genuinely offers. No inflated claims.'],
-  ['Connection and community',
-   'Venue owners, retreat hosts and guests in one ecosystem that serves all three.'],
-  ['Global by design',
-   'Scandinavia to South America, Southeast Asia to the Pacific.'],
+  ['Accessibility Without Pretence',
+   'Every venue, every host, every wellness guest — elevated, never exclusionary'],
+  ['Reverence For The Craft',
+   'Ancient traditions, modern practitioners, and the sacred lands they hold — honoured'],
+  ['Effortless By Design',
+   'Discovery for guests, bookings for venues, tools for hosts — technology working quietly'],
+  ['A Higher Standard, Together',
+   'Better data, deeper insight, and a bar we raise across the industry as one'],
 ];
 
-function VenueTile({ v }: { v: Card }) {
+function VenueSlide({ v }: { v: Card }) {
   return (
     <Link href={venueHref(v)} className="premium-card">
       <div className="premium-card-image">
         {v.image_url
           ? <img src={v.image_url} alt="" loading="lazy" />
           : <span className="placeholder-img">The Global Sanctum</span>}
-        {v.venue_type && <span className="premium-card-tag">{v.venue_type}</span>}
+        {v.country && <span className="premium-card-tag">{v.country}</span>}
       </div>
       <div className="premium-card-content">
         <p className="premium-card-location">{placeOf(v)}</p>
@@ -88,12 +96,8 @@ function VenueTile({ v }: { v: Card }) {
         <p className="premium-card-desc">
           {v.editor_note ?? v.listing_description ?? v.venue_short_description}
         </p>
-        <p className="premium-card-type">
-          {[v.max_guests && `Sleeps ${v.max_guests}`,
-            v.rating ? `★ ${Number(v.rating).toFixed(1)}` : null]
-            .filter(Boolean).join('  ·  ')}
-        </p>
-        <span className="premium-card-cta">See the venue &rarr;</span>
+        <p className="premium-card-type">{v.venue_type}</p>
+        <span className="premium-card-cta">Explore Venue &rarr;</span>
       </div>
     </Link>
   );
@@ -102,125 +106,103 @@ function VenueTile({ v }: { v: Card }) {
 export default async function Home() {
   const supabase = await createClient();
 
-  const [{ data: cards }, { data: settings }, { data: countries }] = await Promise.all([
-    supabase.from('venue_cards').select('*')
-      .order('tier_order').order('rating', { ascending: false, nullsFirst: false }),
-    supabase.from('filter_counts').select('*').eq('kind', 'setting')
-      .gt('venues', 0).order('venues', { ascending: false }).limit(6),
-    supabase.from('venue_cards').select('country, country_slug').not('country', 'is', null),
-  ]);
+  const { data } = await supabase.from('venue_cards').select('*')
+    .order('tier_order').order('rating', { ascending: false, nullsFirst: false });
 
-  const venues = (cards ?? []) as Card[];
-  const premium = venues.filter((v) => v.tier_order <= 2).slice(0, 3);
-  const rest = venues.filter((v) => !premium.includes(v)).slice(0, 6);
-
-  // Countries with the most venues, for the trending grid.
-  const byCountry = new Map<string, { name: string; slug: string; n: number }>();
-  for (const c of (countries ?? []) as any[]) {
-    const e = byCountry.get(c.country_slug);
-    if (e) e.n += 1;
-    else byCountry.set(c.country_slug, { name: c.country, slug: c.country_slug, n: 1 });
-  }
-  const trending = [...byCountry.values()].sort((a, b) => b.n - a.n).slice(0, 4);
-  const trendingImages = ['/images/destination-australia.jpg', '/images/destination-japan.jpg',
-                          '/images/destination-india.jpg', '/images/destination-thailand.jpg'];
+  const venues = (data ?? []) as Card[];
+  const premium = venues.filter((v) => v.tier_order <= 2);
+  const featured = venues.filter((v) => v.tier_order > 2);
 
   return (
     <>
-      {/* ── hero ─────────────────────────────────────────────────── */}
       <section className="hero">
-        <div className="hero-bg">
-          <img src="/images/setting-coastal.jpg" alt="" />
-        </div>
+        <div className="hero-bg"><img src="/images/setting-coastal.jpg" alt="" /></div>
         <div className="hero-overlay" />
         <div className="hero-content">
           <div className="hero-eyebrow">The Global Sanctum</div>
           <h1 className="hero-headline">
-            Thoughtfully curated.<br />Globally connected.
+            Thoughtfully Curated.<br />Globally Connected.
           </h1>
           <p className="hero-subtext">
-            Discover exceptional retreat venues and wellness sanctuaries around
-            the world.
+            Discover exceptional retreat venues and wellness sanctuaries around the world.
           </p>
 
           <HomeSearch />
 
           <div className="hero-ctas">
             <Link className="hero-cta-link" href="/venues?marketplace=Retreat">
-              Browse retreat venues &rarr;
+              Browse Retreat Venues &rarr;
             </Link>
             <Link className="hero-cta-link" href="/venues?marketplace=Wellness">
-              Explore wellness venues &rarr;
+              Explore Wellness Venues &rarr;
             </Link>
             <Link className="hero-cta-link" href="/wellness-experiences">
-              Discover experiences &rarr;
+              Discover Experiences &rarr;
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── intro ────────────────────────────────────────────────── */}
       <section className="intro">
         <div className="intro-inner">
           <div className="intro-content">
-            <div className="intro-eyebrow">A new era of wellness discovery</div>
+            <div className="intro-eyebrow">A New Era of Wellness Discovery</div>
             <h2 className="intro-title">
-              The spaces where wellness happens. The venues where retreats
-              come to life.
+              The spaces where wellness happens. The venues where retreats come to
+              life. Curated and connected worldwide.
             </h2>
             <p className="intro-text">
-              We are the first curated platform dedicated to transformative wellness
-              venues and retreat spaces.
+              We are the world&rsquo;s first curated platform dedicated exclusively to
+              transformative wellness venues and retreat spaces.
             </p>
             <p className="intro-text">
-              Whether you are a retreat host seeking the right venue, a wellness guest
-              designing your next experience, or simply seeking restoration, we connect
-              you with extraordinary spaces around the world.
+              Whether you&rsquo;re a retreat host seeking the perfect venue, a wellness
+              guest designing your next experience, or simply seeking restoration, The
+              Global Sanctum connects you with extraordinary spaces around the world.
             </p>
             <Link className="intro-link" href="/about">
               About The Global Sanctum &rarr;
             </Link>
           </div>
           <div className="intro-image">
-            <img src="/images/intro-sauna.jpg" alt="" />
+            <img src="/images/intro-sauna.jpg" alt="A modern sauna interior" />
             <div className="intro-image-accent" />
           </div>
         </div>
       </section>
 
-      {/* ── settings mosaic ──────────────────────────────────────── */}
-      {!!settings?.length && (
-        <section className="explore">
-          <div className="explore-header">
-            <div className="intro-eyebrow">Discover differently</div>
-            <h2 className="intro-title">Explore intentional spaces around the world</h2>
-            <p className="intro-text">
-              From coastal sanctuaries to mountain retreats where silence does the
-              work. Spaces where wellness lives in the foundations.
-            </p>
-          </div>
-          <div className="explore-mosaic">
-            {(settings as any[]).map((s) => (
-              <Link key={s.slug} href={`/venues?setting=${s.slug}`} className="mosaic-tile">
-                <img src={SETTING_IMAGES[s.slug] ?? '/images/setting-tropical.jpg'}
-                  alt="" loading="lazy" />
-                <div className="mosaic-overlay" />
-                <div className="mosaic-label">
-                  {s.name}
-                  <span>{s.venues} {s.venues === 1 ? 'venue' : 'venues'}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="explore">
+        <div className="explore-header">
+          <div className="intro-eyebrow">Discover Differently</div>
+          <h2 className="intro-title">Explore Intentional Spaces Around The World</h2>
+          <p className="intro-text">
+            From soul-restoring coastal sanctuaries to mountain retreats where silence
+            does the work. Thermal springs rising from volcanic earth, forest hideaways
+            hidden in ancient canopy &mdash; spaces where wellness lives in the
+            foundations.
+          </p>
+        </div>
+        <div className="explore-mosaic">
+          {SETTINGS.map(([name, slug, image]) => (
+            <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
+              <img src={image} alt="" loading="lazy" />
+              <div className="mosaic-overlay" />
+              <div className="mosaic-label">{name}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-      {/* ── three paths ──────────────────────────────────────────── */}
       <section className="paths">
         <div className="paths-inner">
           <div className="paths-header">
-            <div className="intro-eyebrow">Find your path</div>
-            <h2 className="intro-title">Three ways to discover</h2>
+            <div className="intro-eyebrow">Find Your Path</div>
+            <h2 className="intro-title">Four Ways to Discover</h2>
+            <p className="intro-text">
+              From thermal springs to forest sanctuaries, coastal retreats to mountain
+              hideaways. Spaces where restoration isn&rsquo;t an afterthought &mdash;
+              it&rsquo;s the foundation.
+            </p>
           </div>
           <div className="paths-grid">
             {PATHS.map((p) => (
@@ -230,7 +212,7 @@ export default async function Home() {
                 <div className="path-card-content">
                   <h3 className="path-card-title">{p.title}</h3>
                   <p className="path-card-text">{p.text}</p>
-                  <span className="path-card-cta">Explore &rarr;</span>
+                  <span className="path-card-cta">{p.cta} &rarr;</span>
                 </div>
               </Link>
             ))}
@@ -238,92 +220,97 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── the selection ────────────────────────────────────────── */}
       {!!premium.length && (
         <section className="premium">
           <div className="premium-inner">
             <div className="premium-header">
               <div>
-                <div className="intro-eyebrow">The selection</div>
-                <h2 className="intro-title">Venues we would send our own people to</h2>
+                <div className="intro-eyebrow">Intentionally Curated</div>
+                <h2 className="intro-title">Our Premium Collection</h2>
                 <p className="premium-subtitle">
-                  A handful from the collection, chosen rather than ranked.
+                  The most exceptional wellness and retreat venues, offering
+                  unparalleled experiences in extraordinary settings.
                 </p>
               </div>
-              <Link className="premium-link" href="/venues">See all venues &rarr;</Link>
+              <Link className="premium-link" href="/venues">
+                Explore Premium Venues &rarr;
+              </Link>
             </div>
-            <div className="premium-slide">
-              {premium.map((v) => <VenueTile key={v.id} v={v} />)}
-            </div>
+            <Carousel label="premium venues">
+              {premium.map((v) => <VenueSlide key={v.id} v={v} />)}
+            </Carousel>
           </div>
         </section>
       )}
 
-      {/* ── quote ────────────────────────────────────────────────── */}
-      <section className="quote-section">
-        <p className="quote-text">
-          The spaces where wellness happens deserve the same care as the work
-          that happens in them.<span className="quote-close">&rdquo;</span>
-        </p>
-        <div className="quote-author">The Global Sanctum</div>
+      <QuoteBand
+        quote="Let yourself be silently drawn by the strange pull of what you really love. It will not lead you astray."
+        author="Rumi" />
+
+      <section className="trending">
+        <div className="trending-inner">
+          <div className="trending-header">
+            <div className="intro-eyebrow">Where Seekers Are Drawn</div>
+            <h2 className="intro-title">Destinations Defining Wellness Travel</h2>
+            <p className="intro-text">
+              The places calling to those seeking transformation, restoration, and
+              spaces that hold intention in their foundations.
+            </p>
+          </div>
+          <div className="trending-grid">
+            {DESTINATIONS.map(([name, tagline, slug, image], i) => (
+              <Link key={name} href={`/venues?country=${slug}`}
+                className={`trending-item ${i === 0 ? 'trending-item-large' : ''}`}>
+                <img src={image} alt="" loading="lazy" />
+                <div className="trending-item-overlay" />
+                <div className="trending-item-content">
+                  <div className="trending-item-name">{name}</div>
+                  <div className="trending-item-tagline">{tagline}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* ── trending destinations ────────────────────────────────── */}
-      {!!trending.length && (
-        <section className="trending">
-          <div className="trending-inner">
-            <div className="trending-header">
-              <div className="intro-eyebrow">Where people are going</div>
-              <h2 className="intro-title">Destinations in the collection</h2>
-            </div>
-            <div className="trending-grid">
-              {trending.map((t, i) => (
-                <Link key={t.slug} href={`/venues?country=${t.slug}`}
-                  className={`trending-item ${i === 0 ? 'trending-item-large' : ''}`}>
-                  <img src={trendingImages[i] ?? trendingImages[0]} alt="" loading="lazy" />
-                  <div className="trending-item-overlay" />
-                  <div className="trending-item-content">
-                    <div className="trending-item-name">{t.name}</div>
-                    <div className="trending-item-tagline">
-                      {t.n} {t.n === 1 ? 'venue' : 'venues'}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── more of the collection ───────────────────────────────── */}
-      {!!rest.length && (
+      {!!featured.length && (
         <section className="featured">
           <div className="featured-inner">
             <div className="featured-header">
               <div>
-                <div className="intro-eyebrow">More of the collection</div>
-                <h2 className="intro-title">Recently added</h2>
+                <div className="intro-eyebrow">Featured Sanctuaries</div>
+                <h2 className="intro-title">Our Collection of Featured Venues</h2>
+                <p className="featured-subtitle">
+                  From Japanese onsen to Greek island retreats. Mountain sanctuaries to
+                  coastal hideaways. Spaces where the environment does half the healing.
+                </p>
               </div>
-              <Link className="featured-link" href="/venues">See all venues &rarr;</Link>
+              <Link className="featured-link" href="/venues">
+                Explore All Venues &rarr;
+              </Link>
             </div>
-            <div className="featured-slide">
-              {rest.slice(0, 3).map((v) => <VenueTile key={v.id} v={v} />)}
-            </div>
+            <Carousel label="featured venues">
+              {featured.map((v) => <VenueSlide key={v.id} v={v} />)}
+            </Carousel>
           </div>
         </section>
       )}
 
-      {/* ── what the search does ─────────────────────────────────── */}
       <section className="search-features">
         <div className="search-features-inner">
           <div className="search-features-image">
             <img src="/images/experience-thermal.jpg" alt="" loading="lazy" />
           </div>
           <div>
-            <div className="intro-eyebrow">Search that knows the difference</div>
-            <h2 className="intro-title">Built for how people actually look</h2>
+            <div className="intro-eyebrow">Discover Intentionally</div>
+            <h2 className="intro-title">Search Beyond The Surface</h2>
+            <p className="intro-text">
+              Search for what truly matters &mdash; the practices supported, the
+              experiences felt, the spaces designed, the environments created &mdash;
+              not just where and when.
+            </p>
             <div className="search-features-list">
-              {FEATURES.map(([title, text]) => (
+              {SEARCH_BY.map(([title, text]) => (
                 <div key={title}>
                   <div className="search-feature-title">{title}</div>
                   <p className="search-feature-text">{text}</p>
@@ -334,12 +321,24 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── philosophy ───────────────────────────────────────────── */}
       <section className="philosophy">
         <div className="philosophy-inner">
           <div>
-            <div className="intro-eyebrow">What guides us</div>
-            <h2 className="intro-title">Curated for depth, not volume</h2>
+            <div className="intro-eyebrow">Our Philosophy</div>
+            <h2 className="intro-title">
+              Wellness Should Feel Inevitable, Not Effortful
+            </h2>
+            <p className="intro-text">
+              We built The Global Sanctum because the world&rsquo;s most considered
+              wellness spaces shouldn&rsquo;t be hidden behind algorithms or buried
+              beneath noise. Because seekers deserve a guide. Because the right space,
+              found at the right moment, changes everything.
+            </p>
+            <p className="intro-text">
+              Every retreat, sanctuary, and experience here has been chosen with one
+              question in mind: would we send the people we love here? If the answer
+              isn&rsquo;t yes, it isn&rsquo;t featured.
+            </p>
             <div className="philosophy-principles">
               {PRINCIPLES.map(([title, text]) => (
                 <div key={title}>
@@ -348,13 +347,12 @@ export default async function Home() {
                 </div>
               ))}
             </div>
-            <Link className="intro-link" href="/about">Read our story &rarr;</Link>
           </div>
           <div className="philosophy-images">
-            <img src="/images/philosophy-meditation.jpg" alt="" loading="lazy" />
-            <img src="/images/philosophy-yoga.jpg" alt="" loading="lazy" />
-            <img src="/images/philosophy-forest.jpg" alt="" loading="lazy" />
-            <img src="/images/experience-forest.jpg" alt="" loading="lazy" />
+            <img src="/images/philosophy-meditation.jpg" alt="Meditation space" loading="lazy" />
+            <img src="/images/philosophy-yoga.jpg" alt="Yoga practice" loading="lazy" />
+            <img src="/images/philosophy-forest.jpg" alt="Forest bathing" loading="lazy" />
+            <img src="/images/experience-thermal.jpg" alt="Thermal bathing" loading="lazy" />
           </div>
         </div>
       </section>
