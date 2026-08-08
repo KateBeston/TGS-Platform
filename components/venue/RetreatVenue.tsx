@@ -2,8 +2,8 @@ import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import {
-  Accessibility, ExperienceBlock, Glance, HostBlock, OpeningHours,
-  PackagesPanel, PoliciesPanel, PractitionersPanel, Section, TabHero, VenueLinks,
+  Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero, VenueLinks,
 } from './Section';
 import { duration, money } from '@/lib/venue';
 
@@ -199,32 +199,17 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             title="Where your group sleeps"
             subtitle={`${v.rooms.reduce((n: number, r: any) => n + (r.quantity ?? 1), 0)} rooms across ${v.rooms.length} types`} />
 
-          <Section tone="white">
-            {v.accommodation_description && (
-              <div className="prose-narrow" style={{ marginBottom: 40 }}>
-                <p>{v.accommodation_description}</p>
-              </div>
-            )}
-            <div className="item-grid">
-              {v.rooms.map((r: any) => (
-                <article key={r.id} className="item">
-                  <h3>{r.name}</h3>
-                  <div className="item-meta">
-                    {[r.quantity ? `${r.quantity} available` : null,
-                      r.sleeps ? `Sleeps ${r.sleeps}` : null,
-                      r.bed_configuration, r.bathroom_type,
-                      r.room_size ? `${r.room_size} ${r.room_size_unit ?? 'sqm'}` : null,
-                      r.is_accessible ? 'Accessible' : null,
-                    ].filter(Boolean).join(' · ')}
-                  </div>
-                  {r.description && <p>{r.description}</p>}
-                  {!!r.room_amenities?.length && (
-                    <div className="item-note">{r.room_amenities.join(' · ')}</div>
-                  )}
-                </article>
-              ))}
-            </div>
+          {v.accommodation_description && (
+            <Section tone="white" label="Stay with us">
+              <div className="prose-narrow"><p>{v.accommodation_description}</p></div>
+            </Section>
+          )}
+
+          <Section tone="cream" label="Room types" subtitle="Choose your sanctuary">
+            <RoomGrid rooms={v.rooms} />
           </Section>
+
+          <InEveryRoom rooms={v.rooms} tone="white" />
         </div>
       )}
 

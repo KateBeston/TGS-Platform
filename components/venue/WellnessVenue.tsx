@@ -2,8 +2,8 @@ import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
-  Accessibility, ExperienceBlock, Glance, HostBlock, OpeningHours,
-  PackagesPanel, PoliciesPanel, PractitionersPanel, Section, TabHero, VenueLinks,
+  Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero, VenueLinks,
 } from './Section';
 import { duration, money } from '@/lib/venue';
 
@@ -206,21 +206,9 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
                 <p>{v.accommodation_description}</p>
               </div>
             )}
-            <div className="item-grid">
-              {v.rooms.map((r: any) => (
-                <article key={r.id} className="item">
-                  <h3>{r.name}</h3>
-                  <div className="item-meta">
-                    {[r.sleeps ? `Sleeps ${r.sleeps}` : null,
-                      r.bed_configuration, r.bathroom_type,
-                      r.is_accessible ? 'Accessible' : null,
-                    ].filter(Boolean).join(' · ')}
-                  </div>
-                  {r.description && <p>{r.description}</p>}
-                </article>
-              ))}
-            </div>
+            <RoomGrid rooms={v.rooms} />
           </Section>
+          <InEveryRoom rooms={v.rooms} tone="cream" />
         </div>
       )}
 

@@ -967,6 +967,30 @@ img { max-width: 100%; height: auto; display: block; }
 .item p { font-size: 14.5px; line-height: 1.7; color: var(--charcoal-70); margin: 0; }
 .item-note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 
+/* ── room cards (accommodation) ───────────────────────────────────── */
+.room-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; }
+.room-card {
+  background: var(--warm-cream); overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.section--cream .room-card { background: var(--warm-white); }
+.room-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(49, 49, 49, .08); }
+.room-card-image { aspect-ratio: 3 / 2; overflow: hidden; }
+.room-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.room-card:hover .room-card-image img { transform: scale(1.05); }
+.room-card-body { padding: 24px 26px 26px; }
+.room-card-name {
+  font-family: var(--serif); font-size: 21px; font-weight: 400;
+  color: var(--charcoal); margin: 0 0 8px;
+}
+.room-card-meta {
+  font-family: var(--sans); font-size: 12.5px; color: var(--charcoal-50); margin-bottom: 12px;
+}
+.room-card-desc {
+  font-size: 14.5px; font-weight: 300; line-height: 1.7; color: var(--charcoal-70); margin: 0;
+}
+@media (max-width: 760px) { .room-grid { grid-template-columns: 1fr; } }
+
 .priced { display: flex; justify-content: space-between; gap: var(--s4); }
 .priced-amount {
   font-family: var(--serif); font-size: 24px; white-space: nowrap; text-align: right;

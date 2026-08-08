@@ -305,3 +305,61 @@ export function OpeningHours({
     </Section>
   );
 }
+
+/* Room cards. Image, then the room in words — the mockup's card grid
+ * rather than the plain rows the tab used to render. */
+export function RoomGrid({ rooms }: { rooms: any[] }) {
+  return (
+    <div className="room-grid">
+      {rooms.map((r) => (
+        <article key={r.id} className="room-card">
+          <div className="room-card-image">
+            {r.image_url
+              ? <img src={r.image_url} alt={r.name} />
+              : <div className="placeholder-img">{r.name ?? 'Room'}</div>}
+          </div>
+          <div className="room-card-body">
+            <h3 className="room-card-name">{r.name}</h3>
+            <div className="room-card-meta">
+              {[r.quantity ? `${r.quantity} available` : null,
+                r.sleeps ? `Sleeps ${r.sleeps}` : null,
+                r.bed_configuration, r.bathroom_type,
+                r.room_size ? `${r.room_size} ${r.room_size_unit ?? 'sqm'}` : null,
+                r.is_accessible ? 'Accessible' : null,
+              ].filter(Boolean).join(' · ')}
+            </div>
+            {r.description && <p className="room-card-desc">{r.description}</p>}
+            {!!r.room_amenities?.length && (
+              <div className="amenity-pill-row" style={{ marginTop: 16 }}>
+                {r.room_amenities.map((a: string) => (
+                  <span key={a} className="amenity-pill">{a}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+/* What every room carries — computed as the amenities common to all
+ * rooms, so it is true rather than asserted. Nothing shows unless there
+ * is a genuine shared set. */
+export function InEveryRoom({
+  rooms, tone = 'white',
+}: { rooms: any[]; tone?: 'white' | 'cream' }) {
+  const lists = rooms
+    .map((r) => (Array.isArray(r.room_amenities) ? r.room_amenities : []))
+    .filter((l) => l.length);
+  if (lists.length < 2) return null;
+  const shared = lists.reduce((a: string[], b: string[]) => a.filter((x) => b.includes(x)));
+  if (!shared.length) return null;
+  return (
+    <Section tone={tone} label="In every room" title="Standard across all rooms">
+      <div className="amenity-pill-row" style={{ justifyContent: 'center' }}>
+        {shared.map((a) => <span key={a} className="amenity-pill">{a}</span>)}
+      </div>
+    </Section>
+  );
+}
