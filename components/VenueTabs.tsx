@@ -41,11 +41,6 @@ export default function VenueTabs({
   return (
     <div className="tab-nav">
       <div className="tab-nav-wrap">
-        <div className="tab-venue">
-          <span className="tab-venue-name">{venueName}</span>
-          <span className="tab-venue-loc">{location}</span>
-        </div>
-        <div className="tab-venue-div" />
         <div className="tab-nav-inner" role="tablist">
           {tabs.map((t) => (
             <button key={t.id} type="button" role="tab"
