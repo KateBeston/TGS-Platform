@@ -29,8 +29,9 @@ export async function loadVenue(marketplace: string, slug: string) {
   if (!card) return null;
   const id = (card as any).id as number;
 
-  // Everything else at once. Eight tabs, one round trip.
-  const [venue, spaces, rooms, services, facilities, settings, categories, reviews] =
+  // Everything else at once. All tabs, one round trip.
+  const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
+         packages, practitioners, openingHours, policies, profile] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -44,11 +45,23 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('venue_categories_public').select('*').eq('venue_id', id),
       supabase.from('published_reviews').select('*').eq('venue_id', id)
         .order('stayed_at', { ascending: false, nullsFirst: false }).limit(12),
+      supabase.from('published_venue_packages').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('published_venue_practitioners').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('published_venue_opening_hours').select('*').eq('venue_id', id)
+        .order('day_of_week', { nullsFirst: false }),
+      supabase.from('published_venue_policies').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('published_venue_profile').select('*').eq('venue_id', id).maybeSingle(),
     ]);
 
   return {
     ...(card as Record<string, any>),
     ...((venue.data ?? {}) as Record<string, any>),
+    // Host and languages, from the profile view. The host block is already
+    // gated in the view — it is null unless the venue chose to show it.
+    ...((profile.data ?? {}) as Record<string, any>),
     spaces: spaces.data ?? [],
     rooms: rooms.data ?? [],
     services: services.data ?? [],
@@ -56,6 +69,10 @@ export async function loadVenue(marketplace: string, slug: string) {
     settings: settings.data ?? [],
     categories: categories.data ?? [],
     reviews: reviews.data ?? [],
+    packages: packages.data ?? [],
+    practitioners: practitioners.data ?? [],
+    opening_hours: openingHours.data ?? [],
+    policies: policies.data ?? [],
     marketplaceSegment: marketplace,
   } as Venue;
 }

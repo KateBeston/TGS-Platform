@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
-import { Accessibility, ExperienceBlock, Glance, Section, TabHero, VenueLinks } from './Section';
+import {
+  Accessibility, ExperienceBlock, Glance, HostBlock, OpeningHours,
+  PackagesPanel, PoliciesPanel, PractitionersPanel, Section, TabHero, VenueLinks,
+} from './Section';
 import { duration, money } from '@/lib/venue';
 
 /* The retreat venue template.
@@ -38,7 +41,10 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     v.facilities.length && { id: 'amenities', label: 'Amenities' },
     v.services.length && { id: 'experiences', label: 'Experiences' },
+    v.packages.length && { id: 'packages', label: 'Packages' },
+    v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     { id: 'location', label: 'Location' },
+    v.policies.length && { id: 'policies', label: 'Policies' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },
   ].filter(Boolean) as { id: string; label: string }[];
@@ -93,6 +99,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             ['Spaces', v.spaces.length || null],
             ['Practices', v.categories.length || null],
             ['Established', v.established_year],
+            ['Languages', Array.isArray(v.languages) ? v.languages.join(', ') : v.languages],
           ]} />
         </Section>
 
@@ -122,6 +129,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <ExperienceBlock v={v} tone="white" />
+        <HostBlock v={v} tone="cream" />
       </div>
 
       {/* ── spaces ─────────────────────────────────────────────────── */}
@@ -274,6 +282,20 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         </div>
       )}
 
+      {/* ── packages ───────────────────────────────────────────────── */}
+      {!!v.packages.length && (
+        <div id="panel-packages" className="vpanel" hidden>
+          <PackagesPanel v={v} />
+        </div>
+      )}
+
+      {/* ── practitioners ──────────────────────────────────────────── */}
+      {!!v.practitioners.length && (
+        <div id="panel-practitioners" className="vpanel" hidden>
+          <PractitionersPanel v={v} />
+        </div>
+      )}
+
       {/* ── location ───────────────────────────────────────────────── */}
       <div id="panel-location" className="vpanel" hidden>
         <TabHero image={v.image_url} label="Location"
@@ -325,9 +347,17 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
+        <OpeningHours v={v} tone="white" />
         <Accessibility v={v} tone="cream" />
         <VenueLinks v={v} tone="white" />
       </div>
+
+      {/* ── policies ───────────────────────────────────────────────── */}
+      {!!v.policies.length && (
+        <div id="panel-policies" className="vpanel" hidden>
+          <PoliciesPanel v={v} />
+        </div>
+      )}
 
       {/* ── reviews ────────────────────────────────────────────────── */}
       {!!v.reviews.length && (

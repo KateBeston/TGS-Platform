@@ -1,7 +1,10 @@
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import { Review, ReviewScores } from './RetreatVenue';
-import { Accessibility, ExperienceBlock, Glance, Section, TabHero, VenueLinks } from './Section';
+import {
+  Accessibility, ExperienceBlock, Glance, HostBlock, OpeningHours,
+  PackagesPanel, PoliciesPanel, PractitionersPanel, Section, TabHero, VenueLinks,
+} from './Section';
 import { duration, money } from '@/lib/venue';
 
 /* The wellness venue template.
@@ -44,10 +47,13 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     v.services.length && { id: 'services', label: 'Services' },
+    v.packages.length && { id: 'packages', label: 'Packages' },
+    v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     v.spaces.length && { id: 'space', label: 'The space' },
     v.rooms.length && { id: 'stay', label: 'Stay' },
     v.facilities.length && { id: 'facilities', label: 'Facilities' },
     { id: 'visiting', label: 'Visiting' },
+    v.policies.length && { id: 'policies', label: 'Policies' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Book' },
   ].filter(Boolean) as { id: string; label: string }[];
@@ -102,6 +108,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
               (n: number, r: any) => n + (r.quantity ?? 1), 0) : null],
             ['Bathrooms', v.total_bathrooms],
             ['Established', v.established_year],
+            ['Languages', Array.isArray(v.languages) ? v.languages.join(', ') : v.languages],
           ]} />
         </Section>
 
@@ -117,6 +124,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <ExperienceBlock v={v} tone="cream" />
+        <HostBlock v={v} tone="white" />
       </div>
 
       {/* Services first, because that is the question a guest is here to
@@ -153,6 +161,18 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
               </div>
             </Section>
           ))}
+        </div>
+      )}
+
+      {!!v.packages.length && (
+        <div id="panel-packages" className="vpanel" hidden>
+          <PackagesPanel v={v} />
+        </div>
+      )}
+
+      {!!v.practitioners.length && (
+        <div id="panel-practitioners" className="vpanel" hidden>
+          <PractitionersPanel v={v} />
         </div>
       )}
 
@@ -261,9 +281,16 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
-        <Accessibility v={v} tone="white" />
-        <VenueLinks v={v} tone="cream" />
+        <OpeningHours v={v} tone="white" />
+        <Accessibility v={v} tone="cream" />
+        <VenueLinks v={v} tone="white" />
       </div>
+
+      {!!v.policies.length && (
+        <div id="panel-policies" className="vpanel" hidden>
+          <PoliciesPanel v={v} />
+        </div>
+      )}
 
       {!!v.reviews.length && (
         <div id="panel-reviews" className="vpanel" hidden>

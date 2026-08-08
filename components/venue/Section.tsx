@@ -1,3 +1,5 @@
+import { duration, money } from '@/lib/venue';
+
 export function Section({
   tone = 'white', label, title, subtitle, children,
 }: {
@@ -144,6 +146,160 @@ export function VenueLinks({
         {links.map(([url, label]) => (
           <a key={url} className="amenity-pill" href={url}
              target="_blank" rel="noopener">{label}</a>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* The hosts.
+ *
+ * Only shown when the venue chose to — the profile view returns null for
+ * every host field otherwise, so this renders nothing rather than a
+ * half-empty block. */
+export function HostBlock({
+  v, tone = 'cream',
+}: { v: Record<string, any>; tone?: 'white' | 'cream' }) {
+  if (!v.host_display_names && !v.host_bio && !v.host_quote) return null;
+
+  const stats = [
+    v.years_hosting ? `${v.years_hosting} years hosting` : null,
+    v.retreats_per_year ? `${v.retreats_per_year} retreats a year` : null,
+    v.total_retreats_hosted ? `${v.total_retreats_hosted} retreats hosted` : null,
+  ].filter(Boolean).join(' · ');
+
+  return (
+    <Section tone={tone} label="Your hosts" title={v.host_display_names ?? undefined}>
+      {v.host_quote && (
+        <div className="prose-narrow">
+          <p className="prose-lead" style={{ fontStyle: 'italic' }}>{v.host_quote}</p>
+        </div>
+      )}
+      {v.host_image_url ? (
+        <div className="feature-split">
+          <div><img src={v.host_image_url} alt={v.host_display_names ?? ''} /></div>
+          <div>
+            {v.host_bio && <p className="feature-body">{v.host_bio}</p>}
+            {stats && <div className="feature-meta">{stats}</div>}
+          </div>
+        </div>
+      ) : (
+        <div className="prose-narrow">
+          {v.host_bio && <p>{v.host_bio}</p>}
+          {stats && <p className="muted-small">{stats}</p>}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* Packages — set programmes, priced. Its items come through as a JSON
+ * array on the view, aggregated so the whole package is one row. */
+export function PackagesPanel({ v }: { v: Record<string, any> }) {
+  return (
+    <>
+      <TabHero image={v.image_url} label="Packages" title="Curated packages"
+        subtitle="Set programmes, priced and ready to enquire on" />
+      <Section tone="white">
+        <div className="item-grid">
+          {v.packages.map((p: any) => {
+            const items = (p.items ?? []).map((i: any) => i.label).filter(Boolean);
+            const incl = Array.isArray(p.inclusions) ? p.inclusions : [];
+            const lines = [...items, ...incl];
+            return (
+              <article key={p.id} className="item priced">
+                <div>
+                  <h3>{p.name}</h3>
+                  <div className="item-meta">
+                    {[p.duration_label,
+                      p.nights ? `${p.nights} night${p.nights === 1 ? '' : 's'}` : null,
+                      duration(p.total_duration_minutes),
+                    ].filter(Boolean).join(' · ')}
+                  </div>
+                  {p.tagline && <p style={{ fontStyle: 'italic' }}>{p.tagline}</p>}
+                  {p.description && <p>{p.description}</p>}
+                  {!!lines.length && <div className="item-note">{lines.join(' · ')}</div>}
+                </div>
+                <div className="priced-amount">
+                  {money(p.price, p.currency)}
+                  {p.saving_amount ? (
+                    <span className="from">save {money(p.saving_amount, p.currency)}</span>
+                  ) : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </Section>
+    </>
+  );
+}
+
+/* Practitioners. */
+export function PractitionersPanel({ v }: { v: Record<string, any> }) {
+  return (
+    <>
+      <TabHero image={v.image_url} label="Practitioners" title="Who you will meet"
+        subtitle="The people who hold the work here" />
+      <Section tone="white">
+        <div className="item-grid">
+          {v.practitioners.map((pr: any) => (
+            <article key={pr.id} className="item">
+              <h3>{pr.full_name}</h3>
+              <div className="item-meta">
+                {[pr.title, pr.credentials].filter(Boolean).join(' · ')}
+              </div>
+              {pr.bio && <p>{pr.bio}</p>}
+              {!!pr.specialties?.length && (
+                <div className="item-note">{pr.specialties.join(' · ')}</div>
+              )}
+            </article>
+          ))}
+        </div>
+      </Section>
+    </>
+  );
+}
+
+/* Policies — arrival, etiquette, health and safety, payment. Prose
+ * blocks, each in the venue's own words. */
+export function PoliciesPanel({ v }: { v: Record<string, any> }) {
+  return (
+    <Section tone="white" label="Policies" title="Good to know">
+      <div className="prose-narrow">
+        {v.policies.map((po: any) => (
+          <div key={po.id} style={{ marginBottom: 'var(--s6)' }}>
+            <h3>{po.title || po.policy_type}</h3>
+            <p>{po.body}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* Opening hours. day_of_week is 0 (Sunday) to 6 (Saturday); times arrive
+ * as HH:MM:SS and are shown to the minute. */
+export function OpeningHours({
+  v, tone = 'white',
+}: { v: Record<string, any>; tone?: 'white' | 'cream' }) {
+  if (!v.opening_hours?.length) return null;
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const fmt = (t: string | null) => (t ? t.slice(0, 5) : null);
+  return (
+    <Section tone={tone} label="Hours" title="Opening hours">
+      <div className="distance-list">
+        {v.opening_hours.map((h: any) => (
+          <div key={h.id} className="distance-row">
+            <span className="distance-name">{DAYS[h.day_of_week] ?? '—'}</span>
+            <span className="distance-time">
+              {h.is_closed
+                ? 'Closed'
+                : (h.opens_at && h.closes_at)
+                  ? `${fmt(h.opens_at)} – ${fmt(h.closes_at)}`
+                  : (h.notes ?? '—')}
+            </span>
+          </div>
         ))}
       </div>
     </Section>
