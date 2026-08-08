@@ -114,6 +114,18 @@ Allow: /sitemap.xml
 Allow: /sitemap-*.xml
 
 
+# ─── 4b. Parked pages ──────────────────────────────────────────────────────
+# The paid subscription page. It exists so it can be swapped in when the
+# complimentary concierge period ends, and until then it must not be found.
+#
+# Three things park it, because any one alone is not enough: this rule, a
+# noindex on the page itself, and its absence from every sitemap. A page
+# with only robots.txt behind it can still be indexed from an external link,
+# since Disallow stops the crawl and not the listing.
+
+Disallow: /list-your-venue-subscription
+
+
 # ─── 5. Sitemaps ───────────────────────────────────────────────────────────
 # Split by entity so a single large file never has to be regenerated whole,
 # and so coverage can be read per type in Search Console.
