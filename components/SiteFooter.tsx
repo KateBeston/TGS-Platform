@@ -57,6 +57,9 @@ export default function SiteFooter() {
             <Link href="/legal#terms-and-conditions">Terms</Link>
             <Link href="/legal#privacy-policy">Privacy</Link>
             <Link href="/legal#cookie-policy">Cookies</Link>
+            {/* Re-opens the banner. A choice somebody cannot change is
+                not a choice, and burying it is the same as removing it. */}
+            <a href="#cookie-settings">Cookie settings</a>
             <Link href="/legal">All policies</Link>
           </div>
         </div>

@@ -1763,3 +1763,74 @@ img { max-width: 100%; height: auto; display: block; }
 .notfound-foot {
   padding-top: var(--s5); font-size: 13.5px; color: var(--muted);
 }
+
+/* ── cookie consent ───────────────────────────────────────────────── */
+
+.consent {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+  background: var(--warm-white);
+  border-top: 1px solid var(--charcoal-15);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, .07);
+  animation: consent-up .4s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes consent-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.consent-inner {
+  max-width: 1180px; margin: 0 auto;
+  padding: var(--s5); display: grid; gap: var(--s4);
+}
+
+.consent-text strong {
+  display: block; font-family: var(--serif); font-size: 20px;
+  font-weight: 400; margin-bottom: 8px;
+}
+.consent-text p {
+  margin: 0; max-width: 760px;
+  font-size: 14px; line-height: 1.75; color: var(--charcoal-70);
+}
+.consent-text a { color: var(--ink-gold); text-decoration: underline; }
+
+.consent-detail {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--s4);
+  padding: var(--s4) 0; border-top: 1px solid var(--charcoal-08);
+}
+
+.consent-row {
+  display: flex; gap: 11px; align-items: flex-start; cursor: pointer;
+  font-size: 13.5px;
+}
+.consent-row input { margin-top: 3px; accent-color: var(--gold-dark); }
+.consent-row strong { display: block; font-weight: 500; margin-bottom: 3px; }
+.consent-note {
+  display: block; font-size: 12.5px; line-height: 1.6; color: var(--muted);
+}
+/* Shown as fixed rather than as a ticked box somebody might try to
+   untick. Pretending to ask is worse than not asking. */
+.consent-row.is-fixed { cursor: default; opacity: .72; }
+
+.consent-actions {
+  display: flex; gap: var(--s3); flex-wrap: wrap; align-items: center;
+  padding-top: var(--s4); border-top: 1px solid var(--charcoal-08);
+}
+/* Accept and decline: same size, same weight, side by side. */
+.consent-actions .btn-solid, .consent-actions .btn-line {
+  padding: 12px 28px; cursor: pointer;
+  font-family: var(--sans); font-size: 10.5px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+
+.consent-more {
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--sans); font-size: 12.5px;
+  color: var(--ink-gold); text-decoration: underline;
+}
+
+@media (max-width: 620px) {
+  .consent-actions > * { flex: 1 1 100%; text-align: center; }
+  .consent-more { flex-basis: auto; }
+}

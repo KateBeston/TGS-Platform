@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import ConsentBanner from '@/components/ConsentBanner';
+import ConsentDefaults from '@/components/ConsentDefaults';
 import FirstTouch from '@/components/FirstTouch';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
@@ -30,6 +32,12 @@ export default function RootLayout({
 }: { children: React.ReactNode }) {
   return (
     <html lang="en-AU">
+      <head>
+        {/* Before anything else. Denied by default, so a visitor who
+            never answers is treated as having declined rather than as
+            having agreed by silence. */}
+        <ConsentDefaults />
+      </head>
       <body>
         {/* Records how somebody arrived, once per session. First touch
             rather than last — a Journal reader who later searches for us
@@ -42,6 +50,7 @@ export default function RootLayout({
             and nine versions. */}
         <JournalSignup source="site" />
         <SiteFooter />
+        <ConsentBanner />
       </body>
     </html>
   );
