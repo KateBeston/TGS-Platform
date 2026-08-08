@@ -2113,8 +2113,15 @@ img { max-width: 100%; height: auto; display: block; }
 .mosaic-tile {
   position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: block;
 }
+/* Absolutely positioned rather than sized at 100%.
+ *
+ * The tile takes its height from aspect-ratio, and a percentage height
+ * against that does not resolve reliably — so a small image keeps its
+ * own height and leaves a band. Two of these are 500 square while the
+ * rest are 1400 wide, which is why only some showed it. */
 .mosaic-tile img {
-  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
 .mosaic-tile:hover img { transform: scale(1.05); }
@@ -2149,7 +2156,8 @@ img { max-width: 100%; height: auto; display: block; }
 .path-card:hover { text-decoration: none; }
 .path-card-bg { position: absolute; inset: 0; z-index: 1; }
 .path-card-bg img {
-  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
 .path-card:hover .path-card-bg img { transform: scale(1.05); }
@@ -2235,7 +2243,8 @@ img { max-width: 100%; height: auto; display: block; }
   position: relative; height: 320px; overflow: hidden; margin-bottom: 24px;
 }
 .premium-card-image img {
-  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
 .premium-card:hover .premium-card-image img { transform: scale(1.04); }
@@ -2310,7 +2319,8 @@ img { max-width: 100%; height: auto; display: block; }
 .trending-item:hover { text-decoration: none; }
 .trending-item-large { grid-column: span 2; grid-row: span 2; }
 .trending-item img {
-  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
 .trending-item:hover img { transform: scale(1.05); }
