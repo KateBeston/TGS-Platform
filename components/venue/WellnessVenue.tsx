@@ -67,12 +67,6 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-eyebrow">{v.venue_type}</div>
           <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
           <div className="hero-location">{place}</div>
-          {v.rating && (
-            <span className="hero-rating">
-              <span className="star">&#9733;</span>
-              {Number(v.rating).toFixed(1)} · {v.review_count} reviews
-            </span>
-          )}
         </div>
       </div>
 
@@ -96,6 +90,11 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
                 {[v.property_type, v.architecture_style].filter(Boolean).join(' · ')}
               </p>
             )}
+            {!!(v.languages && v.languages.length) && (
+              <p className="muted-small">
+                Languages spoken: {Array.isArray(v.languages) ? v.languages.join(', ') : v.languages}
+              </p>
+            )}
           </div>
         </Section>
 
@@ -108,7 +107,6 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
               (n: number, r: any) => n + (r.quantity ?? 1), 0) : null],
             ['Bathrooms', v.total_bathrooms],
             ['Established', v.established_year],
-            ['Languages', Array.isArray(v.languages) ? v.languages.join(', ') : v.languages],
           ]} />
         </Section>
 

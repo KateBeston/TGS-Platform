@@ -58,12 +58,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-eyebrow">{v.venue_type}</div>
           <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
           <div className="hero-location">{place}</div>
-          {v.rating && (
-            <span className="hero-rating">
-              <span className="star">&#9733;</span>
-              {Number(v.rating).toFixed(1)} · {v.review_count} reviews
-            </span>
-          )}
         </div>
       </div>
 
@@ -88,6 +82,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
                 {[v.property_type, v.architecture_style].filter(Boolean).join(' · ')}
               </p>
             )}
+            {!!(v.languages && v.languages.length) && (
+              <p className="muted-small">
+                Languages spoken: {Array.isArray(v.languages) ? v.languages.join(', ') : v.languages}
+              </p>
+            )}
           </div>
         </Section>
 
@@ -99,7 +98,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             ['Spaces', v.spaces.length || null],
             ['Practices', v.categories.length || null],
             ['Established', v.established_year],
-            ['Languages', Array.isArray(v.languages) ? v.languages.join(', ') : v.languages],
           ]} />
         </Section>
 
@@ -118,8 +116,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         )}
 
         {!!v.categories.length && (
-          <Section tone="cream" label="What is held here"
-            title="Practices this venue is built for">
+          <Section tone="cream" label="Ideal for"
+            title="Retreats this venue is suited to">
             <div className="amenity-pill-row" style={{ justifyContent: 'center' }}>
               {v.categories.map((c: any) => (
                 <span key={c.category_id} className="amenity-pill">{c.name}</span>
