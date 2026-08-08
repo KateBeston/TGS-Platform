@@ -1,14 +1,27 @@
 import type { Metadata } from 'next';
+import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
+import JournalSignup from '@/components/JournalSignup';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'The Global Sanctum',
-    template: '%s · The Global Sanctum',
+    default: 'The Global Sanctum — retreat spaces and wellness venues, globally curated',
+    // Every page sets its own. The audit found /about, /contact and
+    // /studio all serving the home page's title, which suppresses
+    // rankings across the whole site.
+    template: '%s | The Global Sanctum',
   },
   description:
-    'Retreat spaces, wellness experiences, globally curated.',
+    'Retreat centres, wellness resorts, thermal sanctuaries and sacred spaces, '
+    + 'curated from around the world.',
   metadataBase: new URL('https://www.theglobalsanctum.com'),
+  openGraph: {
+    siteName: 'The Global Sanctum',
+    locale: 'en_AU',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -16,7 +29,15 @@ export default function RootLayout({
 }: { children: React.ReactNode }) {
   return (
     <html lang="en-AU">
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        <main id="main">{children}</main>
+        {/* Above the footer on every page, from the layout rather than
+            from each template. Eleven templates would mean eleven copies
+            and nine versions. */}
+        <JournalSignup source="site" />
+        <SiteFooter />
+      </body>
     </html>
   );
 }

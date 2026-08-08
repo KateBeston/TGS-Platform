@@ -1,0 +1,132 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# robots.txt — theglobalsanctum.com
+# The Global Sanctum / Aurella Group Pty Ltd
+#
+# This file replaces the AI-bot meta tags that were in the venue detail
+# templates. Those meta names were never read by any crawler; robots.txt is
+# the actual control surface.
+#
+# ONE DECISION IS OUTSTANDING — see section 3.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# ─── 1. Search engines ─────────────────────────────────────────────────────
+# Standard indexing. Nothing clever needed here.
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+
+# ─── 2. Answer-engine RETRIEVAL crawlers — ALLOW ───────────────────────────
+# These fetch pages at query time and are what produce citations. Blocking
+# any of them means TGS cannot be cited when someone asks an assistant for a
+# retreat venue in Bali. For a discovery marketplace that is the whole game,
+# so these should stay allowed regardless of the decision in section 3.
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+
+# ─── 3. Model TRAINING crawlers — YOUR DECISION ────────────────────────────
+# These feed model weights rather than answering live queries. Currently set
+# to Allow.
+#
+# The trade-off, stated plainly:
+#   ALLOW  — venue and destination knowledge enters future model weights, so
+#            assistants may describe TGS venues from memory without a live
+#            fetch. Increases ambient presence. Gives away the corpus.
+#   BLOCK  — protects the catalogue you spent months building. Costs nothing
+#            in citations, because section 2 handles those.
+#
+# Note: blocking these has NO effect on Google Search rankings. Google-Extended
+# is not a crawler at all — it only controls whether already-crawled content
+# trains Gemini. Googlebot in section 1 is unaffected either way.
+#
+# Worth a considered answer rather than a default, given the venue data is
+# the asset. To block, change Allow: / to Disallow: / in this section only.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+
+# ─── 4. Everything else ────────────────────────────────────────────────────
+
+User-agent: *
+Allow: /
+
+# Internal surfaces — never indexable.
+Disallow: /portal/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /_next/static/chunks/
+
+# Faceted search — the index-bloat guard.
+# Filter combinations generate effectively unlimited URLs, nearly all of them
+# holding no venues. Canonical tags handle the ones that do get crawled; this
+# stops the crawl budget being spent discovering them in the first place.
+# Keep in step with the canonicalisation strategy — if a facet combination is
+# promoted to a real indexable hub page, it needs removing from here.
+Disallow: /*?filter=
+Disallow: /*?practice=
+Disallow: /*?outcome=
+Disallow: /*?audience=
+Disallow: /*?format=
+Disallow: /*?sort=
+Disallow: /*?page=
+Disallow: /*&
+
+# Never block the sitemap path.
+Allow: /sitemap.xml
+Allow: /sitemap-*.xml
+
+
+# ─── 5. Sitemaps ───────────────────────────────────────────────────────────
+# Split by entity so a single large file never has to be regenerated whole,
+# and so coverage can be read per type in Search Console.
+
+Sitemap: https://www.theglobalsanctum.com/sitemap.xml
+Sitemap: https://www.theglobalsanctum.com/sitemap-venues.xml
+Sitemap: https://www.theglobalsanctum.com/sitemap-locations.xml
+Sitemap: https://www.theglobalsanctum.com/sitemap-practices.xml
+Sitemap: https://www.theglobalsanctum.com/sitemap-editorial.xml
+Sitemap: https://www.theglobalsanctum.com/sitemap-legal.xml
+
+
+# ─── 6. One thing this file cannot fix ─────────────────────────────────────
+# If Cloudflare's "Block AI Scrapers and Crawlers" toggle is on, it overrides
+# everything above and section 2 stops working silently. Check
+# Cloudflare → Security → Bots before assuming this file is in effect.
