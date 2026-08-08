@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackOnce } from '@/lib/track';
 
 /* The enquiry form on a venue page.
  *
@@ -44,6 +45,8 @@ export default function VenueEnquiry({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
+      // On the confirmed response, not on the click.
+      trackOnce('enquiry_submitted', { venue_id: venueId, marketplace });
       setSent(true);
     } catch (e: any) {
       setProblem(String(e?.message ?? e));

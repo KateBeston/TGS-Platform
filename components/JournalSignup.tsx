@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackOnce } from '@/lib/track';
 
 /* The Sanctum Journal signup.
  *
@@ -37,6 +38,7 @@ export default function JournalSignup({ source }: { source: string }) {
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
+      trackOnce('newsletter_signup', { source });
       setState('done');
     } catch (e: any) {
       setProblem(String(e?.message ?? e));

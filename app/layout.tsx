@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import Analytics, { AnalyticsNoScript } from '@/components/Analytics';
 import ConsentBanner from '@/components/ConsentBanner';
 import ConsentDefaults from '@/components/ConsentDefaults';
 import FirstTouch from '@/components/FirstTouch';
+import PageViews from '@/components/PageViews';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
@@ -37,12 +40,21 @@ export default function RootLayout({
             never answers is treated as having declined rather than as
             having agreed by silence. */}
         <ConsentDefaults />
+        {/* After the defaults, never before. GTM starts with permission
+            for nothing and is updated when somebody answers the banner. */}
+        <Analytics />
       </head>
       <body>
+        <AnalyticsNoScript />
         {/* Records how somebody arrived, once per session. First touch
             rather than last — a Journal reader who later searches for us
             was brought here by the Journal. */}
         <FirstTouch />
+        {/* This is a single-page application, so after the first load
+            navigation replaces the content without a new document and
+            GA4 sees nothing. Without this it records only the landing
+            page and every session looks like a bounce. */}
+        <Suspense fallback={null}><PageViews /></Suspense>
         <SiteHeader />
         <main id="main">{children}</main>
         {/* Above the footer on every page, from the layout rather than

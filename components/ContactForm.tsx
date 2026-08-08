@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { firstTouch } from '@/lib/attribution';
+import { trackOnce } from '@/lib/track';
 
 /* The contact form.
  *
@@ -57,6 +58,7 @@ export default function ContactForm({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
+      trackOnce('contact_submitted', { role: f.role || 'unstated' });
       setSent(true);
     } catch (e: any) {
       setProblem(String(e?.message ?? e));

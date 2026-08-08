@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackOnce } from '@/lib/track';
 
 /* The venue application.
  *
@@ -115,6 +116,9 @@ export default function VenueApplication({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
+      trackOnce('venue_application_submitted', {
+        marketplace: f.marketplace || 'unstated',
+      });
       setDone(out.reference ?? 'received');
     } catch (e: any) {
       setProblem(String(e?.message ?? e));
