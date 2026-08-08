@@ -587,3 +587,22 @@ img { max-width: 100%; height: auto; display: block; }
   background: var(--gold-dark); border-color: var(--gold-dark);
   text-decoration: none;
 }
+
+.tb-crumb {
+  font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted);
+}
+.tb-crumb a { color: var(--ink-gold); }
+
+.hero-simple { padding: var(--s8) 0 var(--s7); }
+.hero-simple h1 { margin: 14px 0 var(--s4); }
+
+.btn-line {
+  display: inline-block;
+  border: 1px solid var(--charcoal); color: var(--charcoal);
+  padding: 13px 30px;
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+}
+.btn-line:hover {
+  background: var(--charcoal); color: var(--warm-white); text-decoration: none;
+}

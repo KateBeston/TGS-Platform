@@ -9,20 +9,31 @@ import { useEffect, useState } from 'react';
  * copy of it, which is how a nav item gets added to nine pages and
  * forgotten on the tenth. */
 
+/* One listing page with a filter, rather than a page per marketplace.
+ *
+ * The mockup had /retreat-venues and /wellness-venues as separate
+ * listings, which asks somebody to decide what they are before they have
+ * looked at anything. The filter does the same job and lets them change
+ * their mind without going back.
+ *
+ * The marketplace links still work — they land on /venues with the
+ * filter already applied, so a link from the home page or an email
+ * arrives where it means to. */
 const NAV = {
   Discover: [
-    { label: 'Retreat Venues', href: '/retreat-venues' },
-    { label: 'Wellness Venues', href: '/wellness-venues' },
-    { label: 'Wellness Experiences', href: '/wellness-experiences' },
+    { label: 'All venues', href: '/venues' },
+    { label: 'Retreat venues', href: '/venues?marketplace=Retreat' },
+    { label: 'Wellness venues', href: '/venues?marketplace=Wellness' },
+    { label: 'Wellness experiences', href: '/wellness-experiences' },
   ],
   Learn: [
-    { label: 'About Us', href: '/about' },
-    { label: 'How It Works', href: '/how-it-works' },
+    { label: 'About us', href: '/about' },
+    { label: 'How it works', href: '/how-it-works' },
     { label: 'The Wellness Edit', href: '/the-wellness-edit' },
   ],
   Connect: [
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'List Your Venue', href: '/list-your-venue' },
+    { label: 'Contact us', href: '/contact' },
+    { label: 'List your venue', href: '/list-your-venue' },
   ],
 };
 

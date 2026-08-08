@@ -21,8 +21,9 @@ export default function SiteFooter() {
 
           <div>
             <div className="footer-title">Discover</div>
-            <Link href="/retreat-venues">Retreat venues</Link>
-            <Link href="/wellness-venues">Wellness venues</Link>
+            <Link href="/venues">All venues</Link>
+            <Link href="/venues?marketplace=Retreat">Retreat venues</Link>
+            <Link href="/venues?marketplace=Wellness">Wellness venues</Link>
             <Link href="/wellness-experiences">Wellness experiences</Link>
           </div>
 
