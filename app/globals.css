@@ -1362,3 +1362,163 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 4px var(--s4); margin-top: var(--s3);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   WELLNESS EXPERIENCES
+
+   One indexable page per category and per practice. The mockup has the
+   index as an accordion; built as links instead, because a category that
+   opens without changing the URL cannot be sent to anybody, cannot be
+   indexed, and does not survive a refresh.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.cat-list { border-top: 1px solid var(--charcoal-08); }
+
+.cat-item { border-bottom: 1px solid var(--charcoal-08); }
+
+.cat-header {
+  display: grid; grid-template-columns: 56px 1fr auto 28px;
+  align-items: center; gap: var(--s4);
+  min-height: 84px; padding: var(--s4) 0;
+  transition: background .25s;
+}
+.cat-header:hover { background: var(--warm-cream); text-decoration: none; }
+
+.cat-n {
+  font-family: var(--serif); font-size: 24px; font-weight: 300;
+  color: var(--charcoal-30);
+}
+.cat-header:hover .cat-n { color: var(--gold); }
+
+.cat-name {
+  font-family: var(--serif); font-size: 25px; font-weight: 400;
+  color: var(--charcoal); line-height: 1.2;
+}
+.cat-desc {
+  display: block; margin-top: 5px;
+  font-family: var(--sans); font-size: 13px; font-weight: 300;
+  color: var(--charcoal-50); line-height: 1.65;
+  max-width: 640px;
+}
+
+.cat-count {
+  font-family: var(--sans); font-size: 10px; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--muted); white-space: nowrap;
+}
+.cat-arrow { color: var(--charcoal-30); font-size: 16px; text-align: right; }
+.cat-header:hover .cat-arrow { color: var(--gold-dark); }
+
+.cat-practices {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  padding: 0 0 var(--s5) 74px;
+}
+
+.cat-filter-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: var(--s5); padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--charcoal-08);
+}
+
+.cat-filter-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--sans); font-size: 11px; font-weight: 400;
+  letter-spacing: .4px; padding: 8px 15px;
+  background: var(--warm-cream); border: 1px solid var(--charcoal-08);
+  color: var(--ink); white-space: nowrap;
+}
+.cat-filter-pill:hover { border-color: var(--gold-light); text-decoration: none; }
+.cat-filter-pill.is-on {
+  background: var(--charcoal); border-color: var(--charcoal); color: var(--warm-white);
+}
+/* Listed but empty. Present rather than hidden, so the taxonomy does not
+   appear to change shape as venues arrive. */
+.cat-filter-pill.quiet {
+  color: var(--charcoal-30); background: transparent; cursor: default;
+}
+.pill-n { color: var(--muted); font-size: 10px; }
+.cat-filter-pill.is-on .pill-n { color: rgba(253, 252, 249, .6); }
+
+.cat-empty { padding: var(--s6) 0 var(--s8); }
+.cat-empty h2 {
+  font-family: var(--serif); font-size: 25px; font-weight: 400; margin: 0 0 8px;
+}
+.cat-empty .cat-practices { padding-left: 0; padding-bottom: 0; margin-top: var(--s4); }
+
+/* ── result cards ─────────────────────────────────────────────────── */
+
+.venue-results-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 20px; padding-bottom: var(--s8);
+}
+
+.result-card {
+  background: var(--warm-cream); border: 1px solid var(--charcoal-08);
+  overflow: hidden; display: block; color: inherit;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.result-card:hover {
+  transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,.06);
+  text-decoration: none;
+}
+
+.result-card-image { position: relative; height: 170px; overflow: hidden; }
+.result-card-image img { width: 100%; height: 100%; object-fit: cover; }
+
+.result-card-country {
+  position: absolute; top: 12px; left: 12px;
+  font-family: var(--sans); font-size: 8.5px; font-weight: 500;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 5px 10px; background: var(--warm-white); color: var(--charcoal);
+}
+
+.result-card-body { padding: 18px 20px; }
+
+.result-card-location {
+  font-family: var(--sans); font-size: 9px; font-weight: 400;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 5px;
+}
+
+.result-card-name {
+  font-family: var(--serif); font-size: 19px; font-weight: 400;
+  color: var(--charcoal); margin: 0 0 10px; line-height: 1.25;
+}
+
+.result-card-practices {
+  display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 10px;
+}
+.result-card-pill {
+  font-size: 9px; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--gold-dark); background: rgba(122, 100, 79, .07);
+  border: 1px solid rgba(122, 100, 79, .22);
+  padding: 3px 8px; white-space: nowrap;
+}
+/* The one they came for, first and marked. */
+.result-card-pill.is-on {
+  background: var(--gold-dark); border-color: var(--gold-dark);
+  color: var(--warm-white);
+}
+.result-card-pill.quiet {
+  color: var(--charcoal-30); background: transparent;
+  border-color: var(--charcoal-08);
+}
+
+.result-card-meta {
+  display: flex; gap: 14px; padding-top: 10px;
+  border-top: 1px solid var(--charcoal-08); margin-bottom: 14px;
+}
+.result-card-meta-item {
+  font-family: var(--sans); font-size: 9.5px; font-weight: 300; color: var(--muted);
+}
+.result-card-meta-item .star { color: var(--gold); }
+
+.result-card-cta {
+  font-family: var(--sans); font-size: 9px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dark);
+}
+
+@media (max-width: 700px) {
+  .cat-header { grid-template-columns: 40px 1fr 22px; }
+  .cat-count { display: none; }
+  .cat-practices { padding-left: 0; }
+}
