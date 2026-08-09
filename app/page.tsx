@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'The Global Sanctum — Curated Wellness Retreats & Sanctuaries Worldwide',
   description:
-    'Discover exceptional retreat venues and wellness sanctuaries around the world.',
+    'Discover exceptional spaces, wellness experiences and meaningful connections for your next retreat.',
   alternates: { canonical: '/' },
 };
 
@@ -138,14 +138,14 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
-        <div className="hero-bg"><img src="/images/setting-coastal.jpg" alt="" /></div>
+        <div className="hero-bg"><img src="/images/hero-home.jpg" alt="" /></div>
         <div className="hero-overlay" />
         <div className="hero-content">
           <h1 className="hero-headline">
-            Thoughtfully Curated.<br />Globally Connected.
+            The world&rsquo;s sanctuary for wellness and retreats, <em>thoughtfully curated.</em>
           </h1>
           <p className="hero-subtext">
-            Discover exceptional retreat venues and wellness sanctuaries around the world.
+            Discover exceptional spaces, wellness experiences and meaningful connections for your next retreat.
           </p>
 
           <HomeSearch />
@@ -170,7 +170,7 @@ export default async function Home() {
             <div className="intro-eyebrow">A New Era of Wellness Discovery</div>
             <h2 className="intro-title">
               The spaces where wellness happens. The venues where retreats come to
-              life. Curated and connected worldwide.
+              life. <em>Curated and connected worldwide.</em>
             </h2>
             <p className="intro-text">
               We are the world&rsquo;s first curated platform dedicated exclusively to
@@ -195,7 +195,7 @@ export default async function Home() {
       <section className="explore">
         <div className="explore-header">
           <div className="intro-eyebrow">Discover Differently</div>
-          <h2 className="intro-title">Explore Intentional Spaces Around The World</h2>
+          <h2 className="intro-title">Explore Intentional Spaces <em>Around The World</em></h2>
           <p className="intro-text">
             From soul-restoring coastal sanctuaries to mountain retreats where silence
             does the work. Thermal springs rising from volcanic earth, forest hideaways
@@ -218,7 +218,7 @@ export default async function Home() {
         <div className="paths-inner">
           <div className="paths-header">
             <div className="intro-eyebrow">Find Your Path</div>
-            <h2 className="intro-title">Four Ways to Discover</h2>
+            <h2 className="intro-title">Four Ways to <em>Discover</em></h2>
             <p className="intro-text">
               From thermal springs to forest sanctuaries, coastal retreats to mountain
               hideaways. Spaces where restoration isn&rsquo;t an afterthought &mdash;
@@ -247,7 +247,7 @@ export default async function Home() {
             <div className="premium-header">
               <div>
                 <div className="intro-eyebrow">Intentionally Curated</div>
-                <h2 className="intro-title">Our Premium Collection</h2>
+                <h2 className="intro-title">Our <em>Premium</em> Collection</h2>
                 <p className="premium-subtitle">
                   The most exceptional wellness and retreat venues, offering
                   unparalleled experiences in extraordinary settings.
@@ -272,7 +272,7 @@ export default async function Home() {
         <div className="trending-inner">
           <div className="trending-header">
             <div className="intro-eyebrow">Where Seekers Are Drawn</div>
-            <h2 className="intro-title">Destinations Defining Wellness Travel</h2>
+            <h2 className="intro-title">Destinations Defining <em>Wellness Travel</em></h2>
             <p className="intro-text">
               The places calling to those seeking transformation, restoration, and
               spaces that hold intention in their foundations.
@@ -300,7 +300,7 @@ export default async function Home() {
             <div className="featured-header">
               <div>
                 <div className="intro-eyebrow">Featured Sanctuaries</div>
-                <h2 className="intro-title">Our Collection of Featured Venues</h2>
+                <h2 className="intro-title">Our Collection of <em>Featured</em> Venues</h2>
                 <p className="featured-subtitle">
                   From Japanese onsen to Greek island retreats. Mountain sanctuaries to
                   coastal hideaways. Spaces where the environment does half the healing.
@@ -324,7 +324,7 @@ export default async function Home() {
           </div>
           <div>
             <div className="intro-eyebrow">Discover Intentionally</div>
-            <h2 className="intro-title">Search Beyond The Surface</h2>
+            <h2 className="intro-title">Search Beyond The <em>Surface</em></h2>
             <p className="intro-text">
               Search for what truly matters &mdash; the practices supported, the
               experiences felt, the spaces designed, the environments created &mdash;
@@ -347,7 +347,7 @@ export default async function Home() {
           <div>
             <div className="intro-eyebrow">Our Philosophy</div>
             <h2 className="intro-title">
-              Wellness Should Feel Inevitable, Not Effortful
+              Wellness Should Feel Inevitable, Not <em>Effortful</em>
             </h2>
             <p className="intro-text">
               We built The Global Sanctum because the world&rsquo;s most considered
