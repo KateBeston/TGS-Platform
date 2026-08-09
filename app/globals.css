@@ -185,7 +185,7 @@ img { max-width: 100%; height: auto; display: block; }
 .nav-hamburger { display: flex; flex-direction: column; gap: 4px; }
 .nav-hamburger span {
   width: 22px; height: 1px; background: var(--charcoal);
-  transition: transform .3s, opacity .3s;
+  transition: transform .3s, opacity .3s, background .3s;
 }
 .nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
 .nav-hamburger.active span:nth-child(2) { opacity: 0; }
@@ -2626,3 +2626,33 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ── listings container (holds the tier bands) ── */
 .listings-wrap { max-width: 1400px; margin: 0 auto; padding: 28px 40px 60px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   HOME NAV — transparent over hero, solid on scroll (tgs_home_v6)
+   Scoped to .nav--over-hero, which only the home page carries. Every
+   other page keeps the base .nav (solid, sticky) above — a transparent
+   white bar is invisible on pages with no dark hero at the top, which is
+   why the default stays solid. The home hero is full-bleed and dark, so
+   the fixed bar reads over it and turns solid past the hero on scroll.
+   ══════════════════════════════════════════════════════════════════════ */
+.nav--over-hero {
+  position: fixed; left: 0; right: 0; top: 0;
+  background: transparent; border-bottom: 1px solid transparent;
+  transition: background .3s ease, backdrop-filter .3s ease, border-color .3s ease;
+}
+.nav--over-hero .nav-left,
+.nav--over-hero .nav-logo-area { color: #FFFFFF; }
+.nav--over-hero .nav-hamburger-label { color: #FFFFFF; }
+.nav--over-hero .nav-hamburger span { background: #FFFFFF; }
+.nav--over-hero .nav-enquire { color: #FFFFFF; }
+
+.nav--over-hero.scrolled {
+  background: rgba(253, 252, 249, .95);
+  backdrop-filter: blur(8px);
+  border-bottom-color: var(--charcoal-08);
+}
+.nav--over-hero.scrolled .nav-left,
+.nav--over-hero.scrolled .nav-logo-area { color: var(--charcoal); }
+.nav--over-hero.scrolled .nav-hamburger-label { color: var(--charcoal); }
+.nav--over-hero.scrolled .nav-hamburger span { background: var(--charcoal); }
+.nav--over-hero.scrolled .nav-enquire { color: var(--charcoal); }

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 /* The header, on every public page.
@@ -13,10 +14,12 @@ import { useEffect, useState } from 'react';
  * and tagline, a Menu affordance on the left and Enquire on the right,
  * with the full navigation in a left drawer.
  *
- * The bar stays solid on every page rather than transparent-over-hero.
- * A transparent nav only reads over a dark full-bleed hero; on /venues,
- * /legal and /contact there is none, and white type on warm white is
- * invisible. Solid is the one treatment that is correct everywhere. */
+ * On the home page the bar sits transparent over the dark full-bleed
+ * hero and turns solid once you scroll past it, as in the mockup. Every
+ * other page keeps the solid bar: a transparent white nav only reads
+ * over a dark hero, and on /legal or /contact there is none, so white
+ * type on warm white would be invisible. Home opts in; the rest stay
+ * solid. */
 
 /* One listing page with a filter, rather than a page per marketplace.
  *
@@ -31,6 +34,28 @@ const DISCOVER = [
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const overHero = pathname === '/';
+
+  // On the home page the nav is transparent until you scroll past the
+  // hero, then solid — matching the mockup's window.scrollY > hero - 80.
+  // Everywhere else the nav is solid from the top, so this stays false.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!overHero) { setScrolled(false); return; }
+    const onScroll = () => {
+      const hero = document.querySelector('.hero') as HTMLElement | null;
+      const h = hero ? hero.offsetHeight : window.innerHeight;
+      setScrolled(window.scrollY > h - 80);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [overHero]);
+
+  const navClass = overHero
+    ? `nav nav--over-hero${scrolled ? ' scrolled' : ''}`
+    : 'nav';
 
   // A drawer that stays open when the page changes is a drawer somebody
   // has to close twice.
@@ -51,7 +76,7 @@ export default function SiteHeader() {
     <>
       <a href="#main" className="skip-to-content">Skip to main content</a>
 
-      <nav className="nav">
+      <nav className={navClass}>
         <div className="nav-inner">
           <button type="button" className="nav-left"
             aria-expanded={open} aria-controls="site-drawer"
