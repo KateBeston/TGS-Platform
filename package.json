@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "node check-css.mjs && next build"
+    "check": "node check-css.mjs && node check-fidelity.mjs && next build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
