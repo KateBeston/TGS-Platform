@@ -141,7 +141,6 @@ export default async function Home() {
         <div className="hero-bg"><img src="/images/setting-coastal.jpg" alt="" /></div>
         <div className="hero-overlay" />
         <div className="hero-content">
-          <div className="hero-eyebrow">The Global Sanctum</div>
           <h1 className="hero-headline">
             Thoughtfully Curated.<br />Globally Connected.
           </h1>
