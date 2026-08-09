@@ -2747,3 +2747,10 @@ img { max-width: 100%; height: auto; display: block; }
 .value-card h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; color: var(--charcoal); margin-bottom: 10px; }
 .value-card p { font-family: var(--sans); font-size: 14px; line-height: 1.7; color: var(--charcoal-70); margin: 0; }
 @media (max-width: 860px) { .problem-grid { grid-template-columns: 1fr; gap: 40px; } .values-grid { grid-template-columns: 1fr; } }
+
+/* ── HERO CLEARANCE — definitive. Nav is position:fixed over the hero, so the
+   hero content is anchored a fixed distance below it and never centred, which
+   is what let a tall headline ride up into the nav. Do not revert to centring. */
+.hero { align-items: flex-start; padding-top: 128px; padding-bottom: 56px; }
+.hero .hero-content { position: relative; }
+.hero-headline { font-size: clamp(30px, 3.4vw, 50px); line-height: 1.14; max-width: 700px; }
