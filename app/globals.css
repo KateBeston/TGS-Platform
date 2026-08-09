@@ -2088,8 +2088,9 @@ img { max-width: 100%; height: auto; display: block; }
    ═══════════════════════════════════════════════════════════════════ */
 
 .hero {
-  position: relative; height: 100vh; min-height: 720px; max-height: 1000px;
+  position: relative; min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
+  padding: 120px 0 48px;
   overflow: hidden; color: #fff;
 }
 .hero-bg { position: absolute; inset: 0; z-index: 1; }
