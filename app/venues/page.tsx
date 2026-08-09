@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import VenueCard from '@/components/VenueCard';
-import VenueFilters from '@/components/VenueFilters';
+import VenueSearch from '@/components/VenueSearch';
+import ResultsBar from '@/components/ResultsBar';
 import { filterOptions, venueCards, type Card } from '@/lib/venues';
 
 export const dynamic = 'force-dynamic';
@@ -89,36 +90,38 @@ export default async function VenuesPage({
 
   return (
     <>
-      <section className="page-head">
-        <div className="wrap">
-          <div className="eyebrow">Discover</div>
-          <h1>Explore our venues</h1>
-          <p className="page-sub">
-            Retreat centres, wellness resorts, thermal sanctuaries, and sacred
-            spaces, curated from around the world.
-          </p>
+      <section className="vhero">
+        <div className="vhero-image" />
+        <div className="vhero-content">
+          <div className="vhero-eyebrow">Discover</div>
+          <h1 className="vhero-title">Explore Our Venues</h1>
         </div>
       </section>
 
-      <div className="wrap">
-        <Suspense fallback={<div className="filters" />}>
-          <VenueFilters
-            countries={options.countries}
-            types={options.types}
-            settings={options.settings}
-            categories={options.categories}
-            total={result.cards.length} />
-        </Suspense>
+      <Suspense fallback={<div className="filter-section" />}>
+        <VenueSearch
+          countries={options.countries}
+          settings={options.settings}
+          categories={options.categories} />
+      </Suspense>
 
-        {result.error ? (
+      {result.error ? (
+        <div className="listings-wrap">
           <div className="empty">
             <h2>The venues could not be loaded</h2>
             <p>{result.error}</p>
           </div>
-        ) : (
-          <Results cards={result.cards} />
-        )}
-      </div>
+        </div>
+      ) : (
+        <>
+          <Suspense fallback={null}>
+            <ResultsBar total={result.cards.length} />
+          </Suspense>
+          <div className="listings-wrap">
+            <Results cards={result.cards} />
+          </div>
+        </>
+      )}
     </>
   );
 }

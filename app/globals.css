@@ -2570,3 +2570,59 @@ img { max-width: 100%; height: auto; display: block; }
 .cta .btn--primary:hover { background: var(--warm-cream); }
 .cta .btn--secondary { background: transparent; color: var(--warm-white); border: 1px solid rgba(255, 255, 255, .3); }
 .cta .btn--secondary:hover { background: rgba(255, 255, 255, .1); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   VENUES LISTING PAGE (tgs_venues_v2)
+   Hero, progressive search bar + panels, results header. Card + tier
+   styles already exist above and are unchanged. Hero classes are scoped
+   as .vhero* so they do not collide with the home (.hero-*) or venue
+   detail (.hero .hero-*) heroes on the shared stylesheet.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── hero ── */
+.vhero { position: relative; height: 55vh; min-height: 420px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.vhero-image { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.45) 100%), url('/images/venues-hero.jpg'); background-size: cover; background-position: center; }
+.vhero-content { position: relative; z-index: 2; text-align: center; max-width: 800px; padding: 0 40px; }
+.vhero-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
+.vhero-title { font-family: var(--serif); font-size: 58px; font-weight: 300; color: var(--warm-white); line-height: 1.1; margin: 0; }
+
+/* ── filter section + progressive search bar ── */
+.filter-section { background: var(--warm-white); border-bottom: 1px solid var(--charcoal-08); position: sticky; top: 79px; z-index: 90; }
+.filter-section-inner { max-width: 1400px; margin: 0 auto; }
+.search-bar-wrap { background: var(--warm-cream); padding: 24px 40px; }
+.search-bar-inner { max-width: 1400px; margin: 0 auto; }
+.progressive-bar-row { display: flex; align-items: stretch; gap: 0; }
+.progressive-bar { flex: 1; background: var(--warm-white); border: 1.5px solid var(--charcoal-15); display: flex; align-items: stretch; transition: box-shadow 0.3s; }
+.progressive-bar:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.progressive-segment { flex: 1; padding: 16px 22px; cursor: pointer; transition: background 0.2s; position: relative; border-right: 1px solid var(--charcoal-08); display: flex; flex-direction: column; justify-content: center; min-width: 0; background: none; border-top: none; border-bottom: none; border-left: none; text-align: left; font-family: var(--sans); }
+.progressive-segment:last-of-type { border-right: none; }
+.progressive-segment:hover { background: var(--warm-cream); }
+.progressive-segment.active { background: var(--warm-cream); }
+.progressive-segment.active::after { content: ''; position: absolute; bottom: -1.5px; left: 0; right: 0; height: 2px; background: var(--gold-dark); }
+.progressive-segment-label { font-size: 9px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 5px; white-space: nowrap; }
+.progressive-segment-value { font-size: 13px; color: var(--charcoal); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.progressive-segment-value.placeholder { color: var(--charcoal-50); }
+.progressive-search-btn { background: var(--charcoal); color: var(--warm-white); border: none; padding: 0 32px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; flex-shrink: 0; white-space: nowrap; }
+.progressive-search-btn:hover { background: var(--gold-dark); }
+
+/* ── panel that drops from a segment ── */
+.progressive-panel { background: var(--warm-white); border: 1px solid var(--charcoal-15); margin-top: 12px; padding: 24px 28px; max-width: 600px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+.progressive-panel-title { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 14px; }
+.panel-options-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.panel-option { padding: 14px 16px; border: 1px solid var(--charcoal-15); background: var(--warm-white); cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; font-family: var(--sans); text-align: left; width: 100%; }
+.panel-option:hover { border-color: var(--charcoal-30); background: var(--warm-cream); }
+.panel-option.selected { background: var(--warm-cream); border-color: var(--gold-dark); }
+.panel-option-content { flex: 1; }
+.panel-option-name { font-size: 13px; font-weight: 500; color: var(--charcoal); }
+.panel-option-count { font-size: 11px; color: var(--charcoal-50); margin-left: 12px; flex-shrink: 0; }
+
+/* ── results header (count + sort) ── */
+.results-header { max-width: 1400px; margin: 0 auto; padding: 28px 40px 0; display: flex; align-items: center; justify-content: space-between; }
+.results-count { font-size: 13px; color: var(--charcoal-50); }
+.results-count strong { color: var(--charcoal); font-weight: 500; }
+.results-sort { display: flex; align-items: center; gap: 8px; }
+.results-sort label { font-size: 12px; color: var(--charcoal-50); }
+.results-sort select { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--charcoal); border: 1px solid var(--charcoal-15); padding: 6px 12px; background: var(--warm-white); cursor: pointer; }
+
+/* ── listings container (holds the tier bands) ── */
+.listings-wrap { max-width: 1400px; margin: 0 auto; padding: 28px 40px 60px; }
