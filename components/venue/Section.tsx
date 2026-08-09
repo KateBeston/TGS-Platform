@@ -350,7 +350,7 @@ export function InEveryRoom({
   rooms, tone = 'white',
 }: { rooms: any[]; tone?: 'white' | 'cream' }) {
   const lists = rooms
-    .map((r) => (Array.isArray(r.room_amenities) ? r.room_amenities : []))
+    .map((r): string[] => (Array.isArray(r.room_amenities) ? r.room_amenities : []))
     .filter((l) => l.length);
   if (lists.length < 2) return null;
   const shared = lists.reduce((a: string[], b: string[]) => a.filter((x) => b.includes(x)));
