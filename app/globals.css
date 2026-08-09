@@ -2802,3 +2802,13 @@ img { max-width: 100%; height: auto; display: block; }
 .hero { align-items: flex-start !important; padding-top: 132px !important; padding-bottom: 56px !important; }
 .hero .hero-content { position: relative !important; top: auto !important; bottom: auto !important; transform: none !important; }
 .hero-headline { font-size: clamp(30px, 3.2vw, 48px) !important; line-height: 1.14 !important; max-width: 700px !important; }
+
+/* header — soft greyed, semi-transparent frosted bar over the hero.
+   (No !important on background: the .scrolled state must still win and turn it
+   solid white on scroll.) */
+.nav--over-hero {
+  background: rgba(40, 38, 42, 0.30);
+  backdrop-filter: blur(12px) saturate(115%);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
