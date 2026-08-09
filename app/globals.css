@@ -2791,3 +2791,14 @@ img { max-width: 100%; height: auto; display: block; }
 .faq-answer { padding: 0 0 28px; }
 .faq-answer p { font-family: var(--sans); font-size: 14.5px; line-height: 1.8; color: var(--charcoal-70); margin: 0; max-width: 720px; }
 @media (max-width: 860px) { .choose-grid { grid-template-columns: 1fr; } }
+
+/* ════════════════════════════════════════════════════════════════════
+   HERO — FINAL, AUTHORITATIVE. Do not add hero position rules after this.
+   The home nav is position:fixed and floats over the hero. The hero must
+   anchor its content a fixed distance BELOW the nav and must never centre
+   vertically — vertical centring is what let a tall headline overflow
+   upward into the nav. !important guarantees this wins the cascade.
+   ════════════════════════════════════════════════════════════════════ */
+.hero { align-items: flex-start !important; padding-top: 132px !important; padding-bottom: 56px !important; }
+.hero .hero-content { position: relative !important; top: auto !important; bottom: auto !important; transform: none !important; }
+.hero-headline { font-size: clamp(30px, 3.2vw, 48px) !important; line-height: 1.14 !important; max-width: 700px !important; }
