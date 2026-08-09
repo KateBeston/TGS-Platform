@@ -2812,3 +2812,15 @@ img { max-width: 100%; height: auto; display: block; }
   -webkit-backdrop-filter: blur(12px) saturate(115%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
+
+/* how it works — dark "Why" section (mockup match: warm-charcoal, 2x2 bordered cards) */
+.hiw-why { background: var(--charcoal); color: rgba(255,255,255,.72); padding: var(--s8) var(--s5); }
+.hiw-why-head { text-align: center; margin-bottom: 54px; }
+.hiw-why-head .intro-eyebrow { color: var(--gold); }
+.hiw-why-title { font-family: var(--serif); font-weight: 300; font-size: clamp(28px, 3vw, 40px); color: #fff; margin: 0; }
+.why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 920px; margin: 0 auto; }
+.why-card { padding: 34px 32px; border: 1px solid rgba(255,255,255,.14); transition: border-color .4s ease; }
+.why-card:hover { border-color: rgba(196,162,101,.5); }
+.why-card h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; color: #fff; margin: 0 0 10px; letter-spacing: .02em; }
+.why-card p { font-family: var(--sans); font-size: 14px; line-height: 1.7; color: rgba(255,255,255,.66); margin: 0; }
+@media (max-width: 720px) { .why-grid { grid-template-columns: 1fr; } }
