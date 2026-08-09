@@ -103,6 +103,28 @@ function VenueSlide({ v }: { v: Card }) {
   );
 }
 
+/* The featured section uses the smaller venue-card from the mockup, not
+ * the large premium card: image with a country tag, place, name and a
+ * quiet CTA — no description or type. Premium is the showcase; featured
+ * is the browse. */
+function FeaturedSlide({ v }: { v: Card }) {
+  return (
+    <Link href={venueHref(v)} className="venue-card">
+      <div className="venue-card-image">
+        {v.image_url
+          ? <img src={v.image_url} alt="" loading="lazy" />
+          : <span className="placeholder-img">The Global Sanctum</span>}
+        {v.country && <span className="venue-card-tag">{v.country}</span>}
+      </div>
+      <div className="venue-card-content">
+        <p className="venue-card-location">{placeOf(v)}</p>
+        <h3 className="venue-card-name">{v.headline ?? v.venue_name}</h3>
+        <span className="card-cta">Explore Venue &rarr;</span>
+      </div>
+    </Link>
+  );
+}
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -290,7 +312,7 @@ export default async function Home() {
               </Link>
             </div>
             <Carousel label="featured venues">
-              {featured.map((v) => <VenueSlide key={v.id} v={v} />)}
+              {featured.map((v) => <FeaturedSlide key={v.id} v={v} />)}
             </Carousel>
           </div>
         </section>

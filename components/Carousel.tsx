@@ -13,14 +13,18 @@ import { useEffect, useRef, useState } from 'react';
  */
 
 export default function Carousel({
-  children, perSlide = 3, label,
+  children, perSlide = 3, label, autoplay = true, interval = 6000,
 }: {
   children: React.ReactNode[];
   perSlide?: number;
   label: string;
+  autoplay?: boolean;
+  interval?: number;
 }) {
   const [slide, setSlide] = useState(0);
   const [perView, setPerView] = useState(perSlide);
+  const [paused, setPaused] = useState(false);
+  const [reduced, setReduced] = useState(false);
   const track = useRef<HTMLDivElement>(null);
 
   // One at a time on a phone, two on a tablet. A three-across slide on a
@@ -46,12 +50,34 @@ export default function Carousel({
 
   useEffect(() => { if (slide > count - 1) setSlide(0); }, [count, slide]);
 
+  // Respect a reader who has asked the system for less motion — no
+  // autoplay for them.
+  useEffect(() => {
+    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReduced(m.matches);
+    sync();
+    m.addEventListener('change', sync);
+    return () => m.removeEventListener('change', sync);
+  }, []);
+
+  // Advance on a slow timer so the row moves on its own, elegantly. The
+  // effect is keyed on `at`, so any manual arrow or dot resets the dwell
+  // rather than jumping straight after. Hover or keyboard focus pauses it
+  // so nobody loses the card they are reading.
+  useEffect(() => {
+    if (!autoplay || reduced || paused || count <= 1) return;
+    const id = window.setTimeout(() => setSlide((s) => (s + 1) % count), interval);
+    return () => window.clearTimeout(id);
+  }, [autoplay, reduced, paused, count, at, interval]);
+
   if (!items.length) return null;
 
   const go = (n: number) => setSlide(((n % count) + count) % count);
 
   return (
-    <div className="carousel">
+    <div className="carousel"
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}>
       <div className="carousel-viewport">
         <div ref={track} className="carousel-track"
           style={{ transform: `translateX(-${at * 100}%)` }}>
