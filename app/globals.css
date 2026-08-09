@@ -2719,3 +2719,7 @@ img { max-width: 100%; height: auto; display: block; }
 .hero-subtext { max-width: 470px; margin-left: 0; margin-right: 0; }
 .hero-glass { margin-left: 0; margin-right: auto; }
 .hero-ctas { justify-content: flex-start; }
+
+/* hero: anchor content just below the nav so a taller headline can never ride up into it (root-cause fix) */
+.hero { align-items: flex-start; padding-top: 120px; padding-bottom: 56px; }
+.hero-headline { font-size: clamp(30px, 3.6vw, 52px); line-height: 1.13; max-width: 720px; }
