@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   DOCUMENTS — shared typography and print rules
+
+   Every printable document in the portal draws from this file. Before it,
+   the enquiry brief and the itinerary each carried their own copy of the
+   same 150 lines, and a third document would have made three versions to
+   keep in step. They would not have stayed in step.
+
+   Sized against A4 at 794px with fixed px throughout, because relative
+   units drift between screen and paper. What is on screen is what prints.
+
+   Loaded once in globals.css, so a new document inherits the whole system
+   by using the shell — it declares no CSS of its own.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.doc-wrap{background:var(--warm-cream);padding:28px 16px;}
+.doc{
+  background:var(--warm-white);max-width:794px;margin:0 auto;
+  padding:22mm 18mm 20mm;box-shadow:0 2px 30px rgba(49,49,49,.14);
+  font-family:var(--sans);font-size:13.5px;line-height:1.62;color:var(--ink);
+}
+
+/* ── masthead ─────────────────────────────────────────────────────── */
+.doc-masthead{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.doc-logo{height:34px;width:auto;}
+.doc-hostname{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1;}
+.doc-kind{
+  font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--ink-gold);text-align:right;padding-top:7px;white-space:nowrap;
+}
+.doc-ref{font-size:10.5px;color:var(--ink-quiet);text-align:right;margin-top:5px;
+         letter-spacing:.04em;}
+
+/* ── title block ──────────────────────────────────────────────────── */
+.doc h1{
+  font-family:var(--serif);font-weight:300;font-size:40px;line-height:1.06;
+  margin:26px 0 0;letter-spacing:-.01em;
+}
+.doc-sub{font-size:13px;color:var(--ink-quiet);margin-top:8px;}
+.doc-rule{width:44px;height:1px;background:var(--gold);margin-top:20px;}
+.doc-intro{font-size:14.5px;margin-top:22px;line-height:1.6;}
+
+/* ── sections ─────────────────────────────────────────────────────── */
+.doc h2{
+  font-family:var(--sans);font-size:9.5px;font-weight:600;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--ink-quiet);
+  margin:34px 0 3px;padding-bottom:7px;border-bottom:1px solid var(--border);
+}
+.doc h3{font-family:var(--serif);font-weight:300;font-size:23px;margin:10px 0 14px;}
+
+/* ── key and value pairs ──────────────────────────────────────────── */
+.doc-dl{display:grid;grid-template-columns:172px 1fr;gap:7px 18px;margin:14px 0 0;}
+.doc-dl dt{font-size:11.5px;color:var(--ink-quiet);padding-top:2px;}
+.doc-dl dd{margin:0;font-size:14px;}
+
+/* ── a timed or sequenced row ─────────────────────────────────────── */
+.doc-item{
+  display:grid;grid-template-columns:92px 1fr;gap:16px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.doc-item:last-child{border-bottom:0;}
+.doc-when{font-size:12px;color:var(--ink-quiet);
+          font-variant-numeric:tabular-nums;padding-top:3px;}
+.doc-what{font-family:var(--serif);font-size:19px;font-weight:400;line-height:1.25;}
+.doc-meta{font-size:11.5px;color:var(--ink-quiet);margin-top:3px;}
+.doc-away{color:var(--ink-gold);}
+.doc-aside{font-size:11px;color:var(--ink-quiet);font-style:italic;margin-top:3px;}
+
+/* ── lists ────────────────────────────────────────────────────────── */
+.doc-list{margin:12px 0 0;padding-left:18px;}
+.doc-list li{margin-bottom:7px;font-size:14px;}
+.doc-list li .doc-meta{margin-top:1px;}
+
+/* ── tables ───────────────────────────────────────────────────────── */
+.doc table{width:100%;border-collapse:collapse;margin-top:14px;}
+.doc th{
+  text-align:left;font-size:9px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-quiet);
+  padding:0 10px 7px 0;border-bottom:1px solid var(--border);
+}
+.doc td{padding:9px 10px 9px 0;border-bottom:1px solid var(--border);
+        font-size:13px;vertical-align:top;}
+
+/* ── marks ────────────────────────────────────────────────────────── */
+.doc-tag{
+  display:inline-block;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid var(--border);padding:1px 6px;margin-left:6px;color:var(--ink-quiet);
+}
+.doc-warn{margin-top:18px;padding:10px 12px;border:1px solid var(--warn);font-size:13px;}
+.doc-callout{margin-top:18px;padding:12px 14px;background:var(--warm-cream);
+             border-left:2px solid var(--gold);font-size:13px;line-height:1.6;}
+
+/* ── footer ───────────────────────────────────────────────────────── */
+.doc-foot{
+  margin-top:38px;padding-top:14px;border-top:1px solid var(--border);
+  font-size:10.5px;color:var(--ink-quiet);
+  display:flex;justify-content:space-between;gap:16px;
+}
+
+/* ── print ────────────────────────────────────────────────────────── */
+@media print{
+  /* Nothing carries a fill on paper. The warm white is a screen
+     background standing in for stock — printed it is full ink coverage
+     doing nothing the paper was not already doing, across every page. */
+  .no-print{display:none !important;}
+  .doc-wrap{background:none;padding:0;}
+  .doc{background:none;box-shadow:none;margin:0;max-width:none;padding:0;}
+  .doc-callout{background:none;padding-left:14px;}
+  @page{size:A4;margin:18mm 16mm 20mm;}
+  .doc-block,.doc-item,.doc-list li,.doc-dl{break-inside:avoid;}
+  .doc h2,.doc h3{break-after:avoid;}
+  .doc table{break-inside:auto;}
+  .doc tr{break-inside:avoid;}
+}
