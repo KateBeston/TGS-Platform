@@ -21,18 +21,37 @@ export default function PageViews() {
   const first = useRef(true);
 
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
-
-    const w = window as any;
-    w.dataLayer = w.dataLayer ?? [];
-
     const query = params.toString();
-    w.dataLayer.push({
-      event: 'page_view',
-      page_path: pathname + (query ? `?${query}` : ''),
-      page_title: document.title,
-      page_location: window.location.href,
-    });
+    const path = pathname + (query ? `?${query}` : '');
+
+    // GA4 dataLayer — skip the very first view (GTM's container load counts it).
+    if (!first.current) {
+      const w = window as any;
+      w.dataLayer = w.dataLayer ?? [];
+      w.dataLayer.push({
+        event: 'page_view',
+        page_path: path,
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    }
+
+    // First-party page_views — every view, including the first, so landing
+    // pages aren't undercounted. Fire-and-forget; never blocks the page.
+    try {
+      const existing = sessionStorage.getItem('tgs_sid');
+      const sid: string = existing
+        ?? ((self.crypto as any)?.randomUUID?.() ?? String(Math.random()).slice(2) + Date.now());
+      if (!existing) sessionStorage.setItem('tgs_sid', sid);
+      fetch('/api/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, referrer: document.referrer || null, sessionId: sid }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch { /* sessionStorage unavailable — skip silently */ }
+
+    first.current = false;
   }, [pathname, params]);
 
   return null;
