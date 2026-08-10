@@ -545,8 +545,13 @@ img { max-width: 100%; height: auto; display: block; }
 .premium-card:hover, .featured-card:hover,
 .standard-card:hover, .essentials-card:hover { text-decoration: none; }
 
+.premium-card-image, .featured-card-image, .essentials-card-image { position: relative; overflow: hidden; }
+.premium-card-image { min-height: 320px; }
+.featured-card-image { min-height: 220px; }
+.essentials-card-image { min-height: 120px; }
 .premium-card-image img, .featured-card-image img,
 .standard-card-image img, .essentials-card-image img {
+  position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
   transition: transform .6s cubic-bezier(.4, 0, .2, 1);
 }
@@ -2910,3 +2915,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* venue detail — related "you may also like" grid */
 .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; max-width: 1200px; margin: 0 auto; }
+
+/* tier card placeholders fill their (stretched) cell like the real image */
+.premium-card-image .placeholder-img, .featured-card-image .placeholder-img,
+.standard-card-image .placeholder-img, .essentials-card-image .placeholder-img { position: absolute; inset: 0; }
