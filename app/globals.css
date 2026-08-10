@@ -60,7 +60,7 @@
 
 :root{
   --charcoal:#313131; --warm-white:#FDFCF9; --warm-cream:#F7F5F1;
-  --gold:#C4A265; --gold-dark:#7A644F; --border:#E0D8CC; --muted:#6A6357;
+  --gold:#C4A265; --gold-dark:#7A644F; --border:#E0D8CC; --muted:#4A443B;
   --quiet:#4A4238;
 
   --ink:var(--charcoal);
@@ -86,9 +86,9 @@
   /* Charcoal at fixed opacities, from the mockups. A tint rather than a
      separate grey, so the same rule reads correctly over warm white and
      over the cream panels without a second palette. */
-  --charcoal-80: rgba(49, 49, 49, .90);
-  --charcoal-70: rgba(49, 49, 49, .85);
-  --charcoal-50: rgba(49, 49, 49, .68);
+  --charcoal-80: rgba(49, 49, 49, .95);
+  --charcoal-70: rgba(49, 49, 49, .95);
+  --charcoal-50: rgba(49, 49, 49, .80);
   --charcoal-30: rgba(49, 49, 49, .30);
   --charcoal-15: rgba(49, 49, 49, .15);
   --charcoal-10: rgba(49, 49, 49, .10);
@@ -110,7 +110,7 @@ body {
   color: var(--charcoal);
   font-family: var(--sans);
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
@@ -2839,7 +2839,7 @@ img { max-width: 100%; height: auto; display: block; }
 .tier-section-count { font-family: var(--sans); font-size: 11px; font-weight: 400; color: rgba(49,49,49,.5); }
 
 /* ── advanced search modal + venue-type chooser (ported from tgs_venues_v2) ── */
-:root { --charcoal-30: rgba(49,49,49,.3); --charcoal-50: rgba(49,49,49,.68); }
+:root { --charcoal-30: rgba(49,49,49,.3); --charcoal-50: rgba(49,49,49,.80); }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2000; opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s; display: flex; align-items: center; justify-content: center; }
 .modal-overlay.open { opacity: 1; visibility: visible; }
