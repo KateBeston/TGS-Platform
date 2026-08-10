@@ -139,15 +139,15 @@ export default function SiteHeader() {
             <div className="drawer-group-label">Learn</div>
             <Link href="/about" className="drawer-secondary-link" onClick={close}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-              About Us
+              <span>About Us</span>
             </Link>
             <Link href="/how-it-works" className="drawer-secondary-link" onClick={close}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-              How It Works
+              <span>How It Works</span>
             </Link>
             <Link href="/the-wellness-edit" className="drawer-secondary-link" onClick={close}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-              The Wellness Edit
+              <span>The Wellness Edit</span>
             </Link>
           </div>
 
@@ -155,16 +155,12 @@ export default function SiteHeader() {
             <div className="drawer-group-label">Connect</div>
             <Link href="/contact" className="drawer-secondary-link" onClick={close}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-              Contact Us
+              <span>Contact Us</span>
             </Link>
             <Link href="/list-your-venue" className="drawer-secondary-link" onClick={close}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-              List Your Venue
+              <span>List Your Venue</span>
             </Link>
-          </div>
-
-          <div className="drawer-group">
-            <Link href="/list-your-venue" className="drawer-cta" onClick={close}>List Your Venue</Link>
           </div>
         </div>
 

@@ -291,12 +291,13 @@ img { max-width: 100%; height: auto; display: block; }
 .drawer-link-arrow { font-size: 18px; color: var(--charcoal-15); transition: color .3s, transform .3s; }
 .drawer-link:hover .drawer-link-arrow { color: var(--charcoal-50); transform: translateX(4px); }
 .drawer-secondary-link {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 14px; justify-content: flex-start;
   font-family: var(--serif); font-size: 26px; font-weight: 300;
   color: var(--charcoal); padding: 12px 0;
   border-bottom: 1px solid var(--charcoal-05);
   transition: color .3s, padding-left .3s;
 }
+.drawer-secondary-link svg { flex-shrink: 0; }
 .drawer-secondary-link:hover { color: var(--charcoal-70); padding-left: 6px; text-decoration: none; }
 .drawer-secondary-link:hover { color: var(--charcoal); padding-left: 4px; text-decoration: none; }
 .drawer-secondary-link svg { width: 16px; height: 16px; color: var(--charcoal-30); transition: color .2s; }
