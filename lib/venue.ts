@@ -31,7 +31,8 @@ export async function loadVenue(marketplace: string, slug: string) {
 
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
-         packages, practitioners, openingHours, policies, profile] =
+         packages, practitioners, openingHours, policies, profile,
+         distances, excursions, faqs, seasons, transfers, tabContent, related] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -54,7 +55,31 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('published_venue_policies').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('published_venue_profile').select('*').eq('venue_id', id).maybeSingle(),
+      supabase.from('venue_distances').select('*').eq('venue_id', id).eq('show_on_listing', true)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_excursions').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_faqs').select('*').eq('venue_id', id).eq('is_published', true)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_seasons').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_transfer_options').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_tab_content').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('venue_related').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
     ]);
+
+  // You may also like — resolve the related ids to cards, keeping the
+  // curated order. Only when there are any, so no extra query otherwise.
+  const relatedIds = (related.data ?? []).map((r: any) => r.related_venue_id).filter(Boolean);
+  let relatedCards: any[] = [];
+  if (relatedIds.length) {
+    const { data: rc } = await supabase.from('venue_cards').select('*').in('id', relatedIds);
+    const order = new Map((related.data ?? []).map((r: any, i: number) => [r.related_venue_id, r.display_order ?? i]));
+    relatedCards = (rc ?? []).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  }
 
   return {
     ...(card as Record<string, any>),
@@ -73,6 +98,13 @@ export async function loadVenue(marketplace: string, slug: string) {
     practitioners: practitioners.data ?? [],
     opening_hours: openingHours.data ?? [],
     policies: policies.data ?? [],
+    distances: distances.data ?? [],
+    excursions: excursions.data ?? [],
+    faqs: faqs.data ?? [],
+    seasons: seasons.data ?? [],
+    transfers: transfers.data ?? [],
+    tab_content: tabContent.data ?? [],
+    related: relatedCards,
     marketplaceSegment: marketplace,
   } as Venue;
 }

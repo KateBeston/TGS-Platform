@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueEnquiry from '@/components/VenueEnquiry';
+import VenueCard from '@/components/VenueCard';
 import {
   Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero, VenueLinks,
@@ -73,11 +74,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     v.facilities.length && { id: 'amenities', label: 'Amenities' },
-    v.services.length && { id: 'experiences', label: 'Experiences' },
+    (v.services.length || v.excursions.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     { id: 'location', label: 'Location' },
-    v.policies.length && { id: 'policies', label: 'Policies' },
+    (v.policies.length || v.faqs.length) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },
   ].filter(Boolean) as { id: string; label: string }[];
@@ -281,31 +282,54 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {/* ── experiences ────────────────────────────────────────────── */}
-      {!!v.services.length && (
+      {(!!v.services.length || !!v.excursions.length) && (
         <div id="panel-experiences" className="vpanel" hidden>
           <TabHero image={v.image_url} label="Experiences"
             title="Enhance your retreat"
             subtitle="Arranged by the venue, added to your booking" />
 
-          <Section tone="white">
-            <div className="item-grid">
-              {v.services.map((s: any) => (
-                <article key={s.id} className="item priced">
-                  <div>
-                    <h3>{s.name}</h3>
-                    <div className="item-meta">
-                      {[s.category, duration(s.duration_minutes)].filter(Boolean).join(' · ')}
+          {!!v.services.length && (
+            <Section tone="white">
+              <div className="item-grid">
+                {v.services.map((s: any) => (
+                  <article key={s.id} className="item priced">
+                    <div>
+                      <h3>{s.name}</h3>
+                      <div className="item-meta">
+                        {[s.category, duration(s.duration_minutes)].filter(Boolean).join(' · ')}
+                      </div>
+                      {s.description && <p>{s.description}</p>}
                     </div>
-                    {s.description && <p>{s.description}</p>}
-                  </div>
-                  <div className="priced-amount">
-                    {s.price_is_from && <span className="from">from</span>}
-                    {money(s.base_price, s.currency)}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </Section>
+                    <div className="priced-amount">
+                      {s.price_is_from && <span className="from">from</span>}
+                      {money(s.base_price, s.currency)}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {!!v.excursions.length && (
+            <Section tone="cream" label="Beyond the venue" title="Local excursions">
+              <div className="item-grid">
+                {v.excursions.map((e: any) => (
+                  <article key={e.id} className={e.price != null ? 'item priced' : 'item'}>
+                    <div>
+                      <h3>{e.name}</h3>
+                      <div className="item-meta">
+                        {[e.duration_label, e.difficulty].filter(Boolean).join(' · ')}
+                      </div>
+                      {e.description && <p>{e.description}</p>}
+                    </div>
+                    {e.price != null && (
+                      <div className="priced-amount">{money(e.price, e.currency)}</div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
@@ -342,9 +366,25 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         {/* Said separately. "Beachfront" and "twenty minutes from a
             beach" are different claims, and running them together is how
             a listing overstates itself. */}
-        {!!reachable.length && (
-          <Section tone="cream" label="Getting there"
-            title="Distances and travel times">
+        {/* Distances: the harvested travel times where present, otherwise
+            the setting-based reachable list. */}
+        {v.distances.length ? (
+          <Section tone="cream" label="Getting there" title="Distances and travel times">
+            <div className="distance-list">
+              {v.distances.map((d: any) => (
+                <div key={d.id} className="distance-row">
+                  <span className="distance-name">{d.label}</span>
+                  <span className="distance-time">
+                    {d.travel_value != null
+                      ? `${d.travel_value} ${d.travel_unit || 'min'}${d.travel_mode ? ` by ${d.travel_mode}` : ''}`
+                      : 'Nearby'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : !!reachable.length && (
+          <Section tone="cream" label="Getting there" title="Distances and travel times">
             <div className="distance-list">
               {reachable.map((s: any) => (
                 <div key={s.setting_id} className="distance-row">
@@ -360,8 +400,45 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
-        {(v.climate_intro || v.best_months) && (
-          <Section tone="white" label="Climate" title="What to expect">
+        {!!v.transfers.length && (
+          <Section tone="white" label="Transfers" title="Getting to the door">
+            <div className="item-grid">
+              {v.transfers.map((t: any) => (
+                <article key={t.id} className="item">
+                  <h3>{t.title}</h3>
+                  <div className="item-meta">
+                    {[t.from_location && t.to_location ? `${t.from_location} to ${t.to_location}` : null,
+                      t.duration_minutes ? `${t.duration_minutes} min` : null,
+                      t.is_included ? 'Included' : (t.price != null ? money(t.price, t.price_currency) : null)]
+                      .filter(Boolean).join(' · ')}
+                  </div>
+                  {t.description && <p>{t.description}</p>}
+                </article>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* Climate: the season table where present, otherwise the prose. */}
+        {v.seasons.length ? (
+          <Section tone="cream" label="Climate" title="When to visit">
+            <div className="distance-list">
+              {v.seasons.map((s: any) => (
+                <div key={s.id} className="distance-row">
+                  <span className="distance-name">
+                    {s.season_name}{s.months ? ` · ${s.months}` : ''}{s.is_peak ? ' · Peak' : ''}
+                  </span>
+                  <span className="distance-time">
+                    {[s.temp_low != null && s.temp_high != null
+                        ? `${s.temp_low}–${s.temp_high}°${s.temp_unit || 'C'}` : null,
+                      s.best_for].filter(Boolean).join(' · ')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : (v.climate_intro || v.best_months) && (
+          <Section tone="cream" label="Climate" title="What to expect">
             <div className="prose-narrow">
               {v.climate_intro && <p>{v.climate_intro}</p>}
               {v.best_months && (
@@ -380,9 +457,25 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       </div>
 
       {/* ── policies ───────────────────────────────────────────────── */}
-      {!!v.policies.length && (
+      {(!!v.policies.length || !!v.faqs.length) && (
         <div id="panel-policies" className="vpanel" hidden>
-          <PoliciesPanel v={v} />
+          {!!v.policies.length && <PoliciesPanel v={v} />}
+          {!!v.faqs.length && (
+            <Section tone={v.policies.length ? 'cream' : 'white'}
+              label="Common questions" title="Good to know">
+              <div className="faq" style={{ maxWidth: 860, margin: '0 auto' }}>
+                {v.faqs.map((f: any) => (
+                  <details key={f.id} className="faq-item">
+                    <summary className="faq-question">
+                      <span>{f.question}</span>
+                      <span className="faq-toggle" aria-hidden="true" />
+                    </summary>
+                    <div className="faq-answer"><p>{f.answer}</p></div>
+                  </details>
+                ))}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
@@ -409,6 +502,20 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </div>
         </Section>
       </div>
+
+      {!!v.related.length && (
+        <section className="section section--white">
+          <div className="wrap">
+            <div className="intro-eyebrow" style={{ textAlign: 'center' }}>Explore further</div>
+            <h2 className="section-title" style={{ textAlign: 'center', marginBottom: 'var(--s5)' }}>
+              You may also like
+            </h2>
+            <div className="related-grid">
+              {v.related.map((c: any) => <VenueCard key={c.id} card={c} size={3} />)}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }
