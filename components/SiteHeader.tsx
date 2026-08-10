@@ -111,7 +111,6 @@ export default function SiteHeader() {
         <div className="drawer-header">
           <div className="drawer-header-left">
             <span className="drawer-logo" aria-hidden="true" />
-            <span className="drawer-label">Navigation</span>
           </div>
           <button type="button" className="drawer-close" aria-label="Close menu"
             onClick={close}>&times;</button>
