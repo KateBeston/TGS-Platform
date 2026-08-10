@@ -1,6 +1,16 @@
 import Link from 'next/link';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 
+/* Price the way a listing reads it: currency-aware, no cents. */
+function formatMoney(amount: number, currency: string | null): string {
+  const cur = currency || 'AUD';
+  try {
+    return new Intl.NumberFormat('en-AU', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(amount);
+  } catch {
+    return `${cur} ${amount}`;
+  }
+}
+
 /* A listing card, four treatments.
  *
  * Lifted from tgs_venues_v2 rather than reinterpreted — the ladder is
@@ -84,11 +94,14 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           <Tags tags={tags} />
           <div className="premium-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="premium" />
-            {card.max_guests && (
+            {card.price_from != null ? (
               <span className="premium-card-price">
-                Sleeps <strong>{card.max_guests}</strong>
+                From <strong>{formatMoney(card.price_from, card.price_currency)}</strong>
+                {card.price_unit ? ` / ${card.price_unit}` : ''}
               </span>
-            )}
+            ) : card.max_guests ? (
+              <span className="premium-card-price">Sleeps <strong>{card.max_guests}</strong></span>
+            ) : null}
           </div>
         </div>
       </Link>
@@ -108,11 +121,14 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           <Tags tags={tags} />
           <div className="featured-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="featured" />
-            {card.max_guests && (
+            {card.price_from != null ? (
               <span className="featured-card-price">
-                Sleeps <strong>{card.max_guests}</strong>
+                From <strong>{formatMoney(card.price_from, card.price_currency)}</strong>
+                {card.price_unit ? ` / ${card.price_unit}` : ''}
               </span>
-            )}
+            ) : card.max_guests ? (
+              <span className="featured-card-price">Sleeps <strong>{card.max_guests}</strong></span>
+            ) : null}
           </div>
         </div>
       </Link>
@@ -132,11 +148,14 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           <Tags tags={tags} />
           <div className="standard-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="standard" />
-            {card.max_guests && (
+            {card.price_from != null ? (
               <span className="standard-card-price">
-                Sleeps <strong>{card.max_guests}</strong>
+                From <strong>{formatMoney(card.price_from, card.price_currency)}</strong>
+                {card.price_unit ? ` / ${card.price_unit}` : ''}
               </span>
-            )}
+            ) : card.max_guests ? (
+              <span className="standard-card-price">Sleeps <strong>{card.max_guests}</strong></span>
+            ) : null}
           </div>
         </div>
       </Link>
@@ -156,9 +175,9 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
         <div className="essentials-card-location">{placeOf(card)}</div>
         <div className="essentials-card-meta">
           <Rating rating={card.rating} count={card.review_count} size="essentials" />
-          {card.max_guests && (
+          {card.price_from != null && (
             <span className="essentials-card-price">
-              <strong>{card.max_guests}</strong>
+              From <strong>{formatMoney(card.price_from, card.price_currency)}</strong>
             </span>
           )}
         </div>
