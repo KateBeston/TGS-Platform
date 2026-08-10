@@ -42,7 +42,10 @@ export default async function ExperiencesPage() {
   return (
     <div className="we-page">
       <section className="hero">
-        <div className="hero-img" aria-hidden="true" />
+        <div className="hero-img" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/experiences/hero.jpg" alt="" />
+        </div>
         <div className="hero-overlay" />
         <div className="hero-content">
           <div className="hero-left">
