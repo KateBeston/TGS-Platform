@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import ExperienceResults from '@/components/ExperienceResults';
-import {
-  categoryBySlug, practiceBySlug, practicesIn, practicesOfVenues, venuesFor,
-} from '@/lib/experiences';
+import PracticeVenues from '@/components/PracticeVenues';
+import { categoryBySlug, practiceBySlug, practicesIn, venuesFor } from '@/lib/experiences';
+import { placeOf, venueHref } from '@/lib/venues';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +13,6 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { category, practice } = await params;
   const p = await practiceBySlug(category, practice);
   if (!p) return { title: 'Not found' };
-
-  // The page most likely to be found by somebody searching for the
-  // practice by name, so the title leads with it.
   return {
     title: `${p.name} — venues and retreats`,
     description: p.description
@@ -36,46 +32,56 @@ export default async function PracticePage({ params }: Params) {
     practicesIn(c.id),
     venuesFor({ practiceId: p.id }),
   ]);
-  const practiceMap = await practicesOfVenues(venues.map((v) => v.id));
+
+  const paragraphs = (p.description ?? '')
+    .split(/\n{2,}|\r\n{2,}/)
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+
+  const cards = venues.map((v: any) => ({ ...v, place: placeOf(v), href: venueHref(v) }));
+
+  const related = siblings.filter((s: any) => s.id !== p.id);
 
   return (
-    <>
-      <section className="page-head">
+    <div className="pr-page">
+      <div className="wrap">
+        <nav className="crumb" aria-label="Breadcrumb">
+          <Link href="/">Home</Link>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <Link href="/wellness-experiences">Wellness Experiences</Link>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <Link href={`/wellness-experiences/${c.slug}`}>{c.name}</Link>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <span className="crumb-current">{p.name}</span>
+        </nav>
+      </div>
+
+      <section className="intro">
         <div className="wrap">
-          <div className="tb-crumb">
-            <Link href="/wellness-experiences">Wellness experiences</Link>
-            {' · '}
-            <Link href={`/wellness-experiences/${c.slug}`}>{c.name}</Link>
+          <div className="intro-main">
+            <p className="eyebrow">{c.name}</p>
+            <h1>{p.name}</h1>
+            {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
           </div>
-          <h1 style={{ marginTop: 'var(--s4)' }}>{p.name}</h1>
-          {p.description && <p className="page-sub">{p.description}</p>}
-          <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
-            {p.venue_count} venue{p.venue_count === 1 ? '' : 's'} in the collection
-          </p>
         </div>
       </section>
 
-      <div className="wrap">
-        <div className="cat-filter-bar">
-          <Link href={`/wellness-experiences/${c.slug}`} className="cat-filter-pill">
-            All of {c.name}
-          </Link>
-          {siblings.map((s) => (
-            s.id === p.id ? (
-              <span key={s.id} className="cat-filter-pill is-on">{s.name}</span>
-            ) : s.venue_count > 0 ? (
-              <Link key={s.id} href={`/wellness-experiences/${c.slug}/${s.slug}`}
-                className="cat-filter-pill">
-                {s.name}<span className="pill-n">{s.venue_count}</span>
-              </Link>
-            ) : (
-              <span key={s.id} className="cat-filter-pill quiet">{s.name}</span>
-            )
-          ))}
-        </div>
+      <PracticeVenues venues={cards} practiceName={p.name} />
 
-        <ExperienceResults venues={venues} practices={practiceMap} highlight={p.name} />
-      </div>
-    </>
+      {related.length > 0 && (
+        <section className="related">
+          <div className="wrap">
+            <h3>Related practices in {c.name}</h3>
+            <div className="pills">
+              {related.map((s: any) => (
+                <Link key={s.id} href={`/wellness-experiences/${c.slug}/${s.slug}`}>
+                  {s.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

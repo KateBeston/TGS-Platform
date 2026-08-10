@@ -1,28 +1,18 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { categories } from '@/lib/experiences';
 import { createClient } from '@/lib/supabase/server';
+import ExperienceAccordion from '@/components/ExperienceAccordion';
+import JournalSignup from '@/components/JournalSignup';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Wellness experiences',
   description:
-    'Every modality and tradition on The Global Sanctum — thermal bathing to '
-    + 'sound, yoga to shamanic practice. Find venues by what actually happens there.',
+    'Browse transformative modalities and healing practices. Each links directly '
+    + 'to venues in our collection that offer them.',
   alternates: { canonical: '/wellness-experiences' },
 };
-
-/* The index of every category.
- *
- * The mockup has this as an accordion. Built as links rather than
- * toggles, because the audit is explicit that opening a category should
- * change the URL — a state that only exists in the browser cannot be
- * sent to anybody, cannot be indexed, and does not survive a refresh.
- *
- * Every category is listed, including those with nothing in them yet. A
- * list that changes shape as venues arrive is harder to trust than one
- * that is honest about being early. */
 
 export default async function ExperiencesPage() {
   const supabase = await createClient();
@@ -30,7 +20,8 @@ export default async function ExperiencesPage() {
     categories(),
     supabase.from('experience_practices')
       .select('name,slug,category_slug,venue_count')
-      .order('venue_count', { ascending: false }),
+      .order('display_order', { nullsFirst: false })
+      .order('name'),
   ]);
 
   const byCategory = new Map<string, any[]>();
@@ -40,78 +31,64 @@ export default async function ExperiencesPage() {
     byCategory.set(p.category_slug, list);
   }
 
-  const withVenues = cats.filter((c) => c.venue_count > 0);
-  const rest = cats.filter((c) => c.venue_count === 0);
+  const withPractices = cats.map((c: any) => ({
+    ...c,
+    practices: byCategory.get(c.slug) ?? [],
+  }));
+
+  const categoryCount = withPractices.length;
+  const practiceCount = (allPractices ?? []).length;
 
   return (
-    <>
-      <section className="page-head">
-        <div className="wrap">
-          <div className="eyebrow">Wellness experiences</div>
-          <h1>Find a venue by what happens there</h1>
-          <p className="page-sub">
-            Every modality and tradition in our collection, from thermal bathing to
-            shamanic practice. Choose one and see where it is offered.
+    <div className="we-page">
+      <section className="hero">
+        <div className="hero-img" aria-hidden="true" />
+        <div className="hero-overlay" />
+        <div className="hero-content">
+          <div className="hero-left">
+            <div className="hero-eyebrow">Modalities &amp; Practices</div>
+            <h1 className="hero-title">Explore by <em>Experience.</em></h1>
+          </div>
+          <p className="hero-body">
+            Browse transformative modalities and healing practices. Each links
+            directly to venues that offer them, so you find the right space for the
+            experience you&rsquo;re seeking.
           </p>
         </div>
       </section>
 
-      <div className="wrap">
-        <div className="cat-list">
-          {withVenues.map((c, i) => {
-            const practices = (byCategory.get(c.slug) ?? [])
-              .filter((p: any) => p.venue_count > 0);
-            return (
-              <div key={c.id} className="cat-item">
-                <Link href={`/wellness-experiences/${c.slug}`} className="cat-header">
-                  <span className="cat-n">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="cat-name">
-                    {c.name}
-                    {c.description && <span className="cat-desc">{c.description}</span>}
-                  </span>
-                  <span className="cat-count">
-                    {c.venue_count} venue{c.venue_count === 1 ? '' : 's'}
-                  </span>
-                  <span className="cat-arrow" aria-hidden="true">&rarr;</span>
-                </Link>
+      <section className="intro-bar">
+        <p className="intro-bar-text">
+          Select a category to explore. Each practice links to venues in our
+          collection offering that modality.
+        </p>
+        <p className="intro-bar-count">
+          {categoryCount} categories&nbsp;&middot;&nbsp;{practiceCount} practices
+        </p>
+      </section>
 
-                {!!practices.length && (
-                  <div className="cat-practices">
-                    {practices.slice(0, 8).map((p: any) => (
-                      <Link key={p.slug}
-                        href={`/wellness-experiences/${c.slug}/${p.slug}`}
-                        className="cat-filter-pill">
-                        {p.name}<span className="pill-n">{p.venue_count}</span>
-                      </Link>
-                    ))}
-                    {practices.length > 8 && (
-                      <Link href={`/wellness-experiences/${c.slug}`}
-                        className="cat-filter-pill quiet">
-                        and {practices.length - 8} more
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      <ExperienceAccordion categories={withPractices} />
+
+      <section className="info-strip">
+        <div className="info-cell">
+          <div className="info-cell-eyebrow">How it works</div>
+          <h2 className="info-cell-heading">Browse by modality, find your venue.</h2>
+          <p className="info-cell-body">
+            Each practice links directly to venues in our collection offering that
+            modality. No duplication &mdash; the experience lives at the venue.
+          </p>
         </div>
+        <div className="info-cell">
+          <div className="info-cell-eyebrow">Can&rsquo;t find your practice?</div>
+          <h2 className="info-cell-heading">We&rsquo;re always expanding the collection.</h2>
+          <p className="info-cell-body">
+            If your modality isn&rsquo;t listed here, reach out and we&rsquo;ll help
+            you find the right space for your specific needs.
+          </p>
+        </div>
+      </section>
 
-        {!!rest.length && (
-          <section className="cat-empty">
-            <h2>Also in the collection</h2>
-            <p className="muted">
-              Recorded and being sought. Nothing listed under these yet.
-            </p>
-            <div className="cat-practices">
-              {rest.map((c) => (
-                <Link key={c.id} href={`/wellness-experiences/${c.slug}`}
-                  className="cat-filter-pill quiet">{c.name}</Link>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </>
+      <JournalSignup source="wellness-experiences" />
+    </div>
   );
 }
