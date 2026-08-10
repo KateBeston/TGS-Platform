@@ -183,3 +183,46 @@ export function placeOf(c: Card) {
     .filter((v, i, a) => a.indexOf(v) === i)
     .join(', ');
 }
+
+
+export type Facet = {
+  id: number; marketplace: string | null; type: string | null;
+  settings: string[]; practices: string[]; guests: number | null;
+};
+
+export async function venueFacets() {
+  const supabase = await createClient();
+  const [venues, vset, vprac, types, settings, cats, pracs] = await Promise.all([
+    supabase.from('venue_cards').select('id, marketplace, venue_type, max_guests'),
+    supabase.from('venue_settings_public').select('venue_id, slug').eq('relation', 'Immediate'),
+    supabase.from('venue_practices_public').select('venue_id, practice_id'),
+    supabase.from('venue_types').select('id,name,slug,applies_to').order('name'),
+    supabase.from('venue_settings').select('id,name,slug').order('display_order'),
+    supabase.from('modality_categories').select('id,name,slug,in_retreat,in_wellness').order('display_order'),
+    supabase.from('experience_practices').select('id,slug,name,category_slug'),
+  ]);
+
+  const pracSlug = new Map<number, string>((pracs.data ?? []).map((p: any) => [p.id, p.slug]));
+  const bySetting = new Map<number, string[]>();
+  for (const r of (vset.data ?? []) as any[]) {
+    const a = bySetting.get(r.venue_id) ?? []; a.push(r.slug); bySetting.set(r.venue_id, a);
+  }
+  const byPractice = new Map<number, string[]>();
+  for (const r of (vprac.data ?? []) as any[]) {
+    const s = pracSlug.get(r.practice_id); if (!s) continue;
+    const a = byPractice.get(r.venue_id) ?? []; a.push(s); byPractice.set(r.venue_id, a);
+  }
+  const facets: Facet[] = (venues.data ?? []).map((v: any) => ({
+    id: v.id, marketplace: v.marketplace, type: v.venue_type,
+    settings: bySetting.get(v.id) ?? [], practices: byPractice.get(v.id) ?? [],
+    guests: v.max_guests ?? null,
+  }));
+
+  return {
+    types: (types.data ?? []) as any[],
+    settings: (settings.data ?? []) as any[],
+    categories: (cats.data ?? []) as any[],
+    practices: (pracs.data ?? []) as any[],
+    facets,
+  };
+}

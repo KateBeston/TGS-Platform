@@ -3,7 +3,8 @@ import { Suspense } from 'react';
 import VenueCard from '@/components/VenueCard';
 import VenueSearch from '@/components/VenueSearch';
 import ResultsBar from '@/components/ResultsBar';
-import { filterOptions, venueCards, type Card } from '@/lib/venues';
+import { filterOptions, venueCards, venueFacets, type Card } from '@/lib/venues';
+import VenueAdvancedSearch from '@/components/VenueAdvancedSearch';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +81,7 @@ export default async function VenuesPage({
 }) {
   const sp = await searchParams;
 
-  const [options, result] = await Promise.all([
+  const [options, result, facets] = await Promise.all([
     filterOptions(),
     venueCards({
       marketplace: sp.marketplace,
@@ -91,6 +92,7 @@ export default async function VenuesPage({
       guests: sp.guests ? Number(sp.guests) : undefined,
       sort: sp.sort,
     }),
+    venueFacets(),
   ]);
 
   return (
@@ -109,6 +111,15 @@ export default async function VenuesPage({
           settings={options.settings}
           categories={options.categories} />
       </Suspense>
+
+      <div className="adv-search-row">
+        <VenueAdvancedSearch
+          types={facets.types}
+          settings={facets.settings}
+          categories={facets.categories}
+          practices={facets.practices}
+          facets={facets.facets} />
+      </div>
 
       {result.error ? (
         <div className="listings-wrap">
