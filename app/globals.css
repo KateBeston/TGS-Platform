@@ -86,8 +86,8 @@
   /* Charcoal at fixed opacities, from the mockups. A tint rather than a
      separate grey, so the same rule reads correctly over warm white and
      over the cream panels without a second palette. */
-  --charcoal-80: rgba(49, 49, 49, .80);
-  --charcoal-70: rgba(49, 49, 49, .70);
+  --charcoal-80: rgba(49, 49, 49, .90);
+  --charcoal-70: rgba(49, 49, 49, .85);
   --charcoal-50: rgba(49, 49, 49, .68);
   --charcoal-30: rgba(49, 49, 49, .30);
   --charcoal-15: rgba(49, 49, 49, .15);
