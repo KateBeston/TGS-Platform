@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { categories } from '@/lib/experiences';
 import { createClient } from '@/lib/supabase/server';
 import ExperienceAccordion from '@/components/ExperienceAccordion';
-import JournalSignup from '@/components/JournalSignup';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,7 +88,6 @@ export default async function ExperiencesPage() {
         </div>
       </section>
 
-      <JournalSignup source="wellness-experiences" />
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default function ExperienceAccordion({ categories }: { categories: Cat[] 
         return (
           <div key={c.id} className={`category-item${isOpen ? ' open' : ''}`}>
             <div
-              className="category-header"
+              className={`category-header${isOpen ? ' active' : ''}`}
               role="button"
               tabIndex={0}
               aria-expanded={isOpen}
@@ -52,10 +52,10 @@ export default function ExperienceAccordion({ categories }: { categories: Cat[] 
               <span className="cat-count">
                 Explore {count} practice{count === 1 ? '' : 's'}
               </span>
-              <span className="cat-toggle" aria-hidden="true">{isOpen ? '\u2212' : '+'}</span>
+              <span className="cat-toggle" aria-hidden="true">+</span>
             </div>
 
-            <div className="category-panel" style={{ maxHeight: isOpen ? '1600px' : 0 }}>
+            <div className={`category-panel${isOpen ? ' open' : ''}`}>
               <div className="panel-inner">
                 <div className="panel-image">
                   {c.image_url ? (
