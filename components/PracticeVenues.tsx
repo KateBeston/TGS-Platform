@@ -22,7 +22,22 @@ type V = {
   tier_slug?: string | null;
   place: string;
   href: string;
+  service?: {
+    service_name?: string | null;
+    service_duration_minutes?: number | null;
+    service_price?: number | null;
+    service_price_currency?: string | null;
+    service_description?: string | null;
+  } | null;
 };
+
+function money(amount: number, currency?: string | null) {
+  try {
+    return new Intl.NumberFormat('en-AU', {
+      style: 'currency', currency: currency || 'AUD', maximumFractionDigits: 0,
+    }).format(amount);
+  } catch { return `$${amount}`; }
+}
 
 export default function PracticeVenues(
   { venues, practiceName }: { venues: V[]; practiceName: string },
@@ -84,6 +99,22 @@ export default function PracticeVenues(
                   </p>
                   <h3>{v.headline ?? v.venue_name}</h3>
                   <p className="card-loc">{v.place}</p>
+                  {v.service?.service_name && (
+                    <div className="svc">
+                      <div className="svc-top">
+                        <span className="svc-name">{v.service.service_name}</span>
+                        {(v.service.service_duration_minutes || v.service.service_price != null) && (
+                          <span className="svc-meta">
+                            {[
+                              v.service.service_duration_minutes ? `${v.service.service_duration_minutes} min` : null,
+                              v.service.service_price != null ? money(v.service.service_price, v.service.service_price_currency) : null,
+                            ].filter(Boolean).join(' \u00b7 ')}
+                          </span>
+                        )}
+                      </div>
+                      {v.service.service_description && <p>{v.service.service_description}</p>}
+                    </div>
+                  )}
                   <div className="card-foot">
                     <span className="rating">
                       {v.rating != null

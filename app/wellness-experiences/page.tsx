@@ -33,6 +33,7 @@ export default async function ExperiencesPage() {
 
   const withPractices = cats.map((c: any) => ({
     ...c,
+    image_url: c.hero_image_url ?? null,
     practices: byCategory.get(c.slug) ?? [],
   }));
 

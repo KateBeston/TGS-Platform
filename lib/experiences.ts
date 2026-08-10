@@ -16,12 +16,16 @@ export type Category = {
   id: number; name: string; slug: string; description: string | null;
   in_retreat: boolean; in_wellness: boolean; display_order: number | null;
   venue_count: number; practice_count: number;
+  hero_image_url?: string | null; tagline?: string | null; intro?: string | null;
 };
 
 export type Practice = {
   id: number; name: string; slug: string; description: string | null;
   category_id: number; category_slug: string; category: string;
   display_order: number | null; venue_count: number;
+  intro?: string | null; tagline?: string | null; hero_image_url?: string | null;
+  meta_title?: string | null; meta_description?: string | null; h1?: string | null;
+  at_a_glance?: { label: string; value: string }[] | null;
 };
 
 export async function categories() {
@@ -87,6 +91,19 @@ export async function practicesOfVenues(venueIds: number[]) {
     const list = map.get(r.venue_id) ?? [];
     list.push(r.name);
     map.set(r.venue_id, list);
+  }
+  return map;
+}
+
+/** Per-venue service for a practice — powers the svc block on cards. */
+export async function servicesForPractice(practiceId: number) {
+  const supabase = await createClient();
+  const { data } = await supabase.from('venue_practices_public')
+    .select('venue_id,service_name,service_duration_minutes,service_price,service_price_currency,service_description')
+    .eq('practice_id', practiceId);
+  const map = new Map<number, any>();
+  for (const r of (data ?? []) as any[]) {
+    if (r.service_name || r.service_description) map.set(r.venue_id, r);
   }
   return map;
 }

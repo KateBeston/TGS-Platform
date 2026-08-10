@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PracticeVenues from '@/components/PracticeVenues';
-import { categoryBySlug, practiceBySlug, practicesIn, venuesFor } from '@/lib/experiences';
+import { categoryBySlug, practiceBySlug, practicesIn, venuesFor, servicesForPractice } from '@/lib/experiences';
 import { placeOf, venueHref } from '@/lib/venues';
 
 export const dynamic = 'force-dynamic';
@@ -28,17 +28,19 @@ export default async function PracticePage({ params }: Params) {
   ]);
   if (!c || !p) notFound();
 
-  const [siblings, venues] = await Promise.all([
+  const [siblings, venues, services] = await Promise.all([
     practicesIn(c.id),
     venuesFor({ practiceId: p.id }),
+    servicesForPractice(p.id),
   ]);
 
-  const paragraphs = (p.description ?? '')
+  const facts = Array.isArray(p.at_a_glance) ? p.at_a_glance : [];
+  const paragraphs = ((p.intro ?? p.description) ?? '')
     .split(/\n{2,}|\r\n{2,}/)
     .map((s: string) => s.trim())
     .filter(Boolean);
 
-  const cards = venues.map((v: any) => ({ ...v, place: placeOf(v), href: venueHref(v) }));
+  const cards = venues.map((v: any) => ({ ...v, place: placeOf(v), href: venueHref(v), service: services.get(v.id) ?? null }));
 
   const related = siblings.filter((s: any) => s.id !== p.id);
 
@@ -58,10 +60,25 @@ export default async function PracticePage({ params }: Params) {
 
       <section className="intro">
         <div className="wrap">
-          <div className="intro-main">
-            <p className="eyebrow">{c.name}</p>
-            <h1>{p.name}</h1>
-            {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
+          <div className={facts.length ? 'intro-grid' : ''}>
+            <div className="intro-main">
+              <p className="eyebrow">{c.name}</p>
+              <h1>{p.name}</h1>
+              {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
+            </div>
+            {facts.length > 0 && (
+              <aside className="intro-aside">
+                <h4>At a glance</h4>
+                <dl>
+                  {facts.map((f: any, i: number) => (
+                    <div key={i}>
+                      <dt>{f.label}</dt>
+                      <dd>{f.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </aside>
+            )}
           </div>
         </div>
       </section>
