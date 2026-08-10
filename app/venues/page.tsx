@@ -44,6 +44,7 @@ function Results({ cards }: { cards: Card[] }) {
   const bucket = (t: number | null) => Math.min(t ?? 4, 4) as 1 | 2 | 3 | 4;
 
   const grids = ['premium-grid', 'featured-grid', 'standard-grid', 'essentials-grid'];
+  const TIER_LABELS = ['Premium Sanctuaries', 'Featured Venues', 'Standard Listings', 'Essentials Listings'];
 
   const groups = ([1, 2, 3, 4] as const)
     .map((t) => ({ size: t, cards: cards.filter((c) => bucket(c.tier_order) === t) }))
@@ -57,6 +58,10 @@ function Results({ cards }: { cards: Card[] }) {
         // and tells them which venue paid the least. The shape and the
         // order carry the same commercial weight silently.
         <div key={group.size} className="tier-block">
+          <div className="tier-section-header">
+            <span className="tier-section-label">{TIER_LABELS[group.size - 1]}</span>
+            <span className="tier-section-count">{group.cards.length} {group.cards.length === 1 ? 'venue' : 'venues'}</span>
+          </div>
           <div className={grids[group.size - 1]}>
             {group.cards.map((c) => (
               <VenueCard key={c.id} card={c} size={group.size} />
