@@ -548,7 +548,6 @@ img { max-width: 100%; height: auto; display: block; }
 .premium-card-image, .featured-card-image, .essentials-card-image { position: relative; overflow: hidden; }
 .premium-card-image { min-height: 320px; }
 .featured-card-image { min-height: 220px; }
-.essentials-card-image { min-height: 120px; }
 .premium-card-image img, .featured-card-image img,
 .standard-card-image img, .essentials-card-image img {
   position: absolute; inset: 0;
@@ -689,10 +688,10 @@ img { max-width: 100%; height: auto; display: block; }
 .standard-card-price { font-size: 12px; color: var(--charcoal-70); }
 .standard-card-price strong { font-size: 16px; font-weight: 500; color: var(--charcoal); }
 
-.essentials-card { display: flex; flex-direction: row; transition: box-shadow .3s; }
+.essentials-card { transition: box-shadow .3s; }
 .essentials-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
-.essentials-card-image { width: 130px; flex-shrink: 0; overflow: hidden; }
-.essentials-card-body { flex: 1; padding: 14px 16px; }
+.essentials-card-image { height: 160px; overflow: hidden; }
+.essentials-card-body { padding: 14px 16px 16px; }
 .essentials-card-eyebrow {
   font-family: var(--sans); font-size: 9px; font-weight: 600;
   letter-spacing: 1.4px; text-transform: uppercase;
