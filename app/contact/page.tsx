@@ -92,7 +92,7 @@ export default async function Contact() {
             </p>
             <Link href="/list-your-venue">Learn more about partnering with us</Link>
           </div>
-          <div className="contact-card">
+          <div className="contact-card" id="press-media" style={{ scrollMarginTop: 90 }}>
             <div className="feature-eyebrow">Press &amp; Media</div>
             <h3>Media Enquiries</h3>
             <p>

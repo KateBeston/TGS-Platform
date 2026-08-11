@@ -1,14 +1,16 @@
 import { duration, money } from '@/lib/venue';
 
 export function Section({
-  tone = 'white', label, title, subtitle, children,
+  tone = 'white', label, title, subtitle, children, id,
 }: {
   tone?: 'white' | 'cream';
   label?: string; title?: string; subtitle?: string;
   children: React.ReactNode;
+  id?: string;
 }) {
   return (
-    <section className={`section section--${tone}`}>
+    <section className={`section section--${tone}`} id={id}
+      style={id ? { scrollMarginTop: 90 } : undefined}>
       <div className="wrap">
         {(label || title || subtitle) && (
           <div className="section-header">

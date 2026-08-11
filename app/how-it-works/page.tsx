@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 
 const JOURNEYS = [
   {
+    slug: 'wellness-guests',
     who: 'For Wellness Guests',
     title: 'Find Your Sanctuary',
     steps: [
@@ -24,6 +25,7 @@ const JOURNEYS = [
             ['Explore by Experience', '/wellness-experiences']],
   },
   {
+    slug: 'retreat-hosts',
     who: 'For Retreat Hosts',
     title: 'Host Your Transformation',
     steps: [
@@ -36,6 +38,7 @@ const JOURNEYS = [
             ['Request a Bespoke Search', '/contact']],
   },
   {
+    slug: 'venue-owners',
     who: 'For Venue Owners',
     title: 'Showcase Your Space',
     steps: [
@@ -77,7 +80,7 @@ export default function HowItWorks() {
       </div>
 
       {JOURNEYS.map((j, i) => (
-        <Section key={j.who} tone={i % 2 ? 'cream' : 'white'} label={j.who} title={j.title}>
+        <Section key={j.who} id={j.slug} tone={i % 2 ? 'cream' : 'white'} label={j.who} title={j.title}>
           <div className="lyv-steps">
             {j.steps.map(([title, body], n) => (
               <div key={title} className="lyv-step">

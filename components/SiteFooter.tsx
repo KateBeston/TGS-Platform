@@ -11,8 +11,9 @@ import Link from 'next/link';
  * of Country.
  *
  * Sanctum Journal links to the signup section (#journal), which the
- * layout renders on every page above this footer. /host-a-retreat still
- * has no route and 404s until that page exists. */
+ * layout renders on every page above this footer. Host A Retreat points
+ * to the retreat-hosts section on /how-it-works. Every footer link now
+ * resolves to a real destination. */
 
 const DISCOVER = [
   { label: 'Retreat Venues', href: '/venues?marketplace=Retreat' },
@@ -23,7 +24,7 @@ const DISCOVER = [
 
 const PARTNER = [
   { label: 'List Your Venue', href: '/list-your-venue' },
-  { label: 'Host A Retreat', href: '/host-a-retreat' },
+  { label: 'Host A Retreat', href: '/how-it-works#retreat-hosts' },
   { label: 'Press & Media', href: '/contact#press-media' },
   { label: 'Contact Us', href: '/contact' },
 ];
