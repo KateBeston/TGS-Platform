@@ -10,9 +10,9 @@ import Link from 'next/link';
  * the social row. Carries the address, the ABN, and the Acknowledgement
  * of Country.
  *
- * Two mockup links have no route yet — /host-a-retreat and
- * /sanctum-journal. Kept verbatim from the mockup; they resolve to a
- * 404 until those pages exist. */
+ * Sanctum Journal links to the signup section (#journal), which the
+ * layout renders on every page above this footer. /host-a-retreat still
+ * has no route and 404s until that page exists. */
 
 const DISCOVER = [
   { label: 'Retreat Venues', href: '/venues?marketplace=Retreat' },
@@ -30,7 +30,7 @@ const PARTNER = [
 
 const RESOURCES = [
   { label: 'The Wellness Edit', href: '/the-wellness-edit' },
-  { label: 'Sanctum Journal', href: '/sanctum-journal' },
+  { label: 'Sanctum Journal', href: '#journal' },
   { label: 'About Us', href: '/about' },
 ];
 
@@ -47,7 +47,11 @@ function Column({ title, links }: { title: string; links: { label: string; href:
       <h4 className="footer-col-title">{title}</h4>
       <ul className="footer-links">
         {links.map((l) => (
-          <li key={l.href}><Link href={l.href}>{l.label}</Link></li>
+          <li key={l.href}>
+            {l.href.startsWith('#')
+              ? <a href={l.href}>{l.label}</a>
+              : <Link href={l.href}>{l.label}</Link>}
+          </li>
         ))}
       </ul>
     </div>

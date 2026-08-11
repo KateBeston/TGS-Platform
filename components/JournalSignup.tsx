@@ -139,7 +139,7 @@ export default function JournalSignup({ source }: { source: string }) {
 
   return (
     <>
-      <section className="journal">
+      <section className="journal" id="journal">
         <div className="wrap journal-inner journal-split">
           <div className="journal-lede">
             <img className="journal-wordmark" src="/brand/sanctum-journal-wordmark.svg"

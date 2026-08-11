@@ -334,6 +334,7 @@ img { max-width: 100%; height: auto; display: block; }
   background: var(--warm-cream);
   border-top: 1px solid var(--border);
   padding: var(--s7) 0;
+  scroll-margin-top: 90px;
 }
 
 .journal-inner { max-width: 660px; text-align: center; }
