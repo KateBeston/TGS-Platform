@@ -70,11 +70,6 @@ export default function SiteFooter() {
             Curated wellness venues and transformational retreat spaces for retreat
             hosts, wellness guests, and seekers worldwide.
           </p>
-          <p className="footer-brand-meta">
-            Aurella Group Pty Ltd<br />
-            ABN 70 649 742 423<br />
-            58 Wellington Street, Virginia QLD 4014, Australia
-          </p>
           <p className="footer-brand-contact">
             <a href="tel:+61735218067">+61 7 3521 8067</a><br />
             <a href="mailto:hello@theglobalsanctum.com">hello@theglobalsanctum.com</a>
