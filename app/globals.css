@@ -3080,3 +3080,7 @@ img { max-width: 100%; height: auto; display: block; }
 .pr-page .crumb .crumb-current { opacity: 1; color: var(--charcoal); margin: 0; }
 .pr-page .intro-main { min-width: 0; max-width: 760px; }
 .pr-page .pr-empty { font-size: 14px; font-weight: 300; color: var(--charcoal-50); padding: 24px 0; line-height: 1.7; }
+
+/* Home hero — sit the copy, search and CTAs low in the frame with space above
+   the bottom edge (not pinned under the header). Scoped to the home hero only. */
+.hero.hero-home { align-items: flex-end !important; padding-top: 120px !important; padding-bottom: 88px !important; }

@@ -137,7 +137,7 @@ export default async function Home() {
 
   return (
     <>
-      <section className="hero">
+      <section className="hero hero-home">
         <div className="hero-bg"><img src="/images/hero-home.jpg" alt="" /></div>
         <div className="hero-overlay" />
         <div className="hero-content">
