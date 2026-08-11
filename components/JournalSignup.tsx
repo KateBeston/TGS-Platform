@@ -186,8 +186,7 @@ export default function JournalSignup({ source }: { source: string }) {
             {problem && <p className="journal-problem">{problem}</p>}
 
             <p className="journal-fine">
-              We write once a month and never share your address.
-              {' '}<a href="/legal#privacy">How we handle your details</a>.
+              <a href="/legal#privacy">Read our privacy policy</a>
             </p>
           </div>
         </div>
@@ -202,7 +201,7 @@ export default function JournalSignup({ source }: { source: string }) {
             <img className="journal-modal-mark" src="/brand/sanctum-journal-wordmark.svg"
               alt="The Sanctum Journal" width={200} height={75} />
             <h2 id="journal-modal-title">Thank you.</h2>
-            <p>The next issue will arrive in your inbox. One a month, and nothing else.</p>
+            <p>The next issue will arrive in your inbox.</p>
             <button type="button" className="journal-modal-done" onClick={closeSuccess}>Close</button>
           </div>
         </div>
