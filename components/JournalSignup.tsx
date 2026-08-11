@@ -50,7 +50,9 @@ export default function JournalSignup({ source }: { source: string }) {
     return (
       <section className="journal">
         <div className="wrap journal-inner">
-          <div className="eyebrow">The Sanctum Journal</div>
+          <img className="journal-wordmark" src="/brand/sanctum-journal-wordmark.svg"
+            alt="The Sanctum Journal" width={280} height={105} />
+          <p className="journal-tagline">Words on Wellness. Places &amp; Practice. Quietly Curated.</p>
           <h2>Thank you.</h2>
           <p className="journal-sub">
             The next issue will arrive in your inbox. One a month, and nothing else.
@@ -63,10 +65,13 @@ export default function JournalSignup({ source }: { source: string }) {
   return (
     <section className="journal">
       <div className="wrap journal-inner">
-        <div className="eyebrow">The Sanctum Journal</div>
-        <h2>A monthly letter, for those who travel to restore</h2>
+        <img className="journal-wordmark" src="/brand/sanctum-journal-wordmark.svg"
+          alt="The Sanctum Journal" width={280} height={105} />
+        <p className="journal-tagline">Words on Wellness. Places &amp; Practice. Quietly Curated.</p>
+        <h2>Join The Community</h2>
         <p className="journal-sub">
-          New sanctuaries, quietly considered. One a month, and nothing else.
+          Featured venues, practitioner spotlights, wellness discoveries, and our global
+          calendar of retreats. Curated for the Sanctum community, delivered monthly.
         </p>
 
         <div className="journal-form">
