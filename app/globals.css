@@ -345,7 +345,73 @@ img { max-width: 100%; height: auto; display: block; }
 .journal-tagline {
   font-family: var(--sans); font-size: 10px; font-weight: 600;
   letter-spacing: .22em; text-transform: uppercase;
-  color: var(--gold-dark); margin: 0 0 var(--s5);
+  color: var(--gold-dark); margin: 0;
+}
+
+/* Two columns: wordmark + tagline on the left, invitation + form on the right.
+   Stacks and re-centres below the tablet breakpoint. */
+.journal-inner.journal-split {
+  max-width: 1000px; text-align: left;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--s7) var(--s8);
+}
+.journal-lede { flex: 0 0 300px; }
+.journal-body { flex: 1 1 380px; }
+.journal-split .journal-wordmark { margin: 0 0 var(--s3); }
+.journal-split .journal-form { justify-content: flex-start; }
+
+.journal-consent {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-top: var(--s4); text-align: left; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; line-height: 1.5; color: var(--muted);
+}
+.journal-consent input { margin-top: 2px; accent-color: var(--gold-dark); flex: 0 0 auto; }
+
+.journal-turnstile { margin-top: var(--s4); }
+
+/* Success confirmation modal — restrained, brand-square, wordmark + thanks.
+   Dismissed by ×, Close, backdrop click, or Esc (handled in the component). */
+.journal-modal {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--s5);
+  background: rgba(49, 49, 49, .55);
+  animation: journalFade .18s ease-out;
+}
+.journal-modal-dialog {
+  position: relative;
+  background: var(--warm-white); border: 1px solid var(--border);
+  max-width: 460px; width: 100%;
+  padding: var(--s7) var(--s6);
+  text-align: center;
+}
+.journal-modal-mark { display: block; width: min(200px, 58vw); height: auto; margin: 0 auto var(--s4); }
+.journal-modal-dialog h2 { font-size: clamp(24px, 3vw, 32px); margin: 0 0 var(--s3); }
+.journal-modal-dialog p { color: var(--ink-quiet); font-size: 15px; margin: 0 0 var(--s5); }
+.journal-modal-close {
+  position: absolute; top: 8px; right: 14px;
+  background: none; border: none; cursor: pointer;
+  font-size: 26px; line-height: 1; color: var(--muted);
+}
+.journal-modal-close:hover { color: var(--charcoal); }
+.journal-modal-done {
+  background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal); cursor: pointer;
+  padding: 12px 34px;
+  font-family: var(--sans); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+}
+.journal-modal-done:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+@keyframes journalFade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 760px) {
+  .journal-inner.journal-split {
+    flex-direction: column; align-items: center; text-align: center; gap: var(--s5);
+  }
+  .journal-split .journal-wordmark { margin: 0 auto var(--s3); }
+  .journal-split .journal-tagline { text-align: center; }
+  .journal-split .journal-form { justify-content: center; }
+  .journal-consent { text-align: left; }
+  .journal-turnstile { display: flex; justify-content: center; }
 }
 
 .journal h2 {
