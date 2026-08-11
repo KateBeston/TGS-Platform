@@ -110,7 +110,7 @@ body {
   color: var(--charcoal);
   font-family: var(--sans);
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
@@ -919,7 +919,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 17px; line-height: 1.85; color: var(--charcoal-80);
   margin-bottom: var(--s4);
 }
-.prose-lead { font-size: 17px; }
+.prose-lead { font-size: 19px !important; }
 
 /* ── at a glance ──────────────────────────────────────────────────── */
 
