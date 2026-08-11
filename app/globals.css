@@ -3084,3 +3084,8 @@ img { max-width: 100%; height: auto; display: block; }
 /* Home hero — sit the copy, search and CTAs low in the frame with space above
    the bottom edge (not pinned under the header). Scoped to the home hero only. */
 .hero.hero-home { align-items: flex-end !important; padding-top: 120px !important; padding-bottom: 88px !important; }
+
+/* Home hero — lift the copy off the bright image so the gold "thoughtfully
+   curated" and the white text stay legible against light areas. */
+.hero.hero-home .hero-headline { text-shadow: 0 2px 22px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.35); }
+.hero.hero-home .hero-subtext  { text-shadow: 0 1px 14px rgba(0,0,0,.40); }
