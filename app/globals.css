@@ -333,7 +333,7 @@ img { max-width: 100%; height: auto; display: block; }
 .journal {
   background: var(--warm-cream);
   border-top: 1px solid var(--border);
-  padding: var(--s7) 0;
+  padding: var(--s6) 0;
   scroll-margin-top: 90px;
 }
 
@@ -342,10 +342,10 @@ img { max-width: 100%; height: auto; display: block; }
 /* The Sanctum Journal masthead — canonical stacked wordmark (charcoal letters,
    gold-dark "THE", brand-gold rules) on the warm-cream ground, with the tagline
    sitting beneath it per the brand kit. Replaces the former text eyebrow. */
-.journal-wordmark { display: block; width: min(280px, 72vw); height: auto; margin: 0 auto var(--s3); }
+.journal-wordmark { display: block; width: min(360px, 82vw); height: auto; margin: 0 auto var(--s3); }
 .journal-tagline {
-  font-family: var(--sans); font-size: 10px; font-weight: 600;
-  letter-spacing: .22em; text-transform: uppercase;
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase;
   color: var(--gold-dark); margin: 0;
 }
 
@@ -354,9 +354,9 @@ img { max-width: 100%; height: auto; display: block; }
 .journal-inner.journal-split {
   max-width: 1000px; text-align: left;
   display: flex; flex-wrap: wrap; align-items: center;
-  gap: var(--s7) var(--s8);
+  gap: var(--s5) var(--s7);
 }
-.journal-lede { flex: 0 0 300px; }
+.journal-lede { flex: 0 0 360px; }
 .journal-body { flex: 1 1 380px; }
 .journal-split .journal-wordmark { margin: 0 0 var(--s3); }
 .journal-split .journal-form { justify-content: flex-start; }
@@ -416,12 +416,12 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .journal h2 {
-  font-size: clamp(25px, 3.4vw, 35px);
+  font-size: clamp(22px, 2.8vw, 28px);
   margin: var(--s3) 0 var(--s3);
 }
 
 .journal-sub {
-  color: var(--ink-quiet); font-size: 16px;
+  color: var(--ink-quiet); font-size: 14px;
   margin-bottom: var(--s5);
 }
 
