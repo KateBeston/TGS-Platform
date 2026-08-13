@@ -3212,10 +3212,14 @@ img { max-width: 100%; height: auto; display: block; }
 .pr-page .rating { font-family:var(--sans);font-size:10px;color:var(--charcoal-70); }
 .pr-page .rating b { color:var(--gold-dark); }
 .pr-page .card-cta { font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:1.6px;text-transform:uppercase;color:var(--charcoal);text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:2px; }
-.pr-page .related h3 { font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold-dark);margin-bottom:16px; }
-.pr-page .pills { display:flex;gap:9px;flex-wrap:wrap; }
-.pr-page .pills a { font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:1.3px;text-transform:uppercase;padding:9px 16px;border:1px solid var(--border);color:var(--charcoal-70);text-decoration:none;transition:.2s; }
-.pr-page .pills a:hover { border-color:var(--gold);color:var(--charcoal); }
+.pr-page .venues { padding-bottom:68px; }
+.pr-page .related { border-top:1px solid var(--border); padding:56px 0 84px; }
+.pr-page .related h3 { font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold-dark);margin-bottom:22px; }
+.pr-page .pills { display:flex;gap:12px;flex-wrap:wrap; }
+.pr-page .pills a { font-family:var(--serif);font-size:17px;font-weight:400;letter-spacing:0;text-transform:none;padding:13px 20px;border:1px solid var(--border);background:var(--warm-white);color:var(--charcoal);text-decoration:none;display:inline-flex;align-items:center;gap:10px;transition:.22s; }
+.pr-page .pills a::after { content:"\2192";color:var(--gold);font-family:var(--sans);font-size:13px;transition:transform .25s; }
+.pr-page .pills a:hover { border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 26px rgba(49,49,49,.09); }
+.pr-page .pills a:hover::after { transform:translateX(3px); }
 @media(max-width:900px) {
   .pr-page .grid { grid-template-columns:1fr 1fr; }
   .pr-page .intro-grid { grid-template-columns:1fr;gap:28px; }
@@ -3317,3 +3321,13 @@ img { max-width: 100%; height: auto; display: block; }
 .wx-concierge-intro h2{font-family:var(--serif);font-size:31px;font-weight:400;margin:6px 0 12px;line-height:1.12}
 .wx-concierge-intro p{font-size:14px;color:var(--muted);line-height:1.75;max-width:430px}
 @media(max-width:840px){.wx-concierge{grid-template-columns:1fr;gap:26px;padding-left:24px;padding-right:24px}}
+
+/* Category page (/wellness-experiences/[category]) — breathing + related band */
+.cat-body { padding-bottom: 64px; }
+.cat-related { border-top: 1px solid var(--border); padding: 56px 0 88px; }
+.cat-related h3 { font-family: var(--sans); font-size: 10px; font-weight: 500; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 22px; }
+.cat-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+.cat-pills a { font-family: var(--serif); font-size: 17px; font-weight: 400; padding: 13px 20px; border: 1px solid var(--border); background: var(--warm-white); color: var(--charcoal); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; transition: .22s; }
+.cat-pills a::after { content: "\2192"; color: var(--gold); font-family: var(--sans); font-size: 13px; transition: transform .25s; }
+.cat-pills a:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(49, 49, 49, .09); }
+.cat-pills a:hover::after { transform: translateX(3px); }

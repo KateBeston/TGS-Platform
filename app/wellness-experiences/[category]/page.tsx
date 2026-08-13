@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ExperienceResults from '@/components/ExperienceResults';
-import { categoryBySlug, practicesIn, practicesOfVenues, venuesFor } from '@/lib/experiences';
+import { categories, categoryBySlug, practicesIn, practicesOfVenues, venuesFor } from '@/lib/experiences';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +32,13 @@ export default async function CategoryPage({ params }: Params) {
   ]);
   const practiceMap = await practicesOfVenues(venues.map((v) => v.id));
 
+  // Sibling categories, so the page has somewhere onward to go — the
+  // category-level equivalent of "related practices" on a practice page.
+  const allCats = await categories();
+  const related = (allCats as any[])
+    .filter((x) => x.in_wellness && x.slug !== c.slug)
+    .slice(0, 6);
+
   return (
     <>
       <section className="page-head">
@@ -48,7 +55,7 @@ export default async function CategoryPage({ params }: Params) {
         </div>
       </section>
 
-      <div className="wrap">
+      <div className="wrap cat-body">
         {/* Every practice, including those with nothing yet. A list that
             changes shape as venues arrive is harder to trust than one
             that is honest about being early. */}
@@ -68,6 +75,19 @@ export default async function CategoryPage({ params }: Params) {
 
         <ExperienceResults venues={venues} practices={practiceMap} />
       </div>
+
+      {related.length > 0 && (
+        <section className="cat-related">
+          <div className="wrap">
+            <h3>More to explore</h3>
+            <div className="cat-pills">
+              {related.map((r) => (
+                <Link key={r.id} href={`/wellness-experiences/${r.slug}`}>{r.name}</Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }
