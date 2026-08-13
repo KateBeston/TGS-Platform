@@ -3331,3 +3331,7 @@ img { max-width: 100%; height: auto; display: block; }
 .cat-pills a::after { content: "\2192"; color: var(--gold); font-family: var(--sans); font-size: 13px; transition: transform .25s; }
 .cat-pills a:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(49, 49, 49, .09); }
 .cat-pills a:hover::after { transform: translateX(3px); }
+
+/* Practice page: the short description as a distinct standfirst/subheading
+   under the H1 (its own role, above the intro body — never a duplicate). */
+.pr-page .intro-standfirst { font-size: 19px; font-weight: 300; line-height: 1.55; color: var(--charcoal); margin-bottom: 20px; }

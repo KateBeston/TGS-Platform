@@ -35,7 +35,7 @@ export default async function PracticePage({ params }: Params) {
   ]);
 
   const facts = Array.isArray(p.at_a_glance) ? p.at_a_glance : [];
-  const paragraphs = ((p.intro ?? p.description) ?? '')
+  const paragraphs = ((p.intro ?? '') as string)
     .split(/\n{2,}|\r\n{2,}/)
     .map((s: string) => s.trim())
     .filter(Boolean);
@@ -64,6 +64,7 @@ export default async function PracticePage({ params }: Params) {
             <div className="intro-main">
               <p className="eyebrow">{c.name}</p>
               <h1>{p.name}</h1>
+              {p.description && <p className="intro-standfirst">{p.description}</p>}
               {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
             </div>
             {facts.length > 0 && (
