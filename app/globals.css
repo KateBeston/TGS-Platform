@@ -2283,7 +2283,7 @@ img { max-width: 100%; height: auto; display: block; }
 .intro-link:hover { color: var(--ink-gold); text-decoration: none; }
 
 .intro-image { position: relative; }
-.intro-image img { width: 100%; aspect-ratio: 4 / 4.4; object-fit: cover; }
+.intro-image img { width: 100%; aspect-ratio: 4 / 3.6; object-fit: cover; object-position: center top; }
 .intro-image-accent {
   position: absolute; bottom: -20px; right: -20px;
   width: 140px; height: 140px; border: 1px solid var(--gold); z-index: -1;
