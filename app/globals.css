@@ -521,7 +521,7 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-social a svg { width: 18px; height: 18px; display: block; }
 .footer-social a:hover { color: var(--gold); text-decoration: none; }
 .footer-bottom {
-  max-width: 1400px; margin: 40px auto 0; padding-top: 32px;
+  max-width: 1400px; margin: 0 auto; padding-top: 28px;
 }
 .footer-copyright {
   font-family: var(--sans); font-size: 12px; font-weight: 400;
