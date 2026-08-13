@@ -2360,6 +2360,12 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ── three paths ──────────────────────────────────────────────────── */
 
+/* ── home wellness edit ───────────────────────────────────────────── */
+.home-edit { padding: var(--s8) var(--s5); background: var(--warm-white); }
+.home-edit-inner { max-width: 1200px; margin: 0 auto; }
+.home-edit .edit-lead { margin-bottom: var(--s7); }
+.home-edit-foot { text-align: center; margin-top: var(--s7); }
+
 .paths { padding: var(--s8) var(--s5); background: var(--warm-white); }
 .paths-inner { max-width: 1600px; margin: 0 auto; }
 .paths-header { text-align: center; max-width: 720px; margin: 0 auto 64px; }

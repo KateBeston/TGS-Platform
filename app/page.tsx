@@ -4,7 +4,16 @@ import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
 import QuoteBand from '@/components/QuoteBand';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
+import { articles, heroUrl } from '@/lib/sanity';
 import { createClient } from '@/lib/supabase/server';
+
+function fmtDate(iso: string | null) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-AU',
+      { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch { return ''; }
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -133,6 +142,12 @@ export default async function Home() {
   const { data: settingsData } = await supabase.from('venue_settings')
     .select('name,slug').order('display_order');
   const settings = settingsData ?? [];
+
+  // Latest Wellness Edit pieces from Sanity for the home editorial section.
+  // A few extra are fetched so obvious test pieces can be filtered out.
+  const posts = ((await articles(6)) ?? [])
+    .filter((a) => !/test/i.test(a.title ?? ''))
+    .slice(0, 4);
 
   const venues = (data ?? []) as Card[];
   const premium = venues.filter((v) => v.tier_order <= 2);
@@ -380,6 +395,68 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {posts.length > 0 && (
+        <section className="home-edit">
+          <div className="home-edit-inner">
+            <div className="paths-header">
+              <div className="intro-eyebrow">Stories &amp; Wisdom</div>
+              <h2 className="intro-title">The <em>Wellness Edit</em></h2>
+              <p className="intro-text">
+                Guides, reflections and inspiration for the path &mdash; from our editors
+                and the practitioners who live it.
+              </p>
+            </div>
+
+            <Link href={`/the-wellness-edit/${posts[0].slug}`} className="edit-lead">
+              {heroUrl(posts[0], 1400, 900) && (
+                <div className="edit-lead-image">
+                  <img src={heroUrl(posts[0], 1400, 900)!}
+                    alt={posts[0].heroImage?.alt ?? ''} />
+                </div>
+              )}
+              <div className="edit-lead-body">
+                {posts[0].category && <div className="edit-card-cat">{posts[0].category}</div>}
+                <h3 className="edit-lead-title">{posts[0].title}</h3>
+                {posts[0].excerpt && <p className="edit-lead-excerpt">{posts[0].excerpt}</p>}
+                <div className="edit-meta">
+                  {fmtDate(posts[0].publishedAt) && <span>{fmtDate(posts[0].publishedAt)}</span>}
+                </div>
+                <span className="edit-lead-cta">Read the article &rarr;</span>
+              </div>
+            </Link>
+
+            {posts.length > 1 && (
+              <div className="edit-grid">
+                {posts.slice(1, 4).map((a) => (
+                  <Link key={a.slug} href={`/the-wellness-edit/${a.slug}`} className="edit-card">
+                    {heroUrl(a, 720, 480) && (
+                      <div className="edit-card-image">
+                        <img src={heroUrl(a, 720, 480)!}
+                          alt={a.heroImage?.alt ?? ''} loading="lazy" />
+                      </div>
+                    )}
+                    <div className="edit-card-body">
+                      {a.category && <div className="edit-card-cat">{a.category}</div>}
+                      <h3 className="edit-card-title">{a.title}</h3>
+                      {a.excerpt && <p className="edit-card-excerpt">{a.excerpt}</p>}
+                      <div className="edit-meta">
+                        {fmtDate(a.publishedAt) && <span>{fmtDate(a.publishedAt)}</span>}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <div className="home-edit-foot">
+              <Link className="intro-link" href="/the-wellness-edit">
+                Explore The Wellness Edit &rarr;
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }
