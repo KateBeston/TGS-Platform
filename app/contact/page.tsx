@@ -61,7 +61,12 @@ const FAQ = [
    + 'you.'],
 ];
 
-export default async function Contact() {
+export default async function Contact({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string; intent?: string }>;
+}) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const { data: sources } = await supabase.from('lead_sources')
     .select('name,slug').eq('is_active', true).order('display_order');
@@ -113,7 +118,8 @@ export default async function Contact() {
       <div id="send-message">
         <Section tone="white" title="Send Us a Message"
           subtitle="All fields marked with an asterisk are required.">
-          <ContactForm sources={sources ?? []} />
+          <ContactForm sources={sources ?? []}
+            prefill={{ role: sp.role, message: sp.intent }} />
         </Section>
       </div>
 

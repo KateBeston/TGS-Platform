@@ -26,7 +26,11 @@ const ROLES = [
 
 export default function ContactForm({
   sources,
-}: { sources: { name: string; slug: string }[] }) {
+  prefill,
+}: {
+  sources: { name: string; slug: string }[];
+  prefill?: { role?: string; message?: string };
+}) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState('');
@@ -34,7 +38,7 @@ export default function ContactForm({
 
   const [f, setF] = useState({
     firstName: '', surname: '', email: '', phone: '',
-    role: '', subject: '', message: '',
+    role: prefill?.role ?? '', subject: '', message: prefill?.message ?? '',
     leadSource: '', leadSourceOther: '',
   });
 

@@ -131,6 +131,33 @@ function FeaturedSlide({ v }: { v: Card }) {
   );
 }
 
+const CONCIERGE = [
+  {
+    title: 'Planning a retreat?',
+    line: "Share your vision and we\u2019ll match you to venues, dates and the support to pull it together.",
+    role: 'Retreat Host',
+    cta: 'Start a retreat enquiry',
+    chips: [
+      "I\u2019m hosting a leadership retreat",
+      "I need a venue with a shala for 20",
+      "I\u2019m looking for a facilitator-friendly space",
+      "My group needs complete privacy",
+    ],
+  },
+  {
+    title: 'Seeking wellness?',
+    line: "Tell us what you need and we\u2019ll point you to the right sanctuary or experience.",
+    role: 'Wellness Guest',
+    cta: 'Start a wellness enquiry',
+    chips: [
+      "I want a luxury wellness weekend",
+      "I\u2019m looking for thermal springs",
+      "I need a solo restorative escape",
+      "I want sound healing and breathwork",
+    ],
+  },
+];
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -356,6 +383,41 @@ export default async function Home() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="concierge">
+        <div className="concierge-inner">
+          <div className="concierge-head">
+            <img className="concierge-logo" src="/brand/sanctum-concierge-logo.svg"
+              alt="Sanctum Concierge" width={300} height={87} />
+            <h2 className="concierge-title">Tell us what you have in mind.</h2>
+            <p className="concierge-lead">
+              Whether you&rsquo;re hosting or simply seeking, our concierge helps you find
+              the right place, the right practice and the right people.
+            </p>
+          </div>
+
+          <div className="concierge-tracks">
+            {CONCIERGE.map((t) => (
+              <div key={t.role} className="concierge-track">
+                <h3 className="concierge-track-title">{t.title}</h3>
+                <p className="concierge-track-line">{t.line}</p>
+                <div className="concierge-chips">
+                  {t.chips.map((chip) => (
+                    <Link key={chip}
+                      href={`/contact?role=${encodeURIComponent(t.role)}&intent=${encodeURIComponent(chip)}`}>
+                      {chip}
+                    </Link>
+                  ))}
+                </div>
+                <Link className="concierge-cta"
+                  href={`/contact?role=${encodeURIComponent(t.role)}`}>
+                  {t.cta} &rarr;
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
