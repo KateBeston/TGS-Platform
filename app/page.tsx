@@ -145,7 +145,7 @@ export default async function Home() {
             The world&rsquo;s sanctuary for wellness and retreats, <em>thoughtfully curated.</em>
           </h1>
           <p className="hero-subtext">
-            Discover exceptional spaces, wellness experiences and meaningful connections for your next retreat.
+            Whether you&rsquo;re planning a retreat or seeking your own restoration, discover exceptional spaces, wellness experiences and meaningful connections.
           </p>
 
           <HomeSearch />
@@ -158,7 +158,7 @@ export default async function Home() {
               Explore Wellness Venues &rarr;
             </Link>
             <Link className="hero-cta-link" href="/wellness-experiences">
-              Discover Experiences &rarr;
+              Discover Wellness Experiences &rarr;
             </Link>
           </div>
         </div>
