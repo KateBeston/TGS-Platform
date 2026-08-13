@@ -2407,10 +2407,10 @@ img { max-width: 100%; height: auto; display: block; }
 .paths-header { text-align: center; max-width: 720px; margin: 0 auto 64px; }
 /* Three across, one per discovery path, sized large so the section reads as
    the primary way into the platform. */
-.paths-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.paths-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 
 .path-card {
-  position: relative; overflow: hidden; aspect-ratio: 4 / 3; display: block;
+  position: relative; overflow: hidden; aspect-ratio: 4 / 3.5; display: block;
 }
 .path-card:hover { text-decoration: none; }
 .path-card-bg { position: absolute; inset: 0; z-index: 1; }
