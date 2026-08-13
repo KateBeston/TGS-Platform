@@ -97,6 +97,13 @@ export default function SiteFooter() {
           We acknowledge the Traditional Custodians of Country, and pay respect to
           Elders past and present.
         </p>
+        <p className="footer-legal-mini">
+          <Link href="/legal#privacy-policy">Privacy</Link>
+          <span className="footer-legal-sep" aria-hidden="true">·</span>
+          <Link href="/legal#terms-and-conditions">Terms</Link>
+          <span className="footer-legal-sep" aria-hidden="true">·</span>
+          <a href="#cookie-settings">Cookie settings</a>
+        </p>
       </div>
     </footer>
   );

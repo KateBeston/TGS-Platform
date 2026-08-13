@@ -3300,3 +3300,14 @@ img { max-width: 100%; height: auto; display: block; }
   .wx-head-grid,.wx-info{grid-template-columns:1fr;gap:22px}
   .wx-cards{grid-template-columns:1fr}
 }
+
+/* Footer: compact Privacy · Terms · Cookie settings bar (Cookie settings
+   reopens the ConsentBanner via the #cookie-settings hash it listens for). */
+.footer-legal-mini {
+  font-family: var(--sans); font-size: 12px; font-weight: 400;
+  letter-spacing: .05em; margin: 16px 0 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.footer-legal-mini a { color: rgba(255, 255, 255, .42); transition: color .3s ease; }
+.footer-legal-mini a:hover { color: var(--gold); text-decoration: none; }
+.footer-legal-sep { color: rgba(255, 255, 255, .22); }
