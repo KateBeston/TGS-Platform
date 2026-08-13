@@ -1,23 +1,50 @@
 import type { Metadata } from 'next';
 import { categories } from '@/lib/experiences';
 import { createClient } from '@/lib/supabase/server';
-import ExperienceAccordion from '@/components/ExperienceAccordion';
-
-export const dynamic = 'force-dynamic';
+import ExperienceGrid from '@/components/ExperienceGrid';
 
 export const metadata: Metadata = {
-  title: 'Wellness experiences',
+  title: 'Wellness Experiences — The Global Sanctum',
   description:
-    'Browse transformative modalities and healing practices. Each links directly '
-    + 'to venues in our collection that offer them.',
-  alternates: { canonical: '/wellness-experiences' },
+    'Browse transformative modalities and healing practices. Each links directly to the venues that offer them.',
+};
+
+// Fallback hero images for the three categories without an image in the database yet.
+// Free to use under the Unsplash License. Replace with local /experiences/*.jpg once uploaded.
+const FALLBACK_IMG: Record<string, string> = {
+  'nature-adventure-wellness':
+    'https://images.unsplash.com/photo-1768992363350-b1f5b6176239?w=900&q=75&auto=format&fit=crop',
+  'skin-aesthetic-wellness':
+    'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=900&q=75&auto=format&fit=crop',
+  'fitness-and-conditioning':
+    'https://images.unsplash.com/photo-1747240549807-fc3962949818?w=900&q=75&auto=format&fit=crop',
+};
+
+// Placeholder taglines used until the tagline field is filled in the database.
+const FALLBACK_TAG: Record<string, string> = {
+  'thermal-hydrotherapy': 'Hot springs, bathhouses and the healing power of water.',
+  'yoga-movement': 'Every tradition of yoga, breath and conscious movement.',
+  breathwork: 'From gentle pranayama to holotropic journeys.',
+  'sound-vibrational': 'Sound baths, gong and vibrational healing.',
+  ayurveda: 'The ancient Indian science of balance and cleansing.',
+  'indigenous-earth-traditions': 'Earth-based ceremony and lineage healing.',
+  'plant-medicine-ceremony': 'Sacred plant ceremony, held with care and protocol.',
+  'meditation-mindfulness': 'Silent sits, guided practice and the trained attention.',
+  'body-therapies-bodywork': 'Massage, myofascial release and hands-on healing.',
+  'nutrition-cleansing': 'Fasting, detox and nourishment-led programmes.',
+  'nature-adventure-wellness': 'Forest bathing, cold water and wellbeing in the wild.',
+  'energy-esoteric': 'Reiki, energy healing and the subtle arts.',
+  'modern-wellness': 'Cryotherapy, infrared and longevity science.',
+  'skin-aesthetic-wellness': 'Facials, skin health and considered aesthetics.',
+  'fitness-and-conditioning': 'Strength, mobility and performance training.',
 };
 
 export default async function ExperiencesPage() {
   const supabase = await createClient();
   const [cats, { data: allPractices }] = await Promise.all([
     categories(),
-    supabase.from('experience_practices')
+    supabase
+      .from('experience_practices')
       .select('name,slug,category_slug,venue_count')
       .order('display_order', { nullsFirst: false })
       .order('name'),
@@ -30,67 +57,67 @@ export default async function ExperiencesPage() {
     byCategory.set(p.category_slug, list);
   }
 
-  const withPractices = cats.map((c: any) => ({
-    ...c,
-    image_url: c.hero_image_url ?? null,
-    practices: byCategory.get(c.slug) ?? [],
-  }));
+  const withPractices = (cats as any[])
+    .filter((c) => c.in_wellness)
+    .map((c) => ({
+      name: c.name as string,
+      slug: c.slug as string,
+      image: (c.hero_image_url ?? FALLBACK_IMG[c.slug] ?? null) as string | null,
+      tagline: (c.tagline ?? FALLBACK_TAG[c.slug] ?? '') as string,
+      practices: byCategory.get(c.slug) ?? [],
+    }));
 
-  const categoryCount = withPractices.length;
-  const practiceCount = (allPractices ?? []).length;
+  const wellnessSlugs = new Set(withPractices.map((c) => c.slug));
+  const wellnessPractices = ((allPractices ?? []) as any[]).filter((p) =>
+    wellnessSlugs.has(p.category_slug),
+  );
+  const practiceCount = wellnessPractices.length;
+  const spaceCount = wellnessPractices.reduce((a, p) => a + (p.venue_count ?? 0), 0);
 
   return (
-    <div className="we-page">
-      <section className="hero">
-        <div className="hero-img" aria-hidden="true">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/experiences/hero.jpg" alt="" />
-        </div>
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <div className="hero-left">
-            <div className="hero-eyebrow">Modalities &amp; Practices</div>
-            <h1 className="hero-title">Explore by <em>Experience.</em></h1>
+    <div className="wx-page">
+      <header className="wx-head">
+        <div className="wx-head-eyebrow">Modalities &amp; Practices</div>
+        <div className="wx-head-grid">
+          <div>
+            <h1>
+              Explore by <em>experience</em>
+            </h1>
+            <div className="wx-head-sub">Choose a modality to see the practices within it.</div>
           </div>
-          <p className="hero-body">
-            Browse transformative modalities and healing practices. Each links
-            directly to venues that offer them, so you find the right space for the
-            experience you&rsquo;re seeking.
+          <div>
+            <p className="wx-head-body">
+              Begin with a modality that calls to you. Each opens to the practices it holds, and every
+              practice leads to the venues where you can experience it.
+            </p>
+            <div className="wx-head-count">
+              {withPractices.length} categories&nbsp;&middot;&nbsp;{practiceCount} practices&nbsp;&middot;&nbsp;
+              {spaceCount} spaces
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <ExperienceGrid categories={withPractices} />
+
+      <section className="wx-info">
+        <div>
+          <div className="wx-info-eyebrow">How it works</div>
+          <h2>Browse by practice, arrive at a place.</h2>
+          <p>
+            Each practice links directly to the venues offering that modality. Nothing is duplicated, so
+            the experience lives at the venue.
+          </p>
+        </div>
+        <div>
+          <div className="wx-info-eyebrow">Can&rsquo;t find your practice?</div>
+          <h2>The collection is always growing.</h2>
+          <p>
+            If a modality you&rsquo;re seeking isn&rsquo;t here yet, tell our concierge and we&rsquo;ll help
+            you find the right space for it.
           </p>
         </div>
       </section>
-
-      <section className="intro-bar">
-        <p className="intro-bar-text">
-          Select a category to explore. Each practice links to venues in our
-          collection offering that modality.
-        </p>
-        <p className="intro-bar-count">
-          {categoryCount} categories&nbsp;&middot;&nbsp;{practiceCount} practices
-        </p>
-      </section>
-
-      <ExperienceAccordion categories={withPractices} />
-
-      <section className="info-strip">
-        <div className="info-cell">
-          <div className="info-cell-eyebrow">How it works</div>
-          <h2 className="info-cell-heading">Browse by modality, find your venue.</h2>
-          <p className="info-cell-body">
-            Each practice links directly to venues in our collection offering that
-            modality. No duplication &mdash; the experience lives at the venue.
-          </p>
-        </div>
-        <div className="info-cell">
-          <div className="info-cell-eyebrow">Can&rsquo;t find your practice?</div>
-          <h2 className="info-cell-heading">We&rsquo;re always expanding the collection.</h2>
-          <p className="info-cell-body">
-            If your modality isn&rsquo;t listed here, reach out and we&rsquo;ll help
-            you find the right space for your specific needs.
-          </p>
-        </div>
-      </section>
-
     </div>
   );
 }
