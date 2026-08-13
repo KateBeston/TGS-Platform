@@ -2410,7 +2410,7 @@ img { max-width: 100%; height: auto; display: block; }
 .paths-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 
 .path-card {
-  position: relative; overflow: hidden; aspect-ratio: 4 / 3.5; display: block;
+  position: relative; overflow: hidden; aspect-ratio: 3 / 4; display: block;
 }
 .path-card:hover { text-decoration: none; }
 .path-card-bg { position: absolute; inset: 0; z-index: 1; }
