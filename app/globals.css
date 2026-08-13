@@ -2214,10 +2214,10 @@ img { max-width: 100%; height: auto; display: block; }
   background: rgba(255,255,255,.10);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255,255,255,.20);
-  padding: 6px; max-width: 760px; margin: 0 auto 36px;
+  padding: 6px; max-width: 900px; margin: 0 auto 36px;
 }
 .hero-search {
-  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr auto;
+  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr 1px 1fr auto;
   align-items: center;
 }
 .search-divider { width: 1px; height: 34px; background: rgba(255,255,255,.22); }
@@ -2227,12 +2227,39 @@ img { max-width: 100%; height: auto; display: block; }
   letter-spacing: .22em; text-transform: uppercase;
   color: rgba(255,255,255,.75); margin-bottom: 5px;
 }
-.search-field select {
+.search-field select,
+.search-field input {
   width: 100%; background: transparent; border: 0; cursor: pointer;
   color: #fff; font-family: var(--sans); font-size: 13px;
   padding: 0; outline: none;
 }
+.search-field input::placeholder { color: rgba(255,255,255,.6); }
+.search-field input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.search-field input[type=number]::-webkit-outer-spin-button,
+.search-field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .search-field select option { color: var(--charcoal); background: var(--warm-white); }
+
+/* Location type-ahead results, floating under the field over the hero. */
+.search-location { position: relative; }
+.location-results {
+  position: absolute; top: calc(100% + 10px); left: 0; z-index: 40;
+  margin: 0; padding: 6px; list-style: none;
+  min-width: 300px; max-width: 420px;
+  background: var(--warm-white); border: 1px solid var(--border);
+  max-height: 340px; overflow-y: auto;
+  box-shadow: 0 14px 44px rgba(0,0,0,.20);
+}
+.location-results li {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 9px 12px; cursor: pointer;
+}
+.location-results li:hover { background: var(--warm-cream); }
+.loc-name { font-family: var(--sans); font-size: 13px; color: var(--charcoal); white-space: nowrap; }
+.loc-context { font-family: var(--sans); font-size: 11px; color: var(--muted); flex: 1; }
+.loc-type {
+  font-family: var(--sans); font-size: 8px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gold-dark); border: 1px solid var(--border); padding: 2px 6px; white-space: nowrap;
+}
 
 .hero-search-go {
   background: var(--warm-white); color: var(--charcoal);

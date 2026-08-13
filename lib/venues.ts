@@ -44,6 +44,10 @@ export type Card = {
 export type Filters = {
   marketplace?: string;
   country?: string;
+  continent?: string;
+  state?: string;
+  city?: string;
+  suburb?: string;
   type?: string;
   setting?: string;
   practice?: string;
@@ -145,6 +149,22 @@ export async function venueCards(f: Filters = {}) {
   if (only !== null) q = q.in('id', only as number[]);
   if (f.marketplace) q = q.eq('marketplace', f.marketplace);
   if (f.country) q = q.eq('country_slug', f.country);
+  if (f.state) q = q.eq('state_slug', f.state);
+  if (f.city) q = q.eq('city_slug', f.city);
+  if (f.suburb) q = q.eq('locality_slug', f.suburb);
+
+  // Continent is not on the card, so it is resolved to its countries and
+  // the cards filtered to those. No countries means no venues there.
+  if (f.continent) {
+    const { data: cont } = await supabase.from('continents')
+      .select('id').eq('slug', f.continent).maybeSingle();
+    const { data: cos } = cont
+      ? await supabase.from('countries').select('slug').eq('continent_id', cont.id)
+      : { data: [] as { slug: string }[] };
+    const slugs = (cos ?? []).map((c: any) => c.slug);
+    q = q.in('country_slug', slugs.length ? slugs : ['__none__']);
+  }
+
   if (f.type) q = q.eq('venue_type', f.type);
   if (f.guests) q = q.gte('max_guests', f.guests);
 

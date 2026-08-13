@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'The Global Sanctum — Curated Wellness Retreats & Sanctuaries Worldwide',
   description:
-    'Discover exceptional spaces, wellness experiences and meaningful connections for your next retreat.',
+    'Discover the world\'s most exceptional wellness venues, retreat spaces and wellness experiences, thoughtfully curated.',
   alternates: { canonical: '/' },
 };
 
@@ -131,6 +131,12 @@ export default async function Home() {
   const { data } = await supabase.from('venue_cards').select('*')
     .order('tier_order').order('rating', { ascending: false, nullsFirst: false });
 
+  // Every setting, straight from the database, so the hero search always
+  // offers the full list rather than a hard-coded subset.
+  const { data: settingsData } = await supabase.from('venue_settings')
+    .select('name,slug').order('display_order');
+  const settings = settingsData ?? [];
+
   const venues = (data ?? []) as Card[];
   const premium = venues.filter((v) => v.tier_order <= 2);
   const featured = venues.filter((v) => v.tier_order > 2);
@@ -145,10 +151,10 @@ export default async function Home() {
             The world&rsquo;s sanctuary for wellness and retreats, <em>thoughtfully curated.</em>
           </h1>
           <p className="hero-subtext">
-            Whether you&rsquo;re planning a retreat or seeking your own restoration, discover exceptional spaces, wellness experiences and meaningful connections.
+            Whether you&rsquo;re planning a retreat or seeking your own restoration, discover exceptional wellness venues, retreat spaces and experiences the world over.
           </p>
 
-          <HomeSearch />
+          <HomeSearch settings={settings} />
 
           <div className="hero-ctas">
             <Link className="hero-cta-link" href="/venues?marketplace=Retreat">

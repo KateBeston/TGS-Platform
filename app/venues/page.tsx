@@ -86,6 +86,10 @@ export default async function VenuesPage({
     venueCards({
       marketplace: sp.marketplace,
       country: sp.country,
+      continent: sp.continent,
+      state: sp.state,
+      city: sp.city,
+      suburb: sp.suburb,
       type: sp.type,
       setting: sp.setting,
       practice: sp.practice,
