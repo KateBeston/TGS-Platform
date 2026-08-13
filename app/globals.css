@@ -344,7 +344,7 @@ img { max-width: 100%; height: auto; display: block; }
    sitting beneath it per the brand kit. Replaces the former text eyebrow. */
 .journal-wordmark { display: block; width: min(360px, 82vw); height: auto; margin: 0 auto var(--s3); }
 .journal-tagline {
-  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  font-family: var(--sans); font-size: 10px; font-weight: 600;
   letter-spacing: .2em; text-transform: uppercase;
   color: var(--gold-dark); margin: 0;
 }
@@ -356,9 +356,9 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex; flex-wrap: wrap; align-items: center;
   gap: var(--s5) var(--s7);
 }
-.journal-lede { flex: 0 0 360px; }
+.journal-lede { flex: 0 0 360px; text-align: center; }
 .journal-body { flex: 1 1 380px; }
-.journal-split .journal-wordmark { margin: 0 0 var(--s3); }
+.journal-split .journal-wordmark { margin: 0 auto var(--s3); }
 .journal-split .journal-form { justify-content: flex-start; }
 
 .journal-consent {
@@ -367,6 +367,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-family: var(--sans); font-size: 12px; line-height: 1.5; color: var(--muted);
 }
 .journal-consent input { margin-top: 2px; accent-color: var(--gold-dark); flex: 0 0 auto; }
+.journal-consent a { color: var(--gold-dark); text-decoration: underline; text-underline-offset: 2px; }
 
 .journal-turnstile { margin-top: var(--s4); }
 

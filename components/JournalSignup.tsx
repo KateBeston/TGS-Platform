@@ -175,19 +175,18 @@ export default function JournalSignup({ source }: { source: string }) {
               </button>
             </div>
 
-            <label className="journal-consent">
-              <input type="checkbox" checked={consented}
+            <div className="journal-consent">
+              <input id={`consent-${source}`} type="checkbox" checked={consented}
                 onChange={(e) => setConsented(e.target.checked)} />
-              <span>{CONSENT_TEXT}</span>
-            </label>
+              <label htmlFor={`consent-${source}`}>
+                {CONSENT_TEXT}{' '}
+                <a href="/legal#privacy" onClick={(e) => e.stopPropagation()}>Read our privacy policy</a>
+              </label>
+            </div>
 
             {siteKey && <div className="journal-turnstile" ref={tsRef} />}
 
             {problem && <p className="journal-problem">{problem}</p>}
-
-            <p className="journal-fine">
-              <a href="/legal#privacy">Read our privacy policy</a>
-            </p>
           </div>
         </div>
       </section>
