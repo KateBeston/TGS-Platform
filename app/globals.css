@@ -2239,15 +2239,18 @@ img { max-width: 100%; height: auto; display: block; }
 .search-field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .search-field select option { color: var(--charcoal); background: var(--warm-white); }
 
-/* Location type-ahead results, floating under the field over the hero. */
+/* Location type-ahead. Results render in a portal on body (positioned
+   inline) so the hero's overflow cannot clip them. */
 .search-location { position: relative; }
+.location-input-row { display: flex; align-items: center; gap: 8px; }
+.location-input-row input { flex: 1 1 auto; min-width: 0; }
+.location-icon { color: rgba(255,255,255,.6); flex: 0 0 auto; pointer-events: none; }
 .location-results {
-  position: absolute; top: calc(100% + 10px); left: 0; z-index: 40;
-  margin: 0; padding: 6px; list-style: none;
-  min-width: 300px; max-width: 420px;
+  z-index: 900; margin: 0; padding: 6px; list-style: none;
+  max-width: 440px;
   background: var(--warm-white); border: 1px solid var(--border);
-  max-height: 340px; overflow-y: auto;
-  box-shadow: 0 14px 44px rgba(0,0,0,.20);
+  max-height: 360px; overflow-y: auto;
+  box-shadow: 0 14px 44px rgba(0,0,0,.22);
 }
 .location-results li {
   display: flex; align-items: baseline; gap: 10px;
