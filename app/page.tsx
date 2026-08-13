@@ -422,42 +422,6 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="philosophy">
-        <div className="philosophy-inner">
-          <div>
-            <div className="intro-eyebrow">Our Philosophy</div>
-            <h2 className="intro-title">
-              Wellness Should Feel Inevitable, Not <em>Effortful</em>
-            </h2>
-            <p className="intro-text">
-              We built The Global Sanctum because the world&rsquo;s most considered
-              wellness spaces shouldn&rsquo;t be hidden behind algorithms or buried
-              beneath noise. Because seekers deserve a guide. Because the right space,
-              found at the right moment, changes everything.
-            </p>
-            <p className="intro-text">
-              Every retreat, sanctuary, and experience here has been chosen with one
-              question in mind: would we send the people we love here? If the answer
-              isn&rsquo;t yes, it isn&rsquo;t featured.
-            </p>
-            <div className="philosophy-principles">
-              {PRINCIPLES.map(([title, text]) => (
-                <div key={title}>
-                  <div className="search-feature-title">{title}</div>
-                  <p className="search-feature-text">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="philosophy-images">
-            <img src="/images/philosophy-meditation.jpg" alt="Meditation space" loading="lazy" />
-            <img src="/images/philosophy-yoga.jpg" alt="Yoga practice" loading="lazy" />
-            <img src="/images/philosophy-forest.jpg" alt="Forest bathing" loading="lazy" />
-            <img src="/images/experience-thermal.jpg" alt="Thermal bathing" loading="lazy" />
-          </div>
-        </div>
-      </section>
-
       {posts.length > 0 && (
         <section className="home-edit">
           <div className="home-edit-inner">
