@@ -3252,9 +3252,9 @@ img { max-width: 100%; height: auto; display: block; }
 .wx-head-count{margin-top:16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal);font-weight:500}
 
 .wx-wrap{max-width:1400px;margin:0 auto;padding:40px 48px 20px}
-.wx-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px}
+.wx-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(342px,1fr));gap:18px}
 
-.wx-ec{position:relative;overflow:hidden;min-height:466px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;border:1px solid transparent;transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
+.wx-ec{position:relative;overflow:hidden;min-height:548px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;border:1px solid transparent;transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
 .wx-ec:hover{transform:translateY(-5px);box-shadow:0 20px 46px rgba(49,49,49,.22)}
 .wx-ec--active{outline:2px solid var(--gold);outline-offset:-2px}
 .wx-ec-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
@@ -3262,16 +3262,16 @@ img { max-width: 100%; height: auto; display: block; }
 .wx-ec-ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,18,16,.05) 0%,rgba(20,18,16,.32) 44%,rgba(18,16,14,.92) 100%)}
 .wx-ec-num{position:absolute;top:20px;left:22px;z-index:3;font-family:var(--serif);font-size:15px;color:var(--gold);letter-spacing:.05em}
 .wx-ec-num::after{content:"";display:block;width:22px;height:1px;background:var(--gold);margin-top:8px;opacity:.7}
-.wx-ec-c{position:relative;z-index:3;padding:26px 24px 24px}
-.wx-ec-name{font-family:var(--serif);font-size:26px;font-weight:400;line-height:1.08;margin:0 0 8px}
-.wx-ec-tag{font-size:12px;font-weight:300;color:rgba(255,255,255,.82);line-height:1.5;margin:0 0 15px;max-width:90%}
+.wx-ec-c{position:relative;z-index:3;padding:30px 28px 28px}
+.wx-ec-name{font-family:var(--serif);font-size:27px;font-weight:400;line-height:1.1;margin:0 0 9px;min-height:60px;display:flex;align-items:flex-end}
+.wx-ec-tag{font-size:12.5px;font-weight:300;color:rgba(255,255,255,.82);line-height:1.55;margin:0 0 16px;max-width:92%;min-height:39px}
 .wx-ec-rule{width:26px;height:1px;background:var(--gold);margin-bottom:15px}
-.wx-ec-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.wx-ec-chips{display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;margin-bottom:18px;min-height:56px}
 .wx-ec-chip{font-size:10.5px;letter-spacing:.01em;color:#fff;border:1px solid rgba(255,255,255,.34);background:rgba(255,255,255,.05);padding:5px 10px;transition:all .16s;text-decoration:none;font-family:var(--sans);cursor:pointer;line-height:1.4}
 .wx-ec-chip:hover{background:rgba(196,162,101,.26);border-color:var(--gold)}
 .wx-ec-chip-more{color:var(--gold);border-color:rgba(196,162,101,.6);background:rgba(196,162,101,.12)}
 .wx-ec-chip-more:hover{background:rgba(196,162,101,.28);border-color:var(--gold)}
-.wx-ec-cta{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#fff;border-top:1px solid rgba(255,255,255,.18);padding-top:15px;margin-top:2px;text-decoration:none}
+.wx-ec-cta{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.94);border-top:1px solid rgba(255,255,255,.18);padding-top:16px;margin-top:2px;text-decoration:none}
 .wx-ec:hover .wx-ec-cta .wx-ar{transform:translateX(5px)}
 .wx-ar{color:var(--gold);transition:transform .3s}
 
@@ -3290,7 +3290,7 @@ img { max-width: 100%; height: auto; display: block; }
 .wx-panel-foot{margin-top:26px}
 .wx-panel-foot a{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--charcoal);border-bottom:1px solid var(--gold);padding-bottom:4px;text-decoration:none}
 
-.wx-info{max-width:1400px;margin:0 auto;padding:40px 48px 76px;display:grid;grid-template-columns:1fr 1fr;gap:44px;border-top:1px solid var(--border)}
+.wx-info{max-width:1400px;margin:0 auto;padding:40px 48px 46px;display:grid;grid-template-columns:1fr 1fr;gap:44px;border-top:1px solid var(--border)}
 .wx-info-eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:11px}
 .wx-info h2{font-family:var(--serif);font-size:25px;font-weight:400;margin:0 0 10px}
 .wx-info p{font-size:13px;color:var(--muted)}
@@ -3311,3 +3311,9 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-legal-mini a { color: rgba(255, 255, 255, .42); transition: color .3s ease; }
 .footer-legal-mini a:hover { color: var(--gold); text-decoration: none; }
 .footer-legal-sep { color: rgba(255, 255, 255, .22); }
+
+/* Wellness Experiences — concierge enquiry ("Can't find your practice") */
+.wx-concierge{max-width:1400px;margin:0 auto;padding:6px 48px 86px;display:grid;grid-template-columns:.85fr 1.15fr;gap:52px;align-items:start}
+.wx-concierge-intro h2{font-family:var(--serif);font-size:31px;font-weight:400;margin:6px 0 12px;line-height:1.12}
+.wx-concierge-intro p{font-size:14px;color:var(--muted);line-height:1.75;max-width:430px}
+@media(max-width:840px){.wx-concierge{grid-template-columns:1fr;gap:26px;padding-left:24px;padding-right:24px}}

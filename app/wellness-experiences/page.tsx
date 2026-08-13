@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { categories } from '@/lib/experiences';
 import { createClient } from '@/lib/supabase/server';
 import ExperienceGrid from '@/components/ExperienceGrid';
+import PracticeEnquiry from '@/components/PracticeEnquiry';
 
 export const metadata: Metadata = {
   title: 'Wellness Experiences — The Global Sanctum',
@@ -103,20 +104,32 @@ export default async function ExperiencesPage() {
       <section className="wx-info">
         <div>
           <div className="wx-info-eyebrow">How it works</div>
-          <h2>Browse by practice, arrive at a place.</h2>
+          <h2>Choose a practice, see who offers it.</h2>
           <p>
-            Each practice links directly to the venues offering that modality. Nothing is duplicated, so
-            the experience lives at the venue.
+            Pick the modality you are drawn to and browse the venues around the world that offer it, each
+            described by what it genuinely provides.
           </p>
         </div>
         <div>
-          <div className="wx-info-eyebrow">Can&rsquo;t find your practice?</div>
-          <h2>The collection is always growing.</h2>
+          <div className="wx-info-eyebrow">The concierge</div>
+          <h2>We help you arrange it.</h2>
           <p>
-            If a modality you&rsquo;re seeking isn&rsquo;t here yet, tell our concierge and we&rsquo;ll help
-            you find the right space for it.
+            Found a space you like? Tell us, and we look after the enquiry and the details from there. The
+            concierge is free to you.
           </p>
         </div>
+      </section>
+
+      <section className="wx-concierge">
+        <div className="wx-concierge-intro">
+          <div className="wx-info-eyebrow">Can&rsquo;t find your practice?</div>
+          <h2>Tell the concierge what you are seeking.</h2>
+          <p>
+            If the modality you want is not in the collection yet, describe it and we will find the space
+            for it, anywhere in the world. We read every enquiry ourselves.
+          </p>
+        </div>
+        <PracticeEnquiry />
       </section>
     </div>
   );
