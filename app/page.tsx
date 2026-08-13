@@ -32,9 +32,6 @@ const PATHS = [
   { title: 'Wellness Experiences', text: 'Single sessions and ancient healing traditions.',
     cta: 'Explore Experiences', href: '/wellness-experiences',
     image: '/images/path-experiences.jpg' },
-  { title: 'The Wellness Edit', text: 'Stories, guides, and inspiration for the path.',
-    cta: 'Explore The Edit', href: '/the-wellness-edit',
-    image: '/images/experience-forest.jpg' },
 ];
 
 const SETTINGS = [
@@ -198,33 +195,11 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="explore">
-        <div className="explore-header">
-          <div className="intro-eyebrow">Discover Differently</div>
-          <h2 className="intro-title">Explore Intentional Spaces <em>Around The World</em></h2>
-          <p className="intro-text">
-            From soul-restoring coastal sanctuaries to mountain retreats where silence
-            does the work. Thermal springs rising from volcanic earth, forest hideaways
-            hidden in ancient canopy &mdash; spaces where wellness lives in the
-            foundations.
-          </p>
-        </div>
-        <div className="explore-mosaic">
-          {SETTINGS.map(([name, slug, image]) => (
-            <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
-              <img src={image} alt="" loading="lazy" />
-              <div className="mosaic-overlay" />
-              <div className="mosaic-label">{name}</div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       <section className="paths">
         <div className="paths-inner">
           <div className="paths-header">
             <div className="intro-eyebrow">Find Your Path</div>
-            <h2 className="intro-title">Four Ways to <em>Discover</em></h2>
+            <h2 className="intro-title">Three Ways to <em>Discover</em></h2>
             <p className="intro-text">
               From thermal springs to forest sanctuaries, coastal retreats to mountain
               hideaways. Spaces where restoration isn&rsquo;t an afterthought &mdash;
@@ -244,6 +219,28 @@ export default async function Home() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="explore">
+        <div className="explore-header">
+          <div className="intro-eyebrow">Discover Differently</div>
+          <h2 className="intro-title">Explore Intentional Spaces <em>Around The World</em></h2>
+          <p className="intro-text">
+            From soul-restoring coastal sanctuaries to mountain retreats where silence
+            does the work. Thermal springs rising from volcanic earth, forest hideaways
+            hidden in ancient canopy &mdash; spaces where wellness lives in the
+            foundations.
+          </p>
+        </div>
+        <div className="explore-mosaic">
+          {SETTINGS.map(([name, slug, image]) => (
+            <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
+              <img src={image} alt="" loading="lazy" />
+              <div className="mosaic-overlay" />
+              <div className="mosaic-label">{name}</div>
+            </Link>
+          ))}
         </div>
       </section>
 
