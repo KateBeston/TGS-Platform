@@ -3346,3 +3346,24 @@ img { max-width: 100%; height: auto; display: block; }
 .vmap-link{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark,#7A644F);text-decoration:none;border-bottom:1px solid var(--gold,#C4A265);padding-bottom:2px}
 .vmap-link:hover{color:var(--charcoal,#313131)}
 .vmap-note{font-size:12.5px;color:var(--muted,#6f6f6f);font-style:italic;line-height:1.5;margin:0;flex:1;min-width:220px}
+
+/* Location & marketplace catalogue pages */
+.loc-page{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+.loc-hero-img{height:340px;background-size:cover;background-position:center;margin-bottom:32px}
+.loc-hero{max-width:760px;margin:48px auto 40px;text-align:center}
+.loc-crumbs{font-size:12px;letter-spacing:.08em;color:var(--muted);margin-bottom:18px}
+.loc-crumbs a{color:var(--gold-dark);text-decoration:none}
+.loc-crumbs a:hover{color:var(--charcoal)}
+.loc-crumb-sep{margin:0 8px;color:var(--border)}
+.loc-eyebrow{font-size:11px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-dark);margin:0 0 14px}
+.loc-page h1{font-family:var(--serif);font-weight:300;font-size:52px;line-height:1.05;color:var(--charcoal);margin:0 0 18px}
+.loc-intro{font-size:16px;line-height:1.7;color:var(--muted);margin:0}
+.loc-children{margin:0 0 56px}
+.loc-children h2,.loc-venues h2{font-family:var(--serif);font-weight:300;font-size:28px;color:var(--charcoal);margin:0 0 20px;text-align:center}
+.loc-child-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.loc-child{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border:1px solid var(--border);text-decoration:none;color:var(--charcoal);transition:border-color .15s}
+.loc-child:hover{border-color:var(--gold-dark)}
+.loc-child-name{font-family:var(--serif);font-size:18px}
+.loc-child-n{font-size:12px;color:var(--muted)}
+.loc-venues{margin-top:24px}
+.loc-empty{text-align:center;color:var(--muted);font-style:italic;padding:40px 0}
