@@ -16,10 +16,11 @@ function trailOf(marketplace: string, loc: Resolved) {
 export default async function LocationView({ marketplace, loc }: { marketplace: string; loc: Resolved }) {
   const kind = marketplaceOf(marketplace);
   const label = kind === 'Retreat' ? 'Retreat venues' : 'Wellness venues';
-  const [cards, children] = await Promise.all([
+  const [cardsResult, children] = await Promise.all([
     venueCards({ marketplace: kind ?? undefined, ...loc.filter }),
     locationChildren(loc),
   ]);
+  const cards = cardsResult.cards;
   const row = loc.row;
   const trail = trailOf(marketplace, loc);
 

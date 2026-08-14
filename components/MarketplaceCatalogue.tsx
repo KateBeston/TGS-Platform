@@ -5,7 +5,7 @@ import VenueGrid from '@/components/VenueGrid';
 export default async function MarketplaceCatalogue({ marketplace }: { marketplace: string }) {
   const kind = marketplaceOf(marketplace);
   const label = kind === 'Retreat' ? 'Retreat venues' : 'Wellness venues';
-  const cards = await venueCards({ marketplace: kind ?? undefined });
+  const { cards } = await venueCards({ marketplace: kind ?? undefined });
   return (
     <div className="loc-page">
       <header className="loc-hero">
