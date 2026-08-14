@@ -105,7 +105,8 @@ export function Accessibility({
   ] as [any, string][]).filter(([on]) => on).map(([, label]) => label);
 
   const hasPolicy = v.access_policy_type || v.access_policy_details;
-  if (!flags.length && !v.access_path_notes && !hasPolicy) return null;
+  if (!flags.length && !v.access_path_notes && !hasPolicy
+      && !v.accessibility_summary && !v.accessibility_notes) return null;
 
   return (
     <Section tone={tone} title="Accessibility">
@@ -114,10 +115,12 @@ export function Accessibility({
           {flags.map((f) => <span key={f} className="amenity-pill">{f}</span>)}
         </div>
       )}
-      {(v.access_path_notes || hasPolicy) && (
+      {(v.access_path_notes || hasPolicy || v.accessibility_summary || v.accessibility_notes) && (
         <div className="prose-narrow"
           style={{ marginTop: flags.length ? 24 : 0, textAlign: 'center' }}>
+          {v.accessibility_summary && <p>{v.accessibility_summary}</p>}
           {v.access_path_notes && <p>{v.access_path_notes}</p>}
+          {v.accessibility_notes && <p>{v.accessibility_notes}</p>}
           {hasPolicy && (
             <p>
               {v.access_policy_type && <strong>{v.access_policy_type}. </strong>}

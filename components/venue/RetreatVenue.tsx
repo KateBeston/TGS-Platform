@@ -112,6 +112,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
               {v.listing_description ?? v.venue_short_description}
             </p>
             {v.venue_full_description && <p>{v.venue_full_description}</p>}
+            {v.introduction_text && <p>{v.introduction_text}</p>}
             {(v.property_type || v.architecture_style) && (
               <p className="muted-small">
                 {[v.property_type, v.architecture_style].filter(Boolean).join(' · ')}
@@ -356,6 +357,10 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         <Section tone="cream" label="Where it is" title="Address and map">
           <VenueMap v={v} />
         </Section>
+
+        {v.location_intro && (
+          <Section tone="white"><div className="prose-narrow"><p>{v.location_intro}</p></div></Section>
+        )}
 
         <Section tone="white" label="The setting">
           <div className="distance-list">
