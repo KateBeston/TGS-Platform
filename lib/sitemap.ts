@@ -55,29 +55,60 @@ export async function venueEntries(): Promise<Entry[]> {
     }));
 }
 
-/** Country and city pages, from venues that are real and published. */
+/** Marketplace-scoped location pages — /wellness-venues/{continent}/{country}
+ *  /{state}/{city} and the retreat mirror. Every level is emitted only when
+ *  the place is published and a real venue sits behind it, so the sitemap
+ *  never advertises an empty page or an unpublished one. The continent is
+ *  resolved from the country, since venues carry the country slug, not the
+ *  continent. */
+/* Pre-launch, the only published venues are the test records, so the location
+ * sitemap would otherwise be empty. This lets it model the real URL shapes
+ * from the test data. Flip to false the moment real venues are live — a
+ * sitemap of test places tells Google the collection is made up. */
+const LOCATION_SITEMAP_INCLUDES_TEST = true;
+
 export async function locationEntries(): Promise<Entry[]> {
   const supabase = await createClient();
-  const { data } = await supabase.from('venue_cards')
-    .select('country_slug, state_slug, city_slug, is_test_record')
-    .eq('is_test_record', false);
 
-  const countries = new Set<string>();
-  const cities = new Set<string>();
+  let venuesQuery = supabase.from('venue_cards')
+    .select('marketplace, country_slug, state_slug, city_slug, is_test_record');
+  if (!LOCATION_SITEMAP_INCLUDES_TEST) venuesQuery = venuesQuery.eq('is_test_record', false);
 
-  for (const v of (data ?? []) as any[]) {
-    if (v.country_slug) countries.add(v.country_slug);
-    if (v.country_slug && v.city_slug) {
-      cities.add(`${v.country_slug}/${v.city_slug}`);
+  const [conts, countries, states, cities, venues] = await Promise.all([
+    supabase.from('continents').select('id, slug').eq('is_published', true),
+    supabase.from('countries').select('slug, continent_id').eq('is_published', true),
+    supabase.from('states').select('slug').eq('is_published', true),
+    supabase.from('cities').select('slug').eq('is_published', true),
+    venuesQuery,
+  ]);
+
+  const continentById = new Map<number, string>((conts.data ?? []).map((c: any) => [c.id, c.slug]));
+  const countryToContinent = new Map<string, string>();
+  for (const c of (countries.data ?? []) as any[]) {
+    const cont = continentById.get(c.continent_id);
+    if (cont) countryToContinent.set(c.slug, cont);
+  }
+  const pubState = new Set((states.data ?? []).map((s: any) => s.slug));
+  const pubCity = new Set((cities.data ?? []).map((c: any) => c.slug));
+
+  const urls = new Set<string>();
+  for (const v of (venues.data ?? []) as any[]) {
+    const mkt = v.marketplace === 'Wellness' ? 'wellness-venues' : 'retreat-venues';
+    const continent = v.country_slug ? countryToContinent.get(v.country_slug) : undefined;
+    if (!continent) continue; // country unpublished or missing → not advertised
+    urls.add(`/${mkt}/${continent}`);
+    urls.add(`/${mkt}/${continent}/${v.country_slug}`);
+    if (v.state_slug && pubState.has(v.state_slug)) {
+      urls.add(`/${mkt}/${continent}/${v.country_slug}/${v.state_slug}`);
+      if (v.city_slug && pubCity.has(v.city_slug)) {
+        urls.add(`/${mkt}/${continent}/${v.country_slug}/${v.state_slug}/${v.city_slug}`);
+      }
     }
   }
 
-  return [
-    ...[...countries].map((c) => ({
-      url: `/venues?country=${c}`,
-      changeFrequency: 'weekly' as const, priority: 0.6,
-    })),
-  ];
+  return [...urls].sort().map((url) => ({
+    url, changeFrequency: 'weekly' as const, priority: 0.6,
+  }));
 }
 
 export async function practiceEntries(): Promise<Entry[]> {
