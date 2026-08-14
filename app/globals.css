@@ -3335,3 +3335,14 @@ img { max-width: 100%; height: auto; display: block; }
 /* Practice page: the short description as a distinct standfirst/subheading
    under the H1 (its own role, above the intro body — never a duplicate). */
 .pr-page .intro-standfirst { font-size: 19px; font-weight: 300; line-height: 1.55; color: var(--charcoal); margin-bottom: 20px; }
+
+/* Venue location map */
+.vmap{max-width:760px}
+.vmap-address{font-style:normal;font-family:var(--font-serif,Georgia,serif);font-size:19px;line-height:1.5;color:var(--charcoal,#313131);display:flex;flex-direction:column;margin-bottom:20px}
+.vmap-address span{display:block}
+.vmap-frame{position:relative;width:100%;aspect-ratio:16/10;border:1px solid var(--border,#E0DCD4);background:var(--warm-cream,#F7F5F1)}
+.vmap-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.vmap-foot{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:14px}
+.vmap-link{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark,#7A644F);text-decoration:none;border-bottom:1px solid var(--gold,#C4A265);padding-bottom:2px}
+.vmap-link:hover{color:var(--charcoal,#313131)}
+.vmap-note{font-size:12.5px;color:var(--muted,#6f6f6f);font-style:italic;line-height:1.5;margin:0;flex:1;min-width:220px}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
+import VenueMap from './VenueMap';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
@@ -351,6 +352,10 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       <div id="panel-location" className="vpanel" hidden>
         <TabHero image={v.image_url} label="Location"
           title={v.location_tagline ?? 'Where it is'} subtitle={place} />
+
+        <Section tone="cream" label="Where it is" title="Address and map">
+          <VenueMap v={v} />
+        </Section>
 
         <Section tone="white" label="The setting">
           <div className="distance-list">

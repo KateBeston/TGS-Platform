@@ -1,4 +1,5 @@
 import VenueTabs from '@/components/VenueTabs';
+import VenueMap from './VenueMap';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
@@ -237,6 +238,10 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       <div id="panel-visiting" className="vpanel" hidden>
         <TabHero image={v.image_url} label="Visiting"
           title={v.location_tagline ?? 'Finding us'} subtitle={place} />
+
+        <Section tone="cream" label="Where it is" title="Address and map">
+          <VenueMap v={v} />
+        </Section>
 
         {!!immediate.length && (
           <Section tone="white" label="The setting">
