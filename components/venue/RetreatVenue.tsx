@@ -70,16 +70,17 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     return acc;
   }, {});
 
+  const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
-    v.facilities.length && { id: 'amenities', label: 'Amenities' },
+    (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     (v.services.length || v.excursions.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     { id: 'location', label: 'Location' },
-    (v.policies.length || v.faqs.length) && { id: 'policies', label: 'Good to know' },
+    (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },
   ].filter(Boolean) as { id: string; label: string }[];
@@ -257,12 +258,35 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
 
           <InEveryRoom rooms={v.rooms} tone="white" />
+          {(v.check_in_time || v.check_out_time || !!v.minimum_stay_nights || v.minimum_child_age != null) && (
+            <Section tone="cream" label="Stay details" title="Check-in and check-out">
+              <div className="distance-list">
+                {v.check_in_time && (
+                  <div className="distance-row"><span className="distance-name">Check-in</span>
+                    <span className="distance-time">{v.check_in_time}{v.early_checkin_available ? ' · Early check-in available' : ''}</span></div>
+                )}
+                {v.check_out_time && (
+                  <div className="distance-row"><span className="distance-name">Check-out</span>
+                    <span className="distance-time">{v.check_out_time}{v.late_checkout_available ? ' · Late check-out available' : ''}</span></div>
+                )}
+                {!!v.minimum_stay_nights && (
+                  <div className="distance-row"><span className="distance-name">Minimum stay</span>
+                    <span className="distance-time">{v.minimum_stay_nights} night{v.minimum_stay_nights === 1 ? '' : 's'}</span></div>
+                )}
+                {v.minimum_child_age != null && (
+                  <div className="distance-row"><span className="distance-name">Minimum age</span>
+                    <span className="distance-time">{v.minimum_child_age}+ years</span></div>
+                )}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
       {/* ── amenities ──────────────────────────────────────────────── */}
-      {!!v.facilities.length && (
+      {(!!v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
         <div id="panel-amenities" className="vpanel" hidden>
+          {!!v.facilities.length && (
           <Section tone="white" label="Amenities"
             title="Everything your retreat needs">
             <div className="amenity-columns">
@@ -280,6 +304,19 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
               ))}
             </div>
           </Section>
+          )}
+          {(v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
+            <Section tone="cream" label="Connectivity" title="Staying connected">
+              <div className="prose-narrow">
+                {(v.wifi_coverage || v.wifi_details) && (
+                  <p><strong>WiFi. </strong>{[v.wifi_coverage, v.wifi_details].filter(Boolean).join(' — ')}</p>
+                )}
+                {(v.mobile_coverage || v.mobile_coverage_notes) && (
+                  <p><strong>Mobile. </strong>{[v.mobile_coverage, v.mobile_coverage_notes].filter(Boolean).join(' — ')}</p>
+                )}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
@@ -363,6 +400,9 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <Section tone="white" label="The setting">
+          {v.environment_notes && (
+            <div className="prose-narrow" style={{ marginBottom: 20 }}><p>{v.environment_notes}</p></div>
+          )}
           <div className="distance-list">
             {immediate.map((s: any) => (
               <div key={s.setting_id} className="distance-row">
@@ -429,9 +469,21 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
+        {(v.directions_note || v.parking_notes) && (
+          <Section tone="white" label="Arrival" title="Directions and parking">
+            <div className="prose-narrow">
+              {v.directions_note && <p>{v.directions_note}</p>}
+              {v.parking_notes && <p><strong>Parking. </strong>{v.parking_notes}</p>}
+            </div>
+          </Section>
+        )}
+
         {/* Climate: the season table where present, otherwise the prose. */}
         {v.seasons.length ? (
           <Section tone="cream" label="Climate" title="When to visit">
+            {v.climate_note && (
+              <div className="prose-narrow" style={{ marginBottom: 20 }}><p>{v.climate_note}</p></div>
+            )}
             <div className="distance-list">
               {v.seasons.map((s: any) => (
                 <div key={s.id} className="distance-row">
@@ -447,10 +499,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
               ))}
             </div>
           </Section>
-        ) : (v.climate_intro || v.best_months) && (
+        ) : (v.climate_intro || v.best_months || v.climate_note) && (
           <Section tone="cream" label="Climate" title="What to expect">
             <div className="prose-narrow">
               {v.climate_intro && <p>{v.climate_intro}</p>}
+              {v.climate_note && <p>{v.climate_note}</p>}
               {v.best_months && (
                 <p className="muted-small">
                   Best months to visit: {Array.isArray(v.best_months)
@@ -467,8 +520,35 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       </div>
 
       {/* ── policies ───────────────────────────────────────────────── */}
-      {(!!v.policies.length || !!v.faqs.length) && (
+      {(!!v.policies.length || !!v.faqs.length || v.cultural_protocol_details || hasBring) && (
         <div id="panel-policies" className="vpanel" hidden>
+          {hasBring && (
+            <Section tone="cream" label="What to bring" title="Coming prepared">
+              <div className="prose-narrow">
+                {v.please_bring?.length ? (
+                  <>
+                    <p><strong>Please bring</strong></p>
+                    <div className="amenity-pill-row">
+                      {v.please_bring.map((x: string, i: number) => <span key={i} className="amenity-pill">{x}</span>)}
+                    </div>
+                  </>
+                ) : null}
+                {v.optional_to_bring?.length ? (
+                  <>
+                    <p style={{ marginTop: 16 }}><strong>Optional</strong></p>
+                    <div className="amenity-pill-row">
+                      {v.optional_to_bring.map((x: string, i: number) => <span key={i} className="amenity-pill">{x}</span>)}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </Section>
+          )}
+          {v.cultural_protocol_details && (
+            <Section tone="white" label="Please note" title="Cultural protocol">
+              <div className="prose-narrow"><p>{v.cultural_protocol_details}</p></div>
+            </Section>
+          )}
           {!!v.policies.length && <PoliciesPanel v={v} />}
           {!!v.faqs.length && (
             <Section tone={v.policies.length ? 'cream' : 'white'}

@@ -46,6 +46,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     .map((s: any) => s.base_price).filter((p: any) => p != null && p > 0)
     .sort((a: number, b: number) => a - b)[0];
 
+  const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
     v.services.length && { id: 'services', label: 'Services' },
@@ -53,9 +54,9 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     v.spaces.length && { id: 'space', label: 'The space' },
     v.rooms.length && { id: 'stay', label: 'Stay' },
-    v.facilities.length && { id: 'facilities', label: 'Facilities' },
+    (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'facilities', label: 'Facilities' },
     { id: 'visiting', label: 'Visiting' },
-    (v.policies.length || v.faqs.length) && { id: 'policies', label: 'Good to know' },
+    (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Book' },
   ].filter(Boolean) as { id: string; label: string }[];
@@ -215,11 +216,34 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             <RoomGrid rooms={v.rooms} />
           </Section>
           <InEveryRoom rooms={v.rooms} tone="cream" />
+          {(v.check_in_time || v.check_out_time || !!v.minimum_stay_nights || v.minimum_child_age != null) && (
+            <Section tone="white" label="Stay details" title="Check-in and check-out">
+              <div className="distance-list">
+                {v.check_in_time && (
+                  <div className="distance-row"><span className="distance-name">Check-in</span>
+                    <span className="distance-time">{v.check_in_time}{v.early_checkin_available ? ' · Early check-in available' : ''}</span></div>
+                )}
+                {v.check_out_time && (
+                  <div className="distance-row"><span className="distance-name">Check-out</span>
+                    <span className="distance-time">{v.check_out_time}{v.late_checkout_available ? ' · Late check-out available' : ''}</span></div>
+                )}
+                {!!v.minimum_stay_nights && (
+                  <div className="distance-row"><span className="distance-name">Minimum stay</span>
+                    <span className="distance-time">{v.minimum_stay_nights} night{v.minimum_stay_nights === 1 ? '' : 's'}</span></div>
+                )}
+                {v.minimum_child_age != null && (
+                  <div className="distance-row"><span className="distance-name">Minimum age</span>
+                    <span className="distance-time">{v.minimum_child_age}+ years</span></div>
+                )}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
-      {!!v.facilities.length && (
+      {(!!v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
         <div id="panel-facilities" className="vpanel" hidden>
+          {!!v.facilities.length && (
           <Section tone="white" label="Facilities" title="What is here">
             <div className="amenity-columns">
               {Object.entries(facilitiesByCategory).map(([cat, items]) => (
@@ -236,6 +260,19 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
               ))}
             </div>
           </Section>
+          )}
+          {(v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
+            <Section tone="cream" label="Connectivity" title="Staying connected">
+              <div className="prose-narrow">
+                {(v.wifi_coverage || v.wifi_details) && (
+                  <p><strong>WiFi. </strong>{[v.wifi_coverage, v.wifi_details].filter(Boolean).join(' — ')}</p>
+                )}
+                {(v.mobile_coverage || v.mobile_coverage_notes) && (
+                  <p><strong>Mobile. </strong>{[v.mobile_coverage, v.mobile_coverage_notes].filter(Boolean).join(' — ')}</p>
+                )}
+              </div>
+            </Section>
+          )}
         </div>
       )}
 
@@ -251,8 +288,11 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           <Section tone="white"><div className="prose-narrow"><p>{v.location_intro}</p></div></Section>
         )}
 
-        {!!immediate.length && (
+        {(!!immediate.length || v.environment_notes) && (
           <Section tone="white" label="The setting">
+            {v.environment_notes && (
+              <div className="prose-narrow" style={{ marginBottom: 20 }}><p>{v.environment_notes}</p></div>
+            )}
             <div className="distance-list">
               {immediate.map((s: any) => (
                 <div key={s.setting_id} className="distance-row">
@@ -332,8 +372,23 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
-        {!!v.seasons.length && (
+        {(v.directions_note || v.parking_notes) && (
+          <Section tone="white" label="Arrival" title="Directions and parking">
+            <div className="prose-narrow">
+              {v.directions_note && <p>{v.directions_note}</p>}
+              {v.parking_notes && <p><strong>Parking. </strong>{v.parking_notes}</p>}
+            </div>
+          </Section>
+        )}
+
+        {(!!v.seasons.length || v.climate_intro || v.climate_note) && (
           <Section tone="white" label="Climate" title="When to visit">
+            {(v.climate_intro || v.climate_note) && (
+              <div className="prose-narrow" style={{ marginBottom: 20 }}>
+                {v.climate_intro && <p>{v.climate_intro}</p>}
+                {v.climate_note && <p>{v.climate_note}</p>}
+              </div>
+            )}
             <div className="distance-list">
               {v.seasons.map((s: any) => (
                 <div key={s.id} className="distance-row">
@@ -356,8 +411,35 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         <VenueLinks v={v} tone="white" />
       </div>
 
-      {(!!v.policies.length || !!v.faqs.length) && (
+      {(!!v.policies.length || !!v.faqs.length || v.cultural_protocol_details || hasBring) && (
         <div id="panel-policies" className="vpanel" hidden>
+          {hasBring && (
+            <Section tone="cream" label="What to bring" title="Coming prepared">
+              <div className="prose-narrow">
+                {v.please_bring?.length ? (
+                  <>
+                    <p><strong>Please bring</strong></p>
+                    <div className="amenity-pill-row">
+                      {v.please_bring.map((x: string, i: number) => <span key={i} className="amenity-pill">{x}</span>)}
+                    </div>
+                  </>
+                ) : null}
+                {v.optional_to_bring?.length ? (
+                  <>
+                    <p style={{ marginTop: 16 }}><strong>Optional</strong></p>
+                    <div className="amenity-pill-row">
+                      {v.optional_to_bring.map((x: string, i: number) => <span key={i} className="amenity-pill">{x}</span>)}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </Section>
+          )}
+          {v.cultural_protocol_details && (
+            <Section tone="white" label="Please note" title="Cultural protocol">
+              <div className="prose-narrow"><p>{v.cultural_protocol_details}</p></div>
+            </Section>
+          )}
           {!!v.policies.length && <PoliciesPanel v={v} />}
           {!!v.faqs.length && (
             <Section tone={v.policies.length ? 'cream' : 'white'}

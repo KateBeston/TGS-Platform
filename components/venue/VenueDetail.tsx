@@ -16,10 +16,17 @@ export default function VenueDetail({ v, marketplace, slug }: { v: any; marketpl
     url: `https://www.theglobalsanctum.com/${marketplace}/${slug}`,
     address: {
       '@type': 'PostalAddress',
+      streetAddress: v.street_address ?? undefined,
       addressLocality: v.city ?? undefined,
       addressRegion: v.state ?? undefined,
+      postalCode: v.postcode ?? undefined,
       addressCountry: v.country ?? undefined,
     },
+    ...(isRetreat && v.check_in_time ? { checkinTime: v.check_in_time } : {}),
+    ...(isRetreat && v.check_out_time ? { checkoutTime: v.check_out_time } : {}),
+    amenityFeature: (v.facilities ?? []).slice(0, 30).map((f: any) => ({
+      '@type': 'LocationFeatureSpecification', name: f.name, value: true,
+    })),
     geo: v.latitude ? { '@type': 'GeoCoordinates', latitude: v.latitude, longitude: v.longitude } : undefined,
     aggregateRating: v.rating ? {
       '@type': 'AggregateRating', ratingValue: v.rating,
