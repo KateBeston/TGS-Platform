@@ -3586,3 +3586,8 @@ img { max-width: 100%; height: auto; display: block; }
 .fav-hero{color:var(--warm-white)}
 .fav-hero.fav-on{color:var(--gold)}
 .hero-save{display:inline-flex;align-items:center;gap:8px;margin-top:16px;color:var(--warm-white);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+
+/* Sign-up benefits list */
+.auth-benefits{list-style:none;margin:0 0 8px;padding:16px 18px;background:var(--warm-cream);display:flex;flex-direction:column;gap:8px}
+.auth-benefits li{position:relative;padding-left:20px;font-size:13px;color:var(--charcoal);line-height:1.45}
+.auth-benefits li::before{content:'';position:absolute;left:0;top:7px;width:8px;height:8px;border:1px solid var(--gold);background:var(--gold);transform:rotate(45deg)}

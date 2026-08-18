@@ -1,7 +1,9 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { verifyTurnstile } from '@/lib/turnstile';
 
 type State = { error?: string; sent?: boolean; ok?: boolean } | null;
 
@@ -16,8 +18,15 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
   const primary_audience = String(formData.get('primary_audience') ?? 'guest');
   const marketing_opt_in = formData.get('marketing_opt_in') === 'on';
 
+  const confirm = String(formData.get('confirm_password') ?? '');
   if (!email || !password) return { error: 'Email and password are required.' };
   if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
+  if (password !== confirm) return { error: 'The two passwords don\u2019t match.' };
+
+  const h = await headers();
+  const ip = (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || null;
+  const challenge = await verifyTurnstile(String(formData.get('cf-turnstile-response') ?? ''), ip);
+  if (!challenge.ok) return { error: challenge.reason };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({

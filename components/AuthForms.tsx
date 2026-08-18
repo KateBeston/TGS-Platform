@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, signUp, requestReset } from '@/app/actions/auth';
+import Turnstile from '@/components/Turnstile';
 
 type Mode = 'login' | 'signup' | 'reset';
 
@@ -49,6 +50,7 @@ function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucce
 
 function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSuccess?: () => void }) {
   const [state, action, pending] = useActionState(signUp, null);
+  const [token, setToken] = useState('');
   useSuccess(state?.ok, onSuccess);
   if (state?.sent) {
     return (
@@ -60,6 +62,11 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
   }
   return (
     <form action={action} className="auth-form">
+      <ul className="auth-benefits">
+        <li>Save venues to your own collection</li>
+        <li>Keep your bookings, quotes and enquiries in one place</li>
+        <li>Early access to new venues and member offers</li>
+      </ul>
       <div className="auth-row">
         <label className="auth-field"><span>First name</span>
           <input type="text" name="first_name" autoComplete="given-name" /></label>
@@ -71,6 +78,8 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
       <label className="auth-field"><span>Password</span>
         <input type="password" name="password" autoComplete="new-password" minLength={8} required />
         <small>At least 8 characters.</small></label>
+      <label className="auth-field"><span>Confirm password</span>
+        <input type="password" name="confirm_password" autoComplete="new-password" minLength={8} required /></label>
       <label className="auth-field"><span>I&rsquo;m here mainly as a</span>
         <select name="primary_audience" defaultValue="guest">
           <option value="guest">Wellness guest</option>
@@ -81,6 +90,8 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
         <input type="checkbox" name="marketing_opt_in" />
         <span>Send me the Sanctum Journal and occasional wellness discoveries.</span>
       </label>
+      <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setToken} />
+      <input type="hidden" name="cf-turnstile-response" value={token} />
       {state?.error && <p className="auth-error">{state.error}</p>}
       <button type="submit" className="auth-submit" disabled={pending}>{pending ? 'Creating your account…' : 'Create account'}</button>
       <div className="auth-links">
