@@ -43,6 +43,10 @@ function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucce
         <input type="email" name="email" autoComplete="email" required /></label>
       <label className="auth-field"><span>Password</span>
         <input type="password" name="password" autoComplete="current-password" required /></label>
+      <label className="auth-remember">
+        <input type="checkbox" name="remember" defaultChecked />
+        <span>Keep me signed in</span>
+      </label>
       {state?.error && <p className="auth-error">{state.error}</p>}
       <button type="submit" className="auth-submit" disabled={pending}>{pending ? 'Signing in…' : 'Sign in'}</button>
       <div className="auth-links">

@@ -44,8 +44,13 @@ export async function createClient() {
           // Nothing signs in here yet, so there is nothing to persist.
           // Kept so adding accounts later does not mean rewriting this.
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options));
+            const sessionOnly = cookieStore.get('tgs_remember')?.value === '0';
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const opts = sessionOnly && name.startsWith('sb-')
+                ? { ...options, maxAge: undefined, expires: undefined }
+                : options;
+              cookieStore.set(name, value, opts);
+            });
           } catch {
             // Called from a Server Component, where cookies cannot be
             // set. Harmless while nothing signs in.

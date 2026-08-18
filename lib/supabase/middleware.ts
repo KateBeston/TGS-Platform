@@ -19,7 +19,13 @@ export async function updateSession(request: NextRequest) {
         setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          const sessionOnly = request.cookies.get('tgs_remember')?.value === '0';
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const opts = sessionOnly && name.startsWith('sb-')
+              ? { ...options, maxAge: undefined, expires: undefined }
+              : options;
+            response.cookies.set(name, value, opts);
+          });
         },
       },
     },

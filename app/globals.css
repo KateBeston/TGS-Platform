@@ -3633,3 +3633,7 @@ img { max-width: 100%; height: auto; display: block; }
 .acc-logout .acc-ico{color:currentColor}
 .acc-logout:hover{border-color:var(--charcoal);background:var(--charcoal);color:var(--warm-white)}
 @media (max-width:520px){.acc-drawer{width:100%;max-width:100%}}
+
+/* Remember-me checkbox */
+.auth-remember{display:flex;align-items:center;gap:9px;margin:2px 0;font-size:13px;color:var(--charcoal);cursor:pointer}
+.auth-remember input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}

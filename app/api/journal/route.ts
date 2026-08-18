@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { syncContact } from '@/lib/activecampaign';
 
 /* Journal signups.
  *
@@ -103,13 +104,21 @@ export async function POST(req: NextRequest) {
         consent_at: new Date().toISOString(),
       }).eq('email', email);
     } catch { /* columns not present yet — safe to ignore */ }
+
+    // ActiveCampaign sync. After the write, so a CRM failure never loses a
+    // subscriber. Env-gated and best-effort: skipped until credentials are
+    // set, and never allowed to fail the signup.
+    try {
+      const ac = await syncContact(email, name, process.env.ACTIVECAMPAIGN_LIST_ID);
+      if (ac) {
+        await supabase.from('newsletter_subscribers')
+          .update({ activecampaign_id: ac.contactId }).eq('email', email);
+      }
+    } catch { /* CRM issue — the subscriber is already saved, so carry on */ }
   } catch {
     return NextResponse.json({ error: 'Could not record that. Try again shortly.' },
       { status: 500 });
   }
-
-  // ActiveCampaign sync goes here once wired. Deliberately after the
-  // write, so a CRM failure never loses a subscriber.
 
   return NextResponse.json({ ok: true });
 }

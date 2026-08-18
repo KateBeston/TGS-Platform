@@ -1,6 +1,6 @@
 'use server';
 
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { verifyTurnstile } from '@/lib/turnstile';
@@ -49,6 +49,15 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
   if (!email || !password) return { error: 'Email and password are required.' };
+
+  // Remember me: absent checkbox means session-only. The cookie is read where
+  // the auth cookies are written (server client + middleware) to drop their
+  // max-age, so the session ends when the browser closes.
+  const remember = formData.get('remember') != null;
+  const jar = await cookies();
+  jar.set('tgs_remember', remember ? '1' : '0', {
+    path: '/', sameSite: 'lax', maxAge: remember ? 400 * 24 * 60 * 60 : undefined,
+  });
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
