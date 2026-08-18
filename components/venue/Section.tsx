@@ -313,7 +313,18 @@ export function OpeningHours({
 
 /* Room cards. Image, then the room in words — the mockup's card grid
  * rather than the plain rows the tab used to render. */
-export function RoomGrid({ rooms }: { rooms: any[] }) {
+export function RoomGrid({ rooms, ratePlans = [], currency = 'AUD' }: { rooms: any[]; ratePlans?: any[]; currency?: string | null }) {
+  const planFor = (id: number) =>
+    ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === id);
+  const basisLabel = (b: string | null) => {
+    switch (b) {
+      case 'Per Night': case 'Per Day': return 'per night';
+      case 'Per Person Per Night': return 'per person / night';
+      case 'Per Group Per Night': return 'per night';
+      case 'Per Person': return 'per person';
+      default: return '';
+    }
+  };
   return (
     <div className="room-grid">
       {rooms.map((r) => (
@@ -341,7 +352,12 @@ export function RoomGrid({ rooms }: { rooms: any[] }) {
                 ))}
               </div>
             )}
-            <div className="room-card-action"><AddToCart kind="room" id={r.id} max={r.quantity ?? 9} /></div>
+            <div className="room-card-action">
+              {(() => { const rp = planFor(r.id); return rp && rp.base_price != null
+                ? <div className="room-card-price">From {money(rp.base_price, rp.currency ?? currency)} <span>{basisLabel(rp.pricing_basis)}</span></div>
+                : null; })()}
+              <AddToCart kind="room" id={r.id} max={r.quantity ?? 9} />
+            </div>
           </div>
         </article>
       ))}
