@@ -14,7 +14,7 @@ import { signOut } from '@/app/actions/auth';
  * once and exposes it, so the header can show the member's name and avatar
  * without loading it a second time. */
 
-type Profile = { first_name?: string | null; surname?: string | null; email?: string | null } | null;
+type Profile = { first_name?: string | null; surname?: string | null; email?: string | null; created_at?: string | null } | null;
 type Ctx = { open: () => void; close: () => void; isOpen: boolean; signedIn: boolean; profile: Profile };
 const AccCtx = createContext<Ctx | null>(null);
 export function useAccountDrawer() { return useContext(AccCtx); }
@@ -29,7 +29,7 @@ export function AccountDrawerProvider({ children }: { children: ReactNode }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSignedIn(false); setProfile(null); setIsOpen(false); return; }
     setSignedIn(true);
-    const { data } = await supabase.from('profiles').select('first_name,surname').eq('id', user.id).maybeSingle();
+    const { data } = await supabase.from('profiles').select('first_name,surname,created_at').eq('id', user.id).maybeSingle();
     setProfile({ ...(data ?? {}), email: user.email });
   };
 
@@ -44,6 +44,9 @@ export function AccountDrawerProvider({ children }: { children: ReactNode }) {
   const close = () => setIsOpen(false);
   const first = profile?.first_name || (profile?.email ? profile.email.split('@')[0] : 'there');
   const fullName = [profile?.first_name, profile?.surname].filter(Boolean).join(' ') || first;
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
+    : null;
 
   return (
     <AccCtx.Provider value={{ open, close, isOpen, signedIn, profile }}>
@@ -59,8 +62,9 @@ export function AccountDrawerProvider({ children }: { children: ReactNode }) {
 
             <div className="acc-body">
               <div className="acc-member">
-                <div className="acc-member-eyebrow">Sanctum Society</div>
+                <img className="acc-member-logo" src="/brand/sanctum-societe.png" alt="Sanctum Société" />
                 <div className="acc-member-name">{fullName}</div>
+                {memberSince && <div className="acc-member-since">Member since {memberSince}</div>}
                 {profile?.email && <div className="acc-member-email">{profile.email}</div>}
               </div>
 
