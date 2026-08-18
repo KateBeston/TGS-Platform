@@ -52,7 +52,13 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: 'That email and password do not match an account.' };
+  if (error) {
+    const code = (error as { code?: string }).code ?? '';
+    if (code === 'email_not_confirmed' || /not confirmed/i.test(error.message)) {
+      return { error: 'Please confirm your email first — check your inbox and spam for the link.' };
+    }
+    return { error: 'That email and password do not match an account.' };
+  }
   return { ok: true };
 }
 
