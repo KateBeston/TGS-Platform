@@ -17,10 +17,10 @@ import { trackOnce } from '@/lib/track';
  */
 
 const ROLES = [
-  ['Wellness Guest', 'I am looking for somewhere to go'],
-  ['Retreat Host', 'I am looking for a venue to run something'],
-  ['Venue Owner', 'I have a venue'],
-  ['Press', 'Press or media'],
+  ['Wellness Guest', 'I am looking for a wellness experience or retreat to attend'],
+  ['Retreat Host', 'I am looking for a venue to host my own retreat'],
+  ['Venue Owner', 'I have a venue to list'],
+  ['Press', 'Press or media enquiry'],
   ['Other', 'Something else'],
 ];
 
@@ -58,7 +58,7 @@ export default function ContactForm({
         headers: { 'content-type': 'application/json' },
         // The first touch travels with it. Written once when they
         // arrived, so a second visit does not overwrite a first.
-        body: JSON.stringify({ ...f, website: trap, attribution: firstTouch() }),
+        body: JSON.stringify({ ...f, subject: f.subject || `Enquiry \u2014 ${f.role || 'General'}`, website: trap, attribution: firstTouch() }),
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
@@ -77,7 +77,7 @@ export default function ContactForm({
         <div className="section-label">Sent</div>
         <h2 className="section-title">Thank you</h2>
         <p>
-          We have your message and will come back within a day or two. If it is
+          We have your message and will respond within 24 to 48 hours. If it is
           urgent, reply to the acknowledgement and say so.
         </p>
       </div>
@@ -128,13 +128,12 @@ export default function ContactForm({
         </div>
 
         <div className="f f-wide">
-          <label htmlFor="c-subject">What it is about</label>
-          <input id="c-subject" value={f.subject}
-            onChange={(e) => set('subject', e.target.value)} />
-        </div>
-
-        <div className="f f-wide">
           <label htmlFor="c-message">Your message</label>
+          <p className="f-hint">
+            Tell us a little about what you&rsquo;re looking for &mdash; the practice or
+            experience, rough dates, how many of you, and anything that would help us point
+            you the right way.
+          </p>
           <textarea id="c-message" rows={6} value={f.message}
             onChange={(e) => set('message', e.target.value)} />
         </div>
@@ -166,7 +165,7 @@ export default function ContactForm({
       </div>
 
       <p className="enquiry-fine">
-        We answer within a day or two. Your details are handled as described in our{' '}
+        You will receive a response within 24 to 48 hours. Your details are handled as described in our{' '}
         <a href="/legal#privacy">privacy policy</a>.
       </p>
     </div>

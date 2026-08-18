@@ -3644,3 +3644,9 @@ img { max-width: 100%; height: auto; display: block; }
 /* Remember-me checkbox */
 .auth-remember{display:flex;align-items:center;gap:9px;margin:2px 0;font-size:13px;color:var(--charcoal);cursor:pointer}
 .auth-remember input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
+
+/* Small helper statement inside a form field */
+.f-hint{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0 0 10px}
+
+/* Stacked contact links (email, phone) inside a contact card */
+.contact-line{display:block;font-size:14.5px;margin-top:4px}

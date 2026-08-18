@@ -31,34 +31,40 @@ const PATHS = [
 
 const FAQ = [
   ['How does The Global Sanctum work?',
-   'The Global Sanctum is a curated wellness and retreat platform, a collection of the '
-   + 'world\u2019s wellness and retreat spaces organised by practice and purpose. You can '
-   + 'explore and search our curated collection, and our concierge is how bookings are '
-   + 'managed. You tell us what you are seeking, we draw on more than 6,000 spaces to send '
-   + 'a short, personal selection chosen for you, and we handle the enquiry and all '
-   + 'communication with the venue from beginning to end. It is a considered, personal way '
-   + 'to book.'],
-  ['What types of venues are listed?',
-   'We feature two categories: retreat venues for exclusive-use multi-day programs '
-   + 'including yoga shalas, meditation centres, and nature lodges; and wellness venues '
-   + 'encompassing everything from day-use therapeutic facilities such as onsens, thermal '
-   + 'springs, and healing centres through to multi-day wellness hotels and residential '
-   + 'wellness properties.'],
-  ['How do I list my venue?',
-   'Visit our List Your Venue page or start an enquiry, and we will be in touch to learn '
-   + 'about your space. Your venue takes its place in the collection, and we introduce it '
-   + 'to the guests and hosts we serve. Our concierge manages the enquiries and '
-   + 'introductions from first contact through to booking.'],
-  ['What are the fees for venue owners?',
-   'Partnership currently works as a referral model: there are no listing fees to join, '
-   + 'and a commission applies only on completed bookings we introduce. Subscription '
-   + 'tiers, each with its own commission structure, are introduced in stages as our paid '
-   + 'partnership options roll out. You can read more on our List Your Venue page.'],
+   'The Global Sanctum is a curated wellness and retreat platform \u2014 a collection of '
+   + 'the world\u2019s wellness and retreat spaces organised by practice and purpose. You '
+   + 'explore and search the collection, and our concierge is how bookings are managed. You '
+   + 'tell us what you are seeking, we draw on thousands of spaces to send a short, personal '
+   + 'selection chosen for you, and we handle the enquiry and every communication with the '
+   + 'venue from beginning to end. It is a considered, personal way to book.'],
+  ['What is the difference between a retreat venue and a wellness venue?',
+   'A retreat venue is a space taken on an exclusive-use basis to hold a multi-day programme '
+   + '\u2014 a yoga shala, a meditation centre, a nature lodge \u2014 the kind of place a '
+   + 'retreat host books in full to gather their guests. A wellness venue is somewhere you go '
+   + 'for the wellness itself: a day-use onsen or thermal spring, a healing centre, or a '
+   + 'residential wellness hotel you check into. Put simply, a retreat venue is where a retreat '
+   + 'is held; a wellness venue is where wellness is offered. Some spaces belong to both '
+   + 'worlds, and each is clearly marked as you explore.'],
+  ['I am a wellness guest \u2014 how do I find and book?',
+   'Explore the collection by practice, place or purpose, and when something speaks to you, '
+   + 'begin an enquiry. Our concierge takes it from there: we confirm availability, coordinate '
+   + 'every detail with the venue, and stay with you from first enquiry through to your return. '
+   + 'There is one relationship to manage rather than many, and it is with us.'],
+  ['I am a retreat host \u2014 can you help me find a venue?',
+   'Yes \u2014 this is much of what we do. Tell us the shape of your retreat: the practice, the '
+   + 'dates, the number of guests, the setting you have in mind. We draw on the collection to '
+   + 'send a considered selection of venues suited to your programme, and we handle the '
+   + 'introductions and coordination so you can attend to the retreat itself rather than the '
+   + 'logistics of the space.'],
   ['Can I contact a venue directly?',
-   'The Global Sanctum acts as your single point of contact, coordinating directly with '
-   + 'the venue on your behalf from your initial enquiry through to booking and beyond. It '
-   + 'means one relationship to manage rather than many, with the details looked after for '
-   + 'you.'],
+   'The Global Sanctum acts as your single point of contact, coordinating directly with the '
+   + 'venue on your behalf from your initial enquiry through to booking and beyond. It means one '
+   + 'relationship to manage rather than many, with the details looked after for you.'],
+  ['I have a venue \u2014 how do I list it?',
+   'Visit our List Your Venue page or start an enquiry, and we will be in touch to learn about '
+   + 'your space. There are no listing fees to join; a commission applies only on completed '
+   + 'bookings we introduce, with subscription tiers rolling out in stages. Your venue takes its '
+   + 'place in the collection, and we introduce it to the guests and hosts we serve.'],
 ];
 
 export default async function Contact({
@@ -81,7 +87,18 @@ export default async function Contact({
             <div className="feature-eyebrow">General Enquiries</div>
             <h3>Start a Conversation</h3>
             <p>We welcome questions about our platform, partnerships, and services.</p>
-            <a href="mailto:hello@theglobalsanctum.com">Reach us directly at hello@theglobalsanctum.com</a>
+            <a className="contact-line" href="mailto:hello@theglobalsanctum.com">hello@theglobalsanctum.com</a>
+            <a className="contact-line" href="tel:+61735218067">+61 7 3521 8067</a>
+          </div>
+          <div className="contact-card">
+            <div className="feature-eyebrow">By Post</div>
+            <h3>Our Address</h3>
+            <p>
+              Aurella Group Pty Ltd<br />
+              58 Wellington Street<br />
+              Virginia QLD 4014<br />
+              Australia
+            </p>
           </div>
           <div className="contact-card">
             <div className="feature-eyebrow">Opening Hours</div>
