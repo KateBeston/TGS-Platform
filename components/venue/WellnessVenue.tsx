@@ -1,6 +1,7 @@
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
-import { BookingCart } from './BookingCart';
+import { BookingCart, AddToCart } from './BookingCart';
+import { FavouriteButton } from '@/components/SavedVenues';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
@@ -50,7 +51,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
   const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    v.services.length && { id: 'services', label: 'Services' },
+    (v.services.length || v.extras?.length) && { id: 'services', label: 'Services' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     v.spaces.length && { id: 'space', label: 'The space' },
@@ -71,6 +72,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-eyebrow">{v.venue_type}</div>
           <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
           <div className="hero-location">{place}</div>
+          <div className="hero-save"><FavouriteButton venueId={v.id} variant="hero" /> Save</div>
         </div>
       </div>
 
@@ -157,8 +159,25 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       {/* Services first, because that is the question a guest is here to
           answer. Grouped, so somebody after a massage is not reading past
           the thermal circuit to find it. */}
-      {!!v.services.length && (
+      {(!!v.services.length || !!v.extras?.length) && (
         <div id="panel-services" className="vpanel" hidden>
+          {!!v.extras?.length && (
+            <Section tone="cream" label="Extras" title="Add to your stay">
+              <div className="item-grid">
+                {v.extras.map((e: any) => (
+                  <article key={e.id} className="item priced">
+                    <div>
+                      <h3>{e.name}</h3>
+                      <div className="item-meta">{[e.extra_category, e.price_basis].filter(Boolean).join(' \u00b7 ')}</div>
+                      {e.description && <p>{e.description}</p>}
+                    </div>
+                    <div className="priced-amount">{e.price != null ? money(e.price, e.currency) : 'On request'}</div>
+                    <div className="item-action"><AddToCart kind="extra" id={e.id} max={e.maximum_quantity ?? 20} /></div>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
           <TabHero image={v.image_url} label="The menu" title="What is offered"
             subtitle={cheapest
               ? `From ${money(cheapest, v.services[0]?.currency)}`
@@ -183,6 +202,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
                       {s.price_is_from && <span className="from">from</span>}
                       {money(s.base_price, s.currency)}
                     </div>
+                    <div className="item-action"><AddToCart kind="exp" id={s.id} /></div>
                   </article>
                 ))}
               </div>
@@ -238,7 +258,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
                 <p>{v.accommodation_description}</p>
               </div>
             )}
-            <RoomGrid rooms={v.rooms} />
+            <RoomGrid rooms={v.rooms} ratePlans={v.rate_plans} currency={v.price_currency} />
           </Section>
           <InEveryRoom rooms={v.rooms} tone="cream" />
           {(v.check_in_time || v.check_out_time || !!v.minimum_stay_nights || v.minimum_child_age != null) && (

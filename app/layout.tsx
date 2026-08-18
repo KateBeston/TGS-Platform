@@ -7,6 +7,7 @@ import FirstTouch from '@/components/FirstTouch';
 import PageViews from '@/components/PageViews';
 import SiteHeader from '@/components/SiteHeader';
 import { AuthModalProvider } from '@/components/AuthModal';
+import { SavedVenuesProvider } from '@/components/SavedVenues';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
 import './globals.css';
@@ -57,6 +58,7 @@ export default function RootLayout({
             page and every session looks like a bounce. */}
         <Suspense fallback={null}><PageViews /></Suspense>
         <AuthModalProvider>
+        <SavedVenuesProvider>
         <SiteHeader />
         <main id="main">{children}</main>
         {/* Above the footer on every page, from the layout rather than
@@ -64,6 +66,7 @@ export default function RootLayout({
             and nine versions. */}
         <JournalSignup source="site" />
         <SiteFooter />
+        </SavedVenuesProvider>
         </AuthModalProvider>
         <ConsentBanner />
       </body>

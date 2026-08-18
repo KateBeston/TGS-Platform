@@ -3576,3 +3576,13 @@ img { max-width: 100%; height: auto; display: block; }
 @keyframes auth-fade{from{opacity:0}to{opacity:1}}
 @keyframes auth-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media (max-width:520px){.auth-modal-inner{padding:38px 24px}}
+
+/* ── Favourite (heart) ──────────────────────────────────────────── */
+.premium-card-image,.featured-card-image,.standard-card-image,.essentials-card-image{position:relative}
+.fav-btn{border:none;background:none;cursor:pointer;padding:0;color:inherit;display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.fav-card{position:absolute;top:14px;right:14px;width:40px;height:40px;background:rgba(253,252,249,.9);color:var(--charcoal);box-shadow:0 2px 12px rgba(49,49,49,.16);transition:color .2s ease,background .2s ease;z-index:2}
+.fav-card:hover{background:var(--warm-white);color:var(--gold-dark)}
+.fav-card.fav-on{color:var(--gold)}
+.fav-hero{color:var(--warm-white)}
+.fav-hero.fav-on{color:var(--gold)}
+.hero-save{display:inline-flex;align-items:center;gap:8px;margin-top:16px;color:var(--warm-white);font-size:11px;letter-spacing:.14em;text-transform:uppercase}

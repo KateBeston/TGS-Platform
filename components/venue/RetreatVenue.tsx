@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
-import { BookingCart } from './BookingCart';
+import { BookingCart, AddToCart } from './BookingCart';
+import { FavouriteButton } from '@/components/SavedVenues';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
@@ -77,7 +78,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
-    (v.services.length || v.excursions.length) && { id: 'experiences', label: 'Experiences' },
+    (v.services.length || v.excursions.length || v.extras?.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     { id: 'location', label: 'Location' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
@@ -94,6 +95,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-eyebrow">{v.venue_type}</div>
           <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
           <div className="hero-location">{place}</div>
+          <div className="hero-save"><FavouriteButton venueId={v.id} variant="hero" /> Save</div>
         </div>
       </div>
 
@@ -278,7 +280,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           )}
 
           <Section tone="cream" label="Room types" subtitle="Choose your sanctuary">
-            <RoomGrid rooms={v.rooms} />
+            <RoomGrid rooms={v.rooms} ratePlans={v.rate_plans} currency={v.price_currency} />
           </Section>
 
           <InEveryRoom rooms={v.rooms} tone="white" />
@@ -345,11 +347,29 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {/* ── experiences ────────────────────────────────────────────── */}
-      {(!!v.services.length || !!v.excursions.length) && (
+      {(!!v.services.length || !!v.excursions.length || !!v.extras?.length) && (
         <div id="panel-experiences" className="vpanel" hidden>
           <TabHero image={v.image_url} label="Experiences"
             title="Enhance your retreat"
             subtitle="Arranged by the venue, added to your booking" />
+
+          {!!v.extras?.length && (
+            <Section tone="cream" label="Extras" title="Add to your stay">
+              <div className="item-grid">
+                {v.extras.map((e: any) => (
+                  <article key={e.id} className="item priced">
+                    <div>
+                      <h3>{e.name}</h3>
+                      <div className="item-meta">{[e.extra_category, e.price_basis].filter(Boolean).join(' \u00b7 ')}</div>
+                      {e.description && <p>{e.description}</p>}
+                    </div>
+                    <div className="priced-amount">{e.price != null ? money(e.price, e.currency) : 'On request'}</div>
+                    <div className="item-action"><AddToCart kind="extra" id={e.id} max={e.maximum_quantity ?? 20} /></div>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
 
           {!!v.services.length && (
             <Section tone="white">
@@ -367,6 +387,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
                       {s.price_is_from && <span className="from">from</span>}
                       {money(s.base_price, s.currency)}
                     </div>
+                    <div className="item-action"><AddToCart kind="exp" id={s.id} /></div>
                   </article>
                 ))}
               </div>

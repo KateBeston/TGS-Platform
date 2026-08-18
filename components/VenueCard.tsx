@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FavouriteButton } from '@/components/SavedVenues';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 
 /* Price the way a listing reads it: currency-aware, no cents. */
@@ -75,6 +76,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
       {card.image_url
         ? <img src={card.image_url} alt="" loading="lazy" />
         : <span className="placeholder-img">The Global Sanctum</span>}
+      <FavouriteButton venueId={card.id} variant="card" />
     </div>
   );
 
