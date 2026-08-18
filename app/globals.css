@@ -3367,3 +3367,6 @@ img { max-width: 100%; height: auto; display: block; }
 .loc-child-n{font-size:12px;color:var(--muted)}
 .loc-venues{margin-top:24px}
 .loc-empty{text-align:center;color:var(--muted);font-style:italic;padding:40px 0}
+
+/* Promotion badge on listing cards — quiet, gold, understated. */
+.card-promo{display:inline-block;margin-left:10px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dark);border:1px solid var(--gold);padding:2px 8px;vertical-align:middle;white-space:nowrap}

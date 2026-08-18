@@ -39,6 +39,7 @@ export type Card = {
   price_from: number | null;
   price_currency: string | null;
   price_unit: string | null;
+  has_active_promotion: boolean;
 };
 
 export type Filters = {

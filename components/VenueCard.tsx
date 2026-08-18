@@ -59,6 +59,7 @@ function Eyebrow({ card }: { card: Card }) {
           <span className="type-secondary">{card.venue_type}</span>
         </>
       )}
+      {card.has_active_promotion && <span className="card-promo">Exclusive rates</span>}
     </div>
   );
 }
@@ -170,6 +171,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
       <div className="essentials-card-body">
         <div className="essentials-card-eyebrow">
           {card.marketplace === 'Wellness' ? 'Wellness' : 'Retreat'}
+          {card.has_active_promotion && <span className="card-promo">Exclusive rates</span>}
         </div>
         <div className="essentials-card-name">{name}</div>
         <div className="essentials-card-location">{placeOf(card)}</div>
