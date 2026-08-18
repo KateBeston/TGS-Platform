@@ -2,6 +2,7 @@ import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
 import QuoteCalculator from './QuoteCalculator';
+import BookingBuilder from './BookingBuilder';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
@@ -74,6 +75,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
   const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
+    (v.rooms?.length || v.services?.length || v.extras?.length) && { id: 'build', label: 'Build a booking' },
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
@@ -100,6 +102,15 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       {/* ── overview ───────────────────────────────────────────────── */}
+      {(v.rooms?.length || v.services?.length || v.extras?.length) ? (
+        <div id="panel-build" className="vpanel" hidden>
+          <Section tone="white" label="Build" title="Build a booking">
+            <BookingBuilder rooms={v.rooms} services={v.services} extras={v.extras}
+              ratePlans={v.rate_plans} currency={v.price_currency} />
+          </Section>
+        </div>
+      ) : null}
+
       <div id="panel-overview" className="vpanel">
         {v.promotions?.length > 0 && (
           <Section tone="cream" label="Special" title="Exclusive rates available">
