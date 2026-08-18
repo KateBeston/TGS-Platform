@@ -33,9 +33,9 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 }
 
 export default function BookingBuilder({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD',
+  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '',
 }: {
-  rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
+  rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null; venueName?: string; location?: string;
 }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -43,6 +43,15 @@ export default function BookingBuilder({
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
+  const clearCart = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); };
+  const downloadQuote = async () => {
+    const { downloadQuotePdf } = await import('./quotePdf');
+    downloadQuotePdf({
+      venueName, location, from, to, nights, guests: guestN,
+      lines: lines.map((l) => ({ label: l.label, detail: l.detail, amount: l.amount })),
+      total, currency: currency || 'AUD', anyUnpriced,
+    });
+  };
 
   const nights = useMemo(() => {
     if (!from || !to || to <= from) return 0;
@@ -174,8 +183,15 @@ export default function BookingBuilder({
       </div>
 
       <aside className="bb-cart">
-        <div className="bb-cart-inner">
+        <div className="bb-cart-inner bb-print">
+          {venueName && <div className="bb-cart-venue">{venueName}</div>}
           <h3>Your booking</h3>
+          {(from || to) && (
+            <div className="bb-cart-meta">
+              {from && to ? `${from} → ${to}` : 'Dates to be set'}
+              {nights ? ` · ${nights} night${nights === 1 ? '' : 's'}` : ''} · {guestN} {guestN === 1 ? 'guest' : 'guests'}
+            </div>
+          )}
           {!anySelected && <p className="bb-empty">Nothing added yet. Choose rooms, experiences or extras.</p>}
           {anySelected && (
             <>
@@ -192,11 +208,17 @@ export default function BookingBuilder({
                 <span>{money(total, currency)}</span>
               </div>
               {anyUnpriced && <p className="bb-note">Some items are priced on request and are not in this estimate.</p>}
-              <button type="button" className="bb-request" disabled>Request to book</button>
               <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed when you request to book.</p>
             </>
           )}
         </div>
+        {anySelected && (
+          <div className="bb-actions">
+            <button type="button" className="bb-btn bb-btn-quiet" onClick={clearCart}>Clear cart</button>
+            <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote}>Download quote</button>
+            <button type="button" className="bb-btn bb-btn-primary" disabled>Book</button>
+          </div>
+        )}
       </aside>
     </div>
   );
