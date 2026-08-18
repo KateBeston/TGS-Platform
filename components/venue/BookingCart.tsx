@@ -26,6 +26,7 @@ type CartValue = {
   clear: () => void;
   count: number;
   drawer: Drawer; setDrawer: (d: Drawer) => void;
+  buyout: boolean;
 };
 
 const CartCtx = createContext<CartValue | null>(null);
@@ -51,6 +52,7 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?: number }) {
   const cart = useCart();
   if (!cart) return null;
+  if (kind === 'room' && cart.buyout) return <span className="bc-included">Included in whole-venue buyout</span>;
   const n = cart.qty(kind, id);
   if (n === 0) {
     return <button type="button" className="bc-add" onClick={() => cart.add(kind, id)}>Add to booking</button>;
@@ -71,6 +73,8 @@ export function BookingCart({
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
   const [drawer, setDrawer] = useState<Drawer>('min');
+  const [buyout, setBuyout] = useState(false);
+  const buyoutPlan = ratePlans.find((rp) => rp.applies_to === 'Whole Venue');
 
   const nights = useMemo(() => {
     if (!from || !to || to <= from) return 0;
@@ -83,7 +87,8 @@ export function BookingCart({
   const qty = (k: Kind, id: number) => bag(k)[id] ?? 0;
   const setQty = (k: Kind, id: number, n: number) => setBag(k)({ ...bag(k), [id]: Math.max(0, n) });
   const add = (k: Kind, id: number) => { setQty(k, id, (bag(k)[id] ?? 0) + 1); setDrawer((d) => (d === 'min' ? 'open' : d)); };
-  const clear = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); };
+  const clear = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
+  const selectBuyout = () => { setRoomQty({}); setBuyout(true); setDrawer((d) => (d === 'min' ? 'open' : d)); };
 
   const roomPlan = (roomId: number) => ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === roomId);
   const byBasis = (base: number, basis: string | null, persons: number): number => {
@@ -104,13 +109,38 @@ export function BookingCart({
     }
   };
 
+  const buyoutTotal = buyoutPlan && buyoutPlan.base_price != null && nights
+    ? byBasis(Number(buyoutPlan.base_price), buyoutPlan.pricing_basis, guestN) : null;
+
+  const roomEstimate = useMemo(() => {
+    if (!nights) return null;
+    const priced = rooms.map((r) => {
+      const rp = roomPlan(r.id);
+      return rp && rp.base_price != null
+        ? { cost: byBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1), cap: Math.max(1, r.sleeps || 1), avail: r.quantity || 1 }
+        : null;
+    }).filter(Boolean) as { cost: number; cap: number; avail: number }[];
+    if (!priced.length) return null;
+    priced.sort((a, b) => a.cost / a.cap - b.cost / b.cap);
+    let remaining = guestN, tot = 0;
+    for (const p of priced) { let a = p.avail; while (remaining > 0 && a-- > 0) { tot += p.cost; remaining -= p.cap; } if (remaining <= 0) break; }
+    return remaining <= 0 ? tot : null;
+  }, [rooms, ratePlans, nights, guestN]);
+
+  const bestValue: 'rooms' | 'buyout' | null =
+    (roomEstimate != null && buyoutTotal != null) ? (buyoutTotal < roomEstimate ? 'buyout' : 'rooms') : null;
+
   const lines = useMemo(() => {
     const out: { key: string; label: string; detail: string; amount: number | null; kind: Kind; id: number; qty: number; max: number }[] = [];
+    if (buyout && buyoutPlan) {
+      out.push({ key: 'buyout', label: 'Whole venue — exclusive use', detail: nights ? `${nights} night${nights === 1 ? '' : 's'} · all rooms` : 'Add dates', amount: buyoutTotal, kind: 'room', id: -1, qty: 1, max: 1 });
+    } else {
     for (const r of rooms) {
       const q = roomQty[r.id] ?? 0; if (!q) continue;
       const rp = roomPlan(r.id);
       const amount = rp && rp.base_price != null && nights ? byBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1) * q : null;
       out.push({ key: `room-${r.id}`, label: r.name, detail: nights ? `${nights} night${nights === 1 ? '' : 's'}` : 'Add dates', amount, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9 });
+    }
     }
     for (const s of services) {
       const q = expQty[s.id] ?? 0; if (!q) continue;
@@ -123,7 +153,7 @@ export function BookingCart({
       out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20 });
     }
     return out;
-  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN]);
+  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN, buyout, buyoutTotal, buyoutPlan]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -138,7 +168,7 @@ export function BookingCart({
     });
   };
 
-  const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer };
+  const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout };
 
   return (
     <CartCtx.Provider value={value}>
@@ -169,6 +199,41 @@ export function BookingCart({
             <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
           </div>
 
+          {buyoutPlan && (
+            <div className="bc-buyout">
+              <div className="bc-buyout-head">How to book</div>
+              <button type="button" className={`bc-opt${!buyout ? ' on' : ''}`} onClick={() => setBuyout(false)}>
+                <span className="bc-opt-row">
+                  <span className="bc-opt-name">Room by room</span>
+                  <span className="bc-opt-price">{roomEstimate != null ? `from ${money(roomEstimate, currency)}` : 'Choose rooms'}</span>
+                </span>
+                {roomEstimate != null && <span className="bc-opt-pp">{money(roomEstimate / guestN, currency)} per person</span>}
+                {bestValue === 'rooms' && <span className="bc-best">Best value for your group</span>}
+              </button>
+              <button type="button" className={`bc-opt${buyout ? ' on' : ''}`} onClick={selectBuyout}>
+                <span className="bc-opt-row">
+                  <span className="bc-opt-name">Whole venue</span>
+                  <span className="bc-opt-price">{buyoutTotal != null ? money(buyoutTotal, currency) : 'Add dates'}</span>
+                </span>
+                {buyoutTotal != null && <span className="bc-opt-pp">{money(buyoutTotal / guestN, currency)} per person</span>}
+                {bestValue === 'buyout' && <span className="bc-best">Best value for your group</span>}
+                <span className="bc-opt-note">Exclusive use of all {rooms.length} room{rooms.length === 1 ? '' : 's'} and every space</span>
+              </button>
+              {buyout && rooms.length > 0 && (
+                <div className="bc-included-rooms">
+                  <div className="bc-included-label">What&rsquo;s included</div>
+                  {rooms.map((r) => (
+                    <div key={r.id} className="bc-incl">
+                      <span className="bc-incl-name">{r.name}</span>
+                      <span className="bc-incl-detail">{[r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · ')}</span>
+                      {r.room_amenities?.length ? <span className="bc-incl-am">{r.room_amenities.join(' · ')}</span> : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {extras.length > 0 && (
             <div className="bc-extras">
               <div className="bc-extras-label">Extras</div>
@@ -192,7 +257,7 @@ export function BookingCart({
                 <li key={l.key} className="bc-line">
                   <span className="bc-line-what"><span>{l.label}</span><span className="bc-line-sub">{l.detail}</span></span>
                   <span className="bc-line-right">
-                    <Stepper value={l.qty} min={0} max={l.max} onChange={(n) => setQty(l.kind, l.id, n)} />
+                    {l.key === 'buyout' ? null : <Stepper value={l.qty} min={0} max={l.max} onChange={(n) => setQty(l.kind, l.id, n)} />}
                     <span className="bc-line-amt">{l.amount != null ? money(l.amount, currency) : '—'}</span>
                   </span>
                 </li>

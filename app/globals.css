@@ -3507,3 +3507,28 @@ img { max-width: 100%; height: auto; display: block; }
   .bc-drawer,.bc-drawer-max{width:100%}
   .bc-pill{left:24px;right:24px;align-items:center}
 }
+
+/* Room price line + card action for bookable items */
+.room-card-price{font-size:13px;color:var(--gold-dark);margin-bottom:10px;letter-spacing:.02em}
+.room-card-price span{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:10.5px}
+.item-action{margin-top:14px}
+
+/* Buyout chooser in the drawer */
+.bc-included{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dark)}
+.bc-buyout{margin-bottom:24px}
+.bc-buyout-head{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.bc-opt{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;border:1px solid var(--border);background:var(--warm-white);padding:14px 16px;margin-bottom:10px;cursor:pointer;font-family:inherit}
+.bc-opt:hover{border-color:var(--gold-dark)}
+.bc-opt.on{border-color:var(--charcoal);background:var(--warm-cream)}
+.bc-opt-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.bc-opt-name{font-family:var(--serif);font-size:17px;color:var(--charcoal)}
+.bc-opt-price{font-size:15px;color:var(--charcoal);white-space:nowrap}
+.bc-opt-pp{font-size:12px;color:var(--muted)}
+.bc-opt-note{font-size:12px;color:var(--muted);line-height:1.5}
+.bc-best{display:inline-block;align-self:flex-start;margin-top:4px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark);border:1px solid var(--gold);padding:2px 8px}
+.bc-included-rooms{border-top:1px solid var(--border);margin-top:6px;padding-top:14px}
+.bc-included-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.bc-incl{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--border)}
+.bc-incl-name{font-size:14px;color:var(--charcoal)}
+.bc-incl-detail{font-size:12px;color:var(--muted)}
+.bc-incl-am{font-size:11.5px;color:var(--gold-dark)}
