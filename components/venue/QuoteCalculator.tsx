@@ -24,10 +24,13 @@ function money(amount: number, currency: string | null): string {
   }
 }
 
-export default function QuoteCalculator({ venueId }: { venueId: number }) {
+type RatePlan = { id: number; name: string; applies_to: string | null; pricing_basis: string | null; base_price: number | null; currency: string | null };
+
+export default function QuoteCalculator({ venueId, ratePlans = [] }: { venueId: number; ratePlans?: RatePlan[] }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [guests, setGuests] = useState('2');
+  const [planId, setPlanId] = useState<number | ''>(ratePlans.length ? ratePlans[0].id : '');
   const [quote, setQuote] = useState<Quote | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -42,7 +45,7 @@ export default function QuoteCalculator({ venueId }: { venueId: number }) {
       const res = await fetch('/api/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ venueId, from, to, guests: guests ? Number(guests) : null }),
+        body: JSON.stringify({ venueId, from, to, guests: guests ? Number(guests) : null, ratePlanId: planId || null }),
       });
       const data = await res.json();
       if (!res.ok) { setMsg(data?.error ?? 'The quote could not be calculated.'); return; }
@@ -56,6 +59,21 @@ export default function QuoteCalculator({ venueId }: { venueId: number }) {
 
   return (
     <div className="quote">
+      {ratePlans.length > 1 && (
+        <div className="quote-plans">
+          <span className="quote-plans-label">Pricing option</span>
+          <div className="quote-plans-opts">
+            {ratePlans.map((rp) => (
+              <button key={rp.id} type="button"
+                className={planId === rp.id ? 'quote-plan on' : 'quote-plan'}
+                onClick={() => { setPlanId(rp.id); setQuote(null); }}>
+                <span className="quote-plan-name">{rp.name}</span>
+                {rp.pricing_basis && <span className="quote-plan-basis">{rp.pricing_basis}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="quote-form">
         <label className="quote-field">
           <span>Arrival</span>

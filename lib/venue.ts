@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -71,6 +71,7 @@ export async function loadVenue(marketplace: string, slug: string) {
         .order('display_order', { nullsFirst: false }),
       supabase.from('published_venue_promotions').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
+      supabase.from('published_venue_rate_plans').select('*').eq('venue_id', id),
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -108,6 +109,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     tab_content: tabContent.data ?? [],
     related: relatedCards,
     promotions: promotions.data ?? [],
+    rate_plans: ratePlans.data ?? [],
     marketplaceSegment: marketplace,
   } as Venue;
 }

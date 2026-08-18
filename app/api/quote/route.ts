@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
   const to = String(body?.to ?? '').trim();
   const guests = body?.guests != null ? Number(body.guests) : null;
   const presentIn = body?.presentIn ? String(body.presentIn).trim() : null;
+  const ratePlanId = body?.ratePlanId != null ? Number(body.ratePlanId) : null;
 
   const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
   if (!venueId || !isDate(from) || !isDate(to)) {
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc('price_a_stay', {
     p_venue_id: venueId, p_from: from, p_to: to,
-    p_guests: guests, p_rate_plan_id: null, p_present_in: presentIn,
+    p_guests: guests, p_rate_plan_id: ratePlanId, p_present_in: presentIn,
   });
 
   if (error) {

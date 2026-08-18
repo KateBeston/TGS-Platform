@@ -602,7 +602,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       <div id="panel-enquire" className="vpanel" hidden>
         {v.rooms?.length > 0 && (
           <Section tone="white" label="Estimate" title="Estimate your stay">
-            <QuoteCalculator venueId={v.id} />
+            <QuoteCalculator venueId={v.id} ratePlans={v.rate_plans} />
           </Section>
         )}
         <Section tone="cream" label="Enquire" title="Plan your retreat"
