@@ -62,6 +62,9 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
   }
   return (
     <form action={action} className="auth-form">
+      <div className="trap" aria-hidden="true">
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+      </div>
       <ul className="auth-benefits">
         <li>Save venues to your own collection</li>
         <li>Keep your bookings, quotes and enquiries in one place</li>
