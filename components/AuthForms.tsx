@@ -63,7 +63,7 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
   return (
     <form action={action} className="auth-form">
       <div className="trap" aria-hidden="true">
-        <input type="text" name="website" tabIndex={-1} autoComplete="off"
+        <input type="text" name="hp_field" tabIndex={-1} autoComplete="off"
           data-1p-ignore="true" data-lpignore="true" data-form-type="other" />
       </div>
       <ul className="auth-benefits">

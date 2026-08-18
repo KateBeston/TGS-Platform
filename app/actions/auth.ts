@@ -13,7 +13,7 @@ const siteUrl = () =>
 export async function signUp(_prev: State, formData: FormData): Promise<State> {
   // Honeypot: a hidden field a person never sees. Answered with the same
   // "check your email" as a real sign-up so a script learns nothing.
-  if (String(formData.get('website') ?? '').trim()) return { sent: true };
+  if (String(formData.get('hp_field') ?? '').trim()) return { sent: true };
 
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
