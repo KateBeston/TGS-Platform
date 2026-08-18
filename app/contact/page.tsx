@@ -89,6 +89,7 @@ export default async function Contact({
             <p>We welcome questions about our platform, partnerships, and services.</p>
             <a className="contact-line" href="mailto:hello@theglobalsanctum.com">hello@theglobalsanctum.com</a>
             <a className="contact-line" href="tel:+61735218067">+61 7 3521 8067</a>
+            <span className="contact-tz">AEST (GMT+10)</span>
           </div>
           <div className="contact-card">
             <div className="feature-eyebrow">By Post</div>
@@ -103,7 +104,8 @@ export default async function Contact({
           <div className="contact-card">
             <div className="feature-eyebrow">Opening Hours</div>
             <h3>When We are Available</h3>
-            <p>Monday to Friday, 9:00am to 5:30pm AEST.</p>
+            <p>Monday to Friday, 9:00am to 5:30pm AEST (GMT+10).</p>
+            <p className="contact-hours-note">Outside these hours, email us and we&rsquo;ll respond within 24 to 48 hours.</p>
           </div>
           <div className="contact-card">
             <div className="feature-eyebrow">For Venue Owners</div>

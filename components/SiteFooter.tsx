@@ -71,7 +71,7 @@ export default function SiteFooter() {
             hosts, wellness guests, and seekers worldwide.
           </p>
           <p className="footer-brand-contact">
-            <a href="tel:+61735218067">+61 7 3521 8067</a><br />
+            <a href="tel:+61735218067">+61 7 3521 8067</a> <span className="footer-tz">AEST (GMT+10)</span><br />
             <a href="mailto:hello@theglobalsanctum.com">hello@theglobalsanctum.com</a>
           </p>
           <div className="footer-social">

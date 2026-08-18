@@ -3650,3 +3650,8 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Stacked contact links (email, phone) inside a contact card */
 .contact-line{display:block;font-size:14.5px;margin-top:4px}
+
+/* Timezone + hours notes on contact surfaces */
+.contact-tz{display:block;font-size:11.5px;letter-spacing:.04em;color:var(--muted);margin-top:6px}
+.contact-hours-note{font-size:13px;line-height:1.6;color:var(--muted);margin-top:8px}
+.footer-tz{font-size:11px;color:var(--muted);letter-spacing:.02em}
