@@ -5,7 +5,7 @@ import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
   Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
-  PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero, VenueLinks,
+  PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero, VenueLinks,
 } from './Section';
 import { duration, money } from '@/lib/venue';
 
@@ -78,7 +78,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     (v.services.length || v.excursions.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
-    v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     { id: 'location', label: 'Location' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
@@ -101,6 +100,28 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
 
       {/* ── overview ───────────────────────────────────────────────── */}
       <div id="panel-overview" className="vpanel">
+        {v.promotions?.length > 0 && (
+          <Section tone="cream" label="Special" title="Exclusive rates available">
+            <div className="promo-list">
+              {v.promotions.map((p: any) => (
+                <div key={p.id} className="promo-item">
+                  <div className="promo-head">
+                    {p.badge_label && <span className="promo-badge">{p.badge_label}</span>}
+                    <span className="promo-title">{p.title}</span>
+                  </div>
+                  {p.description && <p className="promo-desc">{p.description}</p>}
+                  {(p.starts_on || p.ends_on) && (
+                    <p className="promo-dates">
+                      {[p.starts_on, p.ends_on].filter(Boolean)
+                        .map((d: string) => new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }))
+                        .join(' \u2013 ')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
         <Section tone="white">
           <div className="prose-narrow">
             {v.editor_note && (
@@ -376,13 +397,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       {!!v.packages.length && (
         <div id="panel-packages" className="vpanel" hidden>
           <PackagesPanel v={v} />
-        </div>
-      )}
-
-      {/* ── practitioners ──────────────────────────────────────────── */}
-      {!!v.practitioners.length && (
-        <div id="panel-practitioners" className="vpanel" hidden>
-          <PractitionersPanel v={v} />
         </div>
       )}
 

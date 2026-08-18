@@ -76,6 +76,28 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       <div id="panel-overview" className="vpanel">
+        {v.promotions?.length > 0 && (
+          <Section tone="cream" label="Special" title="Exclusive rates available">
+            <div className="promo-list">
+              {v.promotions.map((p: any) => (
+                <div key={p.id} className="promo-item">
+                  <div className="promo-head">
+                    {p.badge_label && <span className="promo-badge">{p.badge_label}</span>}
+                    <span className="promo-title">{p.title}</span>
+                  </div>
+                  {p.description && <p className="promo-desc">{p.description}</p>}
+                  {(p.starts_on || p.ends_on) && (
+                    <p className="promo-dates">
+                      {[p.starts_on, p.ends_on].filter(Boolean)
+                        .map((d: string) => new Date(d).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }))
+                        .join(' \u2013 ')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
         <Section tone="white">
           <div className="prose-narrow">
             {v.editor_note && (

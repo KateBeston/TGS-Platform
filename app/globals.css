@@ -3370,3 +3370,12 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Promotion badge on listing cards — quiet, gold, understated. */
 .card-promo{display:inline-block;margin-left:10px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dark);border:1px solid var(--gold);padding:2px 8px;vertical-align:middle;white-space:nowrap}
+
+/* Promotions section on the venue detail overview — quiet, gold, understated. */
+.promo-list{display:flex;flex-direction:column;gap:22px;max-width:640px;margin:0 auto}
+.promo-item{text-align:center}
+.promo-head{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.promo-badge{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dark);border:1px solid var(--gold);padding:3px 10px}
+.promo-title{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--charcoal)}
+.promo-desc{font-size:15px;line-height:1.7;color:var(--muted);margin:0 0 6px}
+.promo-dates{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dark);margin:0}
