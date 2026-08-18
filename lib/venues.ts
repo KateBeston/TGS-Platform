@@ -240,8 +240,9 @@ export async function venueFacets() {
     const s = pracSlug.get(r.practice_id); if (!s) continue;
     const a = byPractice.get(r.venue_id) ?? []; a.push(s); byPractice.set(r.venue_id, a);
   }
+  const typeSlugByName = new Map<string, string>((types.data ?? []).map((t: any) => [t.name, t.slug]));
   const facets: Facet[] = (venues.data ?? []).map((v: any) => ({
-    id: v.id, marketplace: v.marketplace, type: v.venue_type,
+    id: v.id, marketplace: v.marketplace, type: typeSlugByName.get(v.venue_type) ?? null,
     settings: bySetting.get(v.id) ?? [], practices: byPractice.get(v.id) ?? [],
     guests: v.max_guests ?? null,
   }));

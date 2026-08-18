@@ -216,8 +216,7 @@ export function PackagesPanel({ v }: { v: Record<string, any> }) {
                 <div>
                   <h3>{p.name}</h3>
                   <div className="item-meta">
-                    {[p.duration_label,
-                      p.nights ? `${p.nights} night${p.nights === 1 ? '' : 's'}` : null,
+                    {[p.duration_label || (p.nights ? `${p.nights} night${p.nights === 1 ? '' : 's'}` : null),
                       duration(p.total_duration_minutes),
                     ].filter(Boolean).join(' · ')}
                   </div>
