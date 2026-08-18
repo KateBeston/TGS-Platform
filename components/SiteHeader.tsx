@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { useAuthModal } from '@/components/AuthModal';
 
 /* The header, on every public page.
  *
@@ -34,6 +36,14 @@ const DISCOVER = [
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const authModal = useAuthModal();
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session?.user));
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const pathname = usePathname();
   const overHero = pathname === '/';
 
@@ -98,6 +108,9 @@ export default function SiteHeader() {
           </Link>
 
           <div className="nav-right">
+            {signedIn
+              ? <Link href="/account" className="nav-account">Account</Link>
+              : <button type="button" className="nav-account nav-account-btn" onClick={() => authModal?.open('login')}>Sign in</button>}
             <Link href="/contact" className="nav-enquire">Enquire</Link>
           </div>
         </div>
