@@ -30,6 +30,7 @@ export default function ResultsBar({ total }: { total: number }) {
         <select id="sort" value={sort} onChange={(e) => change(e.target.value)}>
           <option value="">Recommended</option>
           <option value="rating">Highest Rated</option>
+          <option value="specials">Specials First</option>
         </select>
       </div>
     </div>

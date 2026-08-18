@@ -178,6 +178,10 @@ export async function venueCards(f: Filters = {}) {
     q = q.order('max_guests', { ascending: false, nullsFirst: false });
   } else if (f.sort === 'name') {
     q = q.order('venue_name');
+  } else if (f.sort === 'specials') {
+    q = q.order('has_active_promotion', { ascending: false })
+         .order('tier_order').order('rating', { ascending: false, nullsFirst: false })
+         .order('venue_name');
   } else {
     q = q.order('tier_order').order('rating', { ascending: false, nullsFirst: false })
          .order('venue_name');
