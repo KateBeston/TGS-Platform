@@ -74,7 +74,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
   const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    (v.rooms?.length || v.services?.length || v.extras?.length) && { id: 'build', label: 'Build a booking' },
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
@@ -83,7 +82,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     { id: 'location', label: 'Location' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
-    { id: 'enquire', label: 'Enquire' },
+    { id: 'enquire', label: 'Reserve' },
   ].filter(Boolean) as { id: string; label: string }[];
 
   return (
@@ -101,14 +100,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       {/* ── overview ───────────────────────────────────────────────── */}
-      {(v.rooms?.length || v.services?.length || v.extras?.length) ? (
-        <div id="panel-build" className="vpanel" hidden>
-          <Section tone="white" label="Build" title="Build a booking">
-            <BookingBuilder rooms={v.rooms} services={v.services} extras={v.extras}
-              ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} />
-          </Section>
-        </div>
-      ) : null}
 
       <div id="panel-overview" className="vpanel">
         {v.promotions?.length > 0 && (
@@ -610,7 +601,13 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
 
       {/* ── enquire ────────────────────────────────────────────────── */}
       <div id="panel-enquire" className="vpanel" hidden>
-        <Section tone="cream" label="Enquire" title="Plan your retreat"
+        {(v.rooms?.length || v.services?.length || v.extras?.length) ? (
+          <Section tone="white" label="Reserve" title="Reserve your stay">
+            <BookingBuilder rooms={v.rooms} services={v.services} extras={v.extras}
+              ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} />
+          </Section>
+        ) : null}
+        <Section tone="cream" label="Enquire" title="Or send an enquiry"
           subtitle="We answer within a day. Nothing is charged and nothing is committed.">
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
             <VenueEnquiry venueId={v.id} venueName={v.venue_name} marketplace="Retreat" />
