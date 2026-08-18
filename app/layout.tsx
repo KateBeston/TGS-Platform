@@ -8,6 +8,7 @@ import PageViews from '@/components/PageViews';
 import SiteHeader from '@/components/SiteHeader';
 import { AuthModalProvider } from '@/components/AuthModal';
 import { SavedVenuesProvider } from '@/components/SavedVenues';
+import { AccountDrawerProvider } from '@/components/AccountDrawer';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
 import './globals.css';
@@ -58,6 +59,7 @@ export default function RootLayout({
             page and every session looks like a bounce. */}
         <Suspense fallback={null}><PageViews /></Suspense>
         <AuthModalProvider>
+        <AccountDrawerProvider>
         <SavedVenuesProvider>
         <SiteHeader />
         <main id="main">{children}</main>
@@ -67,6 +69,7 @@ export default function RootLayout({
         <JournalSignup source="site" />
         <SiteFooter />
         </SavedVenuesProvider>
+        </AccountDrawerProvider>
         </AuthModalProvider>
         <ConsentBanner />
       </body>
