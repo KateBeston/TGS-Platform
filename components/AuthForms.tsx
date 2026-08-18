@@ -24,8 +24,13 @@ function useSuccess(ok: boolean | undefined, onSuccess?: () => void) {
   const router = useRouter();
   useEffect(() => {
     if (!ok) return;
+    // In the modal, the header, drawer and favourites all update instantly from
+    // the client-side auth state — no server refresh needed. Calling
+    // router.refresh() here re-fetches the whole (heavy) page and makes sign-in
+    // feel frozen for many seconds, so only refresh on the standalone pages.
+    if (onSuccess) { onSuccess(); return; }
     router.refresh();
-    if (onSuccess) onSuccess(); else router.push('/account');
+    router.push('/account');
   }, [ok]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
