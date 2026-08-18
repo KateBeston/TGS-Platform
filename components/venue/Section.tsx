@@ -1,4 +1,5 @@
 import { duration, money } from '@/lib/venue';
+import { AddToCart } from './BookingCart';
 
 export function Section({
   tone = 'white', label, title, subtitle, children, id,
@@ -340,6 +341,7 @@ export function RoomGrid({ rooms }: { rooms: any[] }) {
                 ))}
               </div>
             )}
+            <div className="room-card-action"><AddToCart kind="room" id={r.id} max={r.quantity ?? 9} /></div>
           </div>
         </article>
       ))}

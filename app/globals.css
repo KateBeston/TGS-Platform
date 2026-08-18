@@ -3465,3 +3465,45 @@ img { max-width: 100%; height: auto; display: block; }
   .bb-print,.bb-print *{visibility:visible}
   .bb-print{position:absolute;left:0;top:0;width:100%;border:none;background:#fff;padding:0}
 }
+
+/* ── Booking drawer ─────────────────────────────────────────────── */
+.bc-wrap{transition:margin-right .35s cubic-bezier(.4,0,.2,1)}
+.bc-wrap.bc-open{margin-right:380px}
+.bc-wrap.bc-max{margin-right:560px}
+/* add-to-cart on cards */
+.room-card-action{margin-top:18px}
+.bc-add{border:1px solid var(--charcoal);background:transparent;color:var(--charcoal);padding:9px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.bc-add:hover{background:var(--charcoal);color:var(--warm-white)}
+/* minimised pill */
+.bc-pill{position:fixed;right:24px;bottom:24px;z-index:60;display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:1px solid var(--gold);background:var(--warm-white);padding:12px 20px;cursor:pointer;box-shadow:0 6px 24px rgba(49,49,49,.12);font-family:inherit}
+.bc-pill-label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dark)}
+.bc-pill-meta{font-family:var(--serif);font-size:17px;color:var(--charcoal)}
+/* drawer */
+.bc-drawer{position:fixed;right:0;top:0;height:100vh;width:380px;z-index:70;background:var(--warm-white);border-left:1px solid var(--border);box-shadow:-10px 0 40px rgba(49,49,49,.10);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1)}
+.bc-drawer-open,.bc-drawer-max{transform:translateX(0)}
+.bc-drawer-max{width:560px}
+.bc-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0}
+.bc-drawer-title{font-family:var(--serif);font-size:20px;color:var(--charcoal)}
+.bc-drawer-controls{display:flex;gap:6px}
+.bc-drawer-controls button{width:32px;height:32px;border:1px solid var(--border);background:var(--warm-white);color:var(--charcoal);cursor:pointer;font-size:14px;line-height:1}
+.bc-drawer-controls button:hover{border-color:var(--gold-dark);color:var(--gold-dark)}
+.bc-drawer-body{flex:1;overflow-y:auto;padding:22px 24px}
+.bc-dates{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.bc-dates .bb-field:last-child{grid-column:1 / -1}
+.bc-extras{margin-bottom:20px}
+.bc-extras-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.bc-lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.bc-line{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.bc-line-what{display:flex;flex-direction:column;gap:2px}
+.bc-line-what>span:first-child{font-size:15px;color:var(--charcoal)}
+.bc-line-sub{font-size:12px;color:var(--muted)}
+.bc-line-right{display:flex;align-items:center;gap:14px}
+.bc-line-amt{white-space:nowrap;font-size:14px;color:var(--charcoal);min-width:64px;text-align:right}
+.bc-drawer-foot{border-top:1px solid var(--border);padding:20px 24px;flex-shrink:0}
+.bc-total{display:flex;justify-content:space-between;font-family:var(--serif);font-size:20px;color:var(--charcoal);margin-bottom:14px}
+.bc-actions{display:flex;flex-direction:column;gap:10px}
+@media (max-width:900px){
+  .bc-wrap.bc-open,.bc-wrap.bc-max{margin-right:0}
+  .bc-drawer,.bc-drawer-max{width:100%}
+  .bc-pill{left:24px;right:24px;align-items:center}
+}

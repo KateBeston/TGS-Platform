@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
-import BookingBuilder from './BookingBuilder';
+import { BookingCart } from './BookingCart';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
@@ -82,7 +82,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     { id: 'location', label: 'Location' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
-    { id: 'enquire', label: 'Reserve' },
+    { id: 'enquire', label: 'Enquire' },
   ].filter(Boolean) as { id: string; label: string }[];
 
   return (
@@ -97,6 +97,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         </div>
       </div>
 
+      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       {/* ── overview ───────────────────────────────────────────────── */}
@@ -601,12 +602,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
 
       {/* ── enquire ────────────────────────────────────────────────── */}
       <div id="panel-enquire" className="vpanel" hidden>
-        {(v.rooms?.length || v.services?.length || v.extras?.length) ? (
-          <Section tone="white" label="Reserve" title="Reserve your stay">
-            <BookingBuilder rooms={v.rooms} services={v.services} extras={v.extras}
-              ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} />
-          </Section>
-        ) : null}
         <Section tone="cream" label="Enquire" title="Or send an enquiry"
           subtitle="We answer within a day. Nothing is charged and nothing is committed.">
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -628,6 +623,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </div>
         </section>
       )}
+    </BookingCart>
     </>
   );
 }
