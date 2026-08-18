@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthModal } from '@/components/AuthModal';
 import { useAccountDrawer } from '@/components/AccountDrawer';
+import { signOut } from '@/app/actions/auth';
 
 /* The header, on every public page.
  *
@@ -103,11 +104,19 @@ export default function SiteHeader() {
 
           <div className="nav-right">
             {acc?.signedIn
-              ? <button type="button" className="nav-account nav-account-in" onClick={() => acc.open()}>
-                  <span className="nav-avatar">{(acc.profile?.first_name?.[0] ?? 'A').toUpperCase()}</span>
-                  <span className="nav-account-name">{acc.profile?.first_name ?? 'Account'}</span>
-                </button>
-              : <button type="button" className="nav-account nav-account-btn" onClick={() => authModal?.open('login')}>Sign in</button>}
+              ? <div className="nav-account-in">
+                  <button type="button" className="nav-account-main" onClick={() => acc.open()}>
+                    <span className="nav-avatar">{(acc.profile?.first_name?.[0] ?? 'A').toUpperCase()}</span>
+                    <span className="nav-account-name">{acc.profile?.first_name ?? 'Account'}</span>
+                  </button>
+                  <form action={signOut} className="nav-logout-form">
+                    <button type="submit" className="nav-logout">Log out</button>
+                  </form>
+                </div>
+              : <div className="nav-auth-btns">
+                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('signup')}>Sign up</button>
+                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('login')}>Login</button>
+                </div>}
           </div>
         </div>
       </nav>
