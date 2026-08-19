@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import AccountShell from '@/components/AccountShell';
+import VenueGrid from '@/components/VenueGrid';
 import type { Card } from '@/lib/venues';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
@@ -33,12 +34,16 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   }
   const roleSet = new Set((roles ?? []).map((r: { role: string }) => r.role));
 
+  const savedNode = savedCards.length
+    ? <VenueGrid cards={savedCards} labels={false} />
+    : null;
+
   return (
     <AccountShell
       email={user.email ?? ''}
       profile={profile ?? {}}
       isOwner={roleSet.has('venue_owner')}
-      savedCards={savedCards}
+      savedNode={savedNode}
       initialTab={initialTab}
     />
   );

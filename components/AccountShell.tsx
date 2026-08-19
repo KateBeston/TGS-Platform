@@ -1,11 +1,9 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import VenueGrid from '@/components/VenueGrid';
 import { signOut } from '@/app/actions/auth';
 import { updateProfile, updatePreferences, updateComms } from '@/app/actions/account';
-import type { Card } from '@/lib/venues';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
 const TABS = ['Profile', 'Saved venues', 'Preferences', 'Communications', 'Venue management'] as const;
@@ -18,8 +16,8 @@ type Profile = {
 };
 
 export default function AccountShell({
-  email, profile, isOwner, savedCards, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; savedCards: Card[]; initialTab?: Tab }) {
+  email, profile, isOwner, savedNode, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; savedNode: ReactNode; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab ?? 'Profile');
   const name = [profile.first_name, profile.surname].filter(Boolean).join(' ') || email;
   const since = profile.created_at
@@ -41,7 +39,7 @@ export default function AccountShell({
       </nav>
 
       {tab === 'Profile' && <ProfilePanel profile={profile} email={email} />}
-      {tab === 'Saved venues' && <SavedPanel cards={savedCards} />}
+      {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
       {tab === 'Venue management' && <VenuePanel isOwner={isOwner} />}
@@ -85,13 +83,11 @@ function ProfilePanel({ profile, email }: { profile: Profile; email: string }) {
   );
 }
 
-function SavedPanel({ cards }: { cards: Card[] }) {
+function SavedPanel({ savedNode }: { savedNode: ReactNode }) {
   return (
     <section className="acct-panel">
       <h2 className="acct-panel-title">Saved venues</h2>
-      {cards.length ? (
-        <VenueGrid cards={cards} labels={false} />
-      ) : (
+      {savedNode ?? (
         <div className="acct-empty">
           <p>You haven&rsquo;t saved any venues yet.</p>
           <Link href="/venues" className="acct-btn">Explore venues</Link>
