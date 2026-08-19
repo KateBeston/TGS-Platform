@@ -1,0 +1,13 @@
+-- CONTENT MIGRATION (applied live via Supabase MCP; body is authoritative in the DB).
+-- Amended Venue Owner Subscription Terms (legal_documents id 58) to v2 without a
+-- rewrite — a targeted amendment of the existing v34 body:
+--   • NEW §6.1 Launch Introductory Period — Featured tier fee-free from the Launch
+--     Date (public marketplace go-live, notified to owners; NOT the onboarding date),
+--     six months, with a twelve-month-from-onboarding backstop; commission still
+--     applies; billing begins at its end with 14 days notice; delay to launch is not
+--     a breach.
+--   • §3.1 billing-commencement clarified for introductory-offer subscribers.
+--   • Footer/effective-date bumped to Version 2.0 · August 2026.
+-- Old version (id 34) set is_current = false; new version is_current = true, 'Both'.
+-- REVIEW: backstop numbers (6 months / 12 months) and Subscription Terms scope during
+-- the concierge period are the items to confirm with Jeremy.

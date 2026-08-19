@@ -1,0 +1,9 @@
+-- CONTENT MIGRATION (applied live via Supabase MCP; body is authoritative in the DB).
+-- Created Media Permission v1 for legal_documents id 14 and published it:
+--   • covers venue-supplied media now, and future TGS-captured media (TGS owns its
+--     own shoots, licence back to the venue);
+--   • non-exclusive, revocable on request, no onward sub-licensing to unrelated
+--     third parties, owner warrants rights, purpose-limited, attribution optional.
+-- applies_during = 'Both', is_current = true, so the VMS onboarding acceptance set
+-- (get_vms_onboarding_documents / record_vms_onboarding_acceptances) now includes it.
+-- Full body: legal_document_versions where legal_document_id = 14 and is_current.
