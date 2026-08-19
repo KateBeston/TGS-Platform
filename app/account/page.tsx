@@ -1,27 +1,45 @@
 import { redirect } from 'next/navigation';
-import { getProfile } from '@/lib/auth';
-import { signOut } from '@/app/actions/auth';
+import { createClient } from '@/lib/supabase/server';
+import AccountShell from '@/components/AccountShell';
+import type { Card } from '@/lib/venues';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
 
-export default async function AccountPage() {
-  const profile = await getProfile();
-  if (!profile) redirect('/login');
-  const name = [profile.first_name, profile.surname].filter(Boolean).join(' ') || profile.email;
+const TAB_MAP: Record<string, string> = {
+  profile: 'Profile', saved: 'Saved venues', preferences: 'Preferences',
+  communications: 'Communications', venue: 'Venue management',
+};
+
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/');
+
+  const sp = await searchParams;
+  const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
+    'Profile' | 'Saved venues' | 'Preferences' | 'Communications' | 'Venue management';
+
+  const [{ data: profile }, { data: roles }, { data: savedRows }] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+    supabase.from('account_roles').select('role').eq('user_id', user.id),
+    supabase.from('profile_saved_venues').select('venue_id').eq('user_id', user.id),
+  ]);
+
+  const savedIds = (savedRows ?? []).map((r: { venue_id: number }) => r.venue_id);
+  let savedCards: Card[] = [];
+  if (savedIds.length) {
+    const { data } = await supabase.from('venue_cards').select('*').in('id', savedIds);
+    savedCards = (data ?? []) as Card[];
+  }
+  const roleSet = new Set((roles ?? []).map((r: { role: string }) => r.role));
+
   return (
-    <main id="main" className="auth-page">
-      <div className="auth-card account-card">
-        <div className="auth-eyebrow">Your account</div>
-        <h1 className="auth-title">{name}</h1>
-        <p className="auth-sub">{profile.email}</p>
-        <p className="account-note">
-          Saved venues, your bookings and profile settings are on their way as we build out
-          your account area.
-        </p>
-        <form action={signOut}>
-          <button type="submit" className="auth-submit ghost">Sign out</button>
-        </form>
-      </div>
-    </main>
+    <AccountShell
+      email={user.email ?? ''}
+      profile={profile ?? {}}
+      isOwner={roleSet.has('venue_owner')}
+      savedCards={savedCards}
+      initialTab={initialTab}
+    />
   );
 }

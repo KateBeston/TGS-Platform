@@ -43,14 +43,14 @@ function Icon({ name }: { name: string }) {
 type Item = { icon: string; label: string; href?: string; soon?: boolean };
 const GROUPS: Item[][] = [
   [
-    { icon: 'heart', label: 'Saved venues', href: '/account' },
+    { icon: 'heart', label: 'Saved venues', href: '/account?tab=saved' },
     { icon: 'bag', label: 'My bookings', soon: true },
     { icon: 'bookmark', label: 'Saved plans', soon: true },
   ],
   [
-    { icon: 'user', label: 'My profile', href: '/account' },
-    { icon: 'leaf', label: 'Wellness & retreat preferences', href: '/account' },
-    { icon: 'mail', label: 'Communication preferences', href: '/account' },
+    { icon: 'user', label: 'My profile', href: '/account?tab=profile' },
+    { icon: 'leaf', label: 'Wellness & retreat preferences', href: '/account?tab=preferences' },
+    { icon: 'mail', label: 'Communication preferences', href: '/account?tab=communications' },
     { icon: 'card', label: 'Credits & payment methods', soon: true },
   ],
   [
