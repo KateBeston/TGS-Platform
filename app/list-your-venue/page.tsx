@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Section } from '@/components/venue/Section';
-import VenueApplication from '@/components/VenueApplication';
+import ListVenueCta from '@/components/ListVenueCta';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -92,12 +92,7 @@ const INCLUDED = [
 export default async function ListYourVenue() {
   const supabase = await createClient();
 
-  const [{ data: types }, { data: categories }, { data: period }] = await Promise.all([
-    supabase.from('venue_types').select('id,name,applies_to').order('name'),
-    supabase.from('modality_categories').select('id,name,in_retreat')
-      .eq('in_retreat', true).order('display_order'),
-    supabase.rpc('complimentary_period'),
-  ]);
+  const { data: period } = await supabase.rpc('complimentary_period');
 
   const p = (period ?? {}) as Record<string, any>;
 
@@ -113,10 +108,9 @@ export default async function ListYourVenue() {
             A curated collection of retreat spaces and wellness venues, and the
             people looking for them.
           </p>
-          <a className="btn-solid" href="#apply" style={{ background: '#fff',
-              color: 'var(--charcoal)', borderColor: '#fff' }}>
-            Apply to list your venue
-          </a>
+          <ListVenueCta className="btn-solid" style={{ background: '#fff',
+              color: 'var(--charcoal)', borderColor: '#fff' }}
+              label="Apply to list your venue" />
         </div>
       </div>
 
@@ -178,12 +172,6 @@ export default async function ListYourVenue() {
         </p>
       </Section>
 
-      <div id="apply">
-        <Section tone="white" label="Apply" title="Tell us about your venue"
-          subtitle="Six short steps. You can go back and change anything before you send it.">
-          <VenueApplication venueTypes={types ?? []} categories={categories ?? []} />
-        </Section>
-      </div>
     </>
   );
 }

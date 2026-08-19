@@ -3703,3 +3703,17 @@ img { max-width: 100%; height: auto; display: block; }
 .acct-ghost-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 22px;font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .acct-ghost-btn:hover{border-color:var(--charcoal);color:var(--charcoal)}
 @media (max-width:600px){.acct-row2{grid-template-columns:1fr}.acct-name{font-size:32px}}
+
+/* List Your Venue → VMS hand-off modal */
+.lvm-overlay{position:fixed;inset:0;background:rgba(49,49,49,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px;animation:lvmfade .2s ease}
+@keyframes lvmfade{from{opacity:0}to{opacity:1}}
+.lvm{position:relative;width:100%;max-width:440px;background:var(--warm-white);border:1px solid var(--border);padding:44px 40px 36px;text-align:center}
+.lvm-close{position:absolute;top:14px;right:16px;background:none;border:0;font-size:22px;line-height:1;color:var(--muted);cursor:pointer}
+.lvm-close:hover{color:var(--charcoal)}
+.lvm-eyebrow{font-family:var(--sans);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:12px}
+.lvm-title{font-family:var(--serif);font-weight:300;font-size:30px;color:var(--charcoal);margin:0 0 14px}
+.lvm-body{font-size:14px;line-height:1.7;color:var(--charcoal);margin:0 0 24px}
+.lvm-btn{display:inline-flex;align-items:center;justify-content:center;width:100%;background:var(--charcoal);color:var(--warm-white);border:1px solid var(--charcoal);padding:13px;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;transition:background .2s}
+.lvm-btn:hover{background:var(--gold-dark);border-color:var(--gold-dark);text-decoration:none}
+.lvm-alt{font-size:13px;color:var(--muted);margin:18px 0 0}
+.lvm-alt a{color:var(--gold-dark);text-decoration:underline}
