@@ -68,6 +68,9 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
     }
     return { error: 'That email and password do not match an account.' };
   }
+  // Ensure a platform profile exists — covers an owner-first person signing in to
+  // browse as a guest (no-op if they already have one).
+  await supabase.rpc('ensure_platform_profile');
   return { ok: true };
 }
 

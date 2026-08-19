@@ -16,6 +16,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
+  // Safety net: an owner-first person reaching /account gets a profile created
+  // lazily so the page never renders profile-less (no-op if it exists).
+  await supabase.rpc('ensure_platform_profile');
+
   const sp = await searchParams;
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
     'Profile' | 'Saved venues' | 'Preferences' | 'Communications' | 'Venue management';
