@@ -3,7 +3,7 @@
 import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { signOut } from '@/app/actions/auth';
-import { updateProfile, updatePreferences, updateComms, changeEmail, changePassword } from '@/app/actions/account';
+import { updateProfile, updateComms, changeEmail, changePassword, setOrientation } from '@/app/actions/account';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
 const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings', 'Venue management'] as const;
@@ -150,26 +150,31 @@ function SavedPanel({ savedNode }: { savedNode: ReactNode }) {
 }
 
 function PreferencesPanel({ profile }: { profile: Profile }) {
-  const [state, action, pending] = useActionState(updatePreferences, null);
   const audience = profile.primary_audience === 'host' ? 'host' : 'guest';
+  const Opt = ({ kind, title, desc }: { kind: 'guest' | 'host'; title: string; desc: string }) => {
+    const current = audience === kind;
+    return (
+      <form action={setOrientation} className="acct-orient-form">
+        <input type="hidden" name="kind" value={kind} />
+        <input type="hidden" name="redirect_to" value="/account?tab=preferences" />
+        <button type="submit" className={`acct-orient-opt${current ? ' on' : ''}`} disabled={current}>
+          <span className="acct-orient-text"><strong>{title}</strong><em>{desc}</em></span>
+          <span className="acct-orient-cur">{current ? 'Current' : 'Switch'}</span>
+        </button>
+      </form>
+    );
+  };
   return (
     <section className="acct-panel">
-      <h2 className="acct-panel-title">Wellness &amp; retreat preferences</h2>
-      <p className="acct-panel-sub">This shapes what we bring to the top of your experience.</p>
-      <form action={action} className="acct-form">
-        <fieldset className="acct-choice">
-          <label className="acct-choice-opt">
-            <input type="radio" name="primary_audience" value="guest" defaultChecked={audience === 'guest'} />
-            <span><strong>Wellness guest</strong><em>I&rsquo;m looking for retreats and wellness experiences to attend.</em></span>
-          </label>
-          <label className="acct-choice-opt">
-            <input type="radio" name="primary_audience" value="host" defaultChecked={audience === 'host'} />
-            <span><strong>Retreat host</strong><em>I&rsquo;m searching for venues to host my own retreats.</em></span>
-          </label>
-        </fieldset>
-        {state?.error && <p className="acct-err">{state.error}</p>}
-        <div className="acct-actions"><button className="acct-btn" disabled={pending}>{pending ? 'Saving…' : 'Save preferences'}</button><Saved ok={state?.ok} /></div>
-      </form>
+      <h2 className="acct-panel-title">Preferences</h2>
+      <p className="acct-panel-sub">
+        You&rsquo;re exploring The Global Sanctum as a <strong>{audience === 'host' ? 'retreat host' : 'wellness guest'}</strong>.
+        This shapes what we lead with — you can switch anytime, and you&rsquo;re free to explore both.
+      </p>
+      <div className="acct-orient">
+        <Opt kind="guest" title="Wellness guest" desc="Looking for wellness experiences and spaces to visit." />
+        <Opt kind="host" title="Retreat host" desc="Looking for a venue to host my own retreat." />
+      </div>
     </section>
   );
 }

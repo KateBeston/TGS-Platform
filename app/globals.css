@@ -3733,3 +3733,25 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Account · settings confirmation message */
 .acct-msg{font-size:13px;color:var(--gold-dark);line-height:1.6;background:var(--warm-cream);border-left:2px solid var(--gold);padding:10px 14px;margin:0 0 12px}
+
+/* Welcome / orientation */
+.welcome{max-width:720px;margin:0 auto;padding:90px 24px 96px;text-align:center}
+.welcome-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:18px}
+.welcome-title{font-family:var(--serif);font-weight:300;font-size:40px;line-height:1.15;color:var(--charcoal);margin:0 0 14px}
+.welcome-sub{font-size:15px;line-height:1.7;color:var(--muted);max-width:46ch;margin:0 auto 40px}
+.welcome-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;text-align:left}
+.welcome-card{width:100%;height:100%;display:flex;flex-direction:column;gap:8px;background:var(--warm-white);border:1px solid var(--border);padding:28px 26px;cursor:pointer;font-family:inherit;transition:border-color .2s,background .2s}
+.welcome-card:hover{border-color:var(--gold);background:var(--warm-cream)}
+.welcome-card-title{font-family:var(--serif);font-size:24px;color:var(--charcoal)}
+.welcome-card-desc{font-size:13.5px;line-height:1.6;color:var(--muted)}
+.welcome-card-go{margin-top:12px;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark)}
+.acct-orient{display:flex;flex-direction:column;gap:12px;max-width:520px}
+.acct-orient-form{margin:0}
+.acct-orient-opt{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--warm-white);border:1px solid var(--border);padding:18px 20px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .2s}
+.acct-orient-opt:hover:not(:disabled){border-color:var(--gold)}
+.acct-orient-opt.on{border-color:var(--gold);background:var(--warm-cream);cursor:default}
+.acct-orient-text{display:flex;flex-direction:column;gap:4px}
+.acct-orient-text strong{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--charcoal)}
+.acct-orient-text em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.acct-orient-cur{font-family:var(--sans);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark);flex-shrink:0}
+@media (max-width:600px){.welcome-cards{grid-template-columns:1fr}.welcome-title{font-size:32px}}

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
 type State = { ok?: boolean; error?: string; message?: string } | null;
@@ -68,4 +69,13 @@ export async function changePassword(_prev: State, formData: FormData): Promise<
   const { error } = await supabase.auth.updateUser({ password: pw });
   if (error) return { error: error.message };
   return { ok: true, message: 'Your password has been updated.' };
+}
+
+export async function setOrientation(formData: FormData) {
+  const { supabase, user } = await me();
+  if (!user) redirect('/');
+  const kind = formData.get('kind') === 'host' ? 'host' : 'guest';
+  await supabase.rpc('set_platform_orientation', { p_kind: kind });
+  const to = String(formData.get('redirect_to') ?? '/');
+  redirect(to || '/');
 }

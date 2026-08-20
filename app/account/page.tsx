@@ -21,6 +21,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   // lazily so the page never renders profile-less (no-op if it exists).
   await supabase.rpc('ensure_platform_profile');
 
+  // First-run orientation: if they haven't chosen what they're here for, ask once.
+  const { data: orient } = await supabase.from('profiles').select('oriented_at').eq('id', user.id).maybeSingle();
+  if (!orient?.oriented_at) redirect('/welcome');
+
   const sp = await searchParams;
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
     'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Settings' | 'Venue management';
