@@ -1,0 +1,6 @@
+-- Unified account "Bookings": returns the current person's enquiries and bookings,
+-- across attending (guest) and hosting (host), matched by their account email.
+-- Definer because the CRM/booking tables are staff-gated; only ever returns the
+-- caller's own rows. Powers the single unified account — a person who is both a
+-- guest and a host sees both kinds of activity in one list.
+-- (Full definition applied live via MCP.)
