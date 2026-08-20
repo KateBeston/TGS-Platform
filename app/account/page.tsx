@@ -9,7 +9,7 @@ export const metadata = { title: 'Your account — The Global Sanctum' };
 
 const TAB_MAP: Record<string, string> = {
   profile: 'Profile', bookings: 'Bookings', saved: 'Saved venues', preferences: 'Preferences',
-  communications: 'Communications', venue: 'Venue management',
+  communications: 'Communications', settings: 'Settings', venue: 'Venue management',
 };
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -23,7 +23,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   const sp = await searchParams;
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
-    'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Venue management';
+    'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Settings' | 'Venue management';
 
   const [{ data: profile }, { data: roles }, { data: savedRows }, { data: activity }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
-type State = { ok?: boolean; error?: string } | null;
+type State = { ok?: boolean; error?: string; message?: string } | null;
 
 async function me() {
   const supabase = await createClient();
@@ -46,4 +46,26 @@ export async function updateComms(_prev: State, formData: FormData): Promise<Sta
   if (error) return { error: error.message };
   revalidatePath('/account');
   return { ok: true };
+}
+
+export async function changeEmail(_prev: State, formData: FormData): Promise<State> {
+  const { supabase, user } = await me();
+  if (!user) return { error: 'Please sign in again.' };
+  const email = String(formData.get('new_email') ?? '').trim();
+  if (!email || !email.includes('@')) return { error: 'Please enter a valid email address.' };
+  const { error } = await supabase.auth.updateUser({ email });
+  if (error) return { error: error.message };
+  return { ok: true, message: 'Almost there — check your new email address for a confirmation link. Your login won\u2019t change until you confirm.' };
+}
+
+export async function changePassword(_prev: State, formData: FormData): Promise<State> {
+  const { supabase, user } = await me();
+  if (!user) return { error: 'Please sign in again.' };
+  const pw = String(formData.get('new_password') ?? '');
+  const confirm = String(formData.get('confirm_password') ?? '');
+  if (pw.length < 8) return { error: 'Password must be at least 8 characters.' };
+  if (pw !== confirm) return { error: 'The two passwords don\u2019t match.' };
+  const { error } = await supabase.auth.updateUser({ password: pw });
+  if (error) return { error: error.message };
+  return { ok: true, message: 'Your password has been updated.' };
 }

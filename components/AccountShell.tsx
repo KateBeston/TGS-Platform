@@ -3,10 +3,10 @@
 import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { signOut } from '@/app/actions/auth';
-import { updateProfile, updatePreferences, updateComms } from '@/app/actions/account';
+import { updateProfile, updatePreferences, updateComms, changeEmail, changePassword } from '@/app/actions/account';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
-const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Venue management'] as const;
+const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings', 'Venue management'] as const;
 type Tab = (typeof TABS)[number];
 
 export type Activity = {
@@ -23,7 +23,9 @@ type Profile = {
 export default function AccountShell({
   email, profile, isOwner, savedNode, activity, initialTab,
 }: { email: string; profile: Profile; isOwner: boolean; savedNode: ReactNode; activity: Activity[]; initialTab?: Tab }) {
-  const [tab, setTab] = useState<Tab>(initialTab ?? 'Profile');
+  const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
+  const [tab, setTab] = useState<Tab>(safeInitial);
+  const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
   const name = [profile.first_name, profile.surname].filter(Boolean).join(' ') || email;
   const since = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
@@ -38,7 +40,7 @@ export default function AccountShell({
       </div>
 
       <nav className="acct-tabs">
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button key={t} className={`acct-tab${tab === t ? ' on' : ''}`} onClick={() => setTab(t)}>{t}</button>
         ))}
       </nav>
@@ -48,7 +50,8 @@ export default function AccountShell({
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
-      {tab === 'Venue management' && <VenuePanel isOwner={isOwner} />}
+      {tab === 'Settings' && <SettingsPanel email={email} />}
+      {tab === 'Venue management' && isOwner && <VenuePanel isOwner={isOwner} />}
 
       <form action={signOut} className="acct-signout">
         <button type="submit" className="acct-ghost-btn">Sign out</button>
@@ -184,6 +187,35 @@ function CommsPanel({ profile }: { profile: Profile }) {
         <p className="acct-panel-sub">The Sanctum Journal, our monthly publication, is a separate subscription you can manage from any issue.</p>
         {state?.error && <p className="acct-err">{state.error}</p>}
         <div className="acct-actions"><button className="acct-btn" disabled={pending}>{pending ? 'Saving…' : 'Save preferences'}</button><Saved ok={state?.ok} /></div>
+      </form>
+    </section>
+  );
+}
+
+function SettingsPanel({ email }: { email: string }) {
+  const [emState, emAction, emPending] = useActionState(changeEmail, null);
+  const [pwState, pwAction, pwPending] = useActionState(changePassword, null);
+  return (
+    <section className="acct-panel">
+      <h2 className="acct-panel-title">Settings &amp; security</h2>
+      <form action={emAction} className="acct-form">
+        <label className="acct-f"><span>Current login email</span><input value={email} disabled /></label>
+        <label className="acct-f"><span>New login email</span>
+          <input name="new_email" type="email" placeholder="you@example.com" />
+          <small>We&rsquo;ll send a confirmation link to the new address. Your login only changes once you confirm it.</small></label>
+        {emState?.error && <p className="acct-err">{emState.error}</p>}
+        {emState?.message && <p className="acct-msg">{emState.message}</p>}
+        <div className="acct-actions"><button className="acct-btn" disabled={emPending}>{emPending ? 'Sending…' : 'Change email'}</button></div>
+      </form>
+      <form action={pwAction} className="acct-form" style={{ marginTop: 28 }}>
+        <label className="acct-f"><span>New password</span>
+          <input name="new_password" type="password" autoComplete="new-password" />
+          <small>At least 8 characters.</small></label>
+        <label className="acct-f"><span>Confirm new password</span>
+          <input name="confirm_password" type="password" autoComplete="new-password" /></label>
+        {pwState?.error && <p className="acct-err">{pwState.error}</p>}
+        {pwState?.message && <p className="acct-msg">{pwState.message}</p>}
+        <div className="acct-actions"><button className="acct-btn" disabled={pwPending}>{pwPending ? 'Updating…' : 'Change password'}</button></div>
       </form>
     </section>
   );
