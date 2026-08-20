@@ -6,8 +6,13 @@ import { signOut } from '@/app/actions/auth';
 import { updateProfile, updatePreferences, updateComms } from '@/app/actions/account';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
-const TABS = ['Profile', 'Saved venues', 'Preferences', 'Communications', 'Venue management'] as const;
+const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Venue management'] as const;
 type Tab = (typeof TABS)[number];
+
+export type Activity = {
+  activity_kind: 'attending' | 'hosting'; record_kind: 'enquiry' | 'booking';
+  id: number; venue_name: string | null; date_from: string | null; date_to: string | null; status: string | null;
+};
 
 type Profile = {
   first_name?: string | null; surname?: string | null; display_name?: string | null;
@@ -16,8 +21,8 @@ type Profile = {
 };
 
 export default function AccountShell({
-  email, profile, isOwner, savedNode, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; savedNode: ReactNode; initialTab?: Tab }) {
+  email, profile, isOwner, savedNode, activity, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; savedNode: ReactNode; activity: Activity[]; initialTab?: Tab }) {
   const [tab, setTab] = useState<Tab>(initialTab ?? 'Profile');
   const name = [profile.first_name, profile.surname].filter(Boolean).join(' ') || email;
   const since = profile.created_at
@@ -39,6 +44,7 @@ export default function AccountShell({
       </nav>
 
       {tab === 'Profile' && <ProfilePanel profile={profile} email={email} />}
+      {tab === 'Bookings' && <BookingsPanel activity={activity} />}
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
@@ -79,6 +85,49 @@ function ProfilePanel({ profile, email }: { profile: Profile; email: string }) {
         {state?.error && <p className="acct-err">{state.error}</p>}
         <div className="acct-actions"><button className="acct-btn" disabled={pending}>{pending ? 'Saving…' : 'Save changes'}</button><Saved ok={state?.ok} /></div>
       </form>
+    </section>
+  );
+}
+
+function fmtDates(a: string | null, b: string | null) {
+  if (!a) return null;
+  const d = (x: string) => new Date(x).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  return b && b !== a ? `${d(a)} – ${d(b)}` : d(a);
+}
+
+function BookingsPanel({ activity }: { activity: Activity[] }) {
+  const attending = activity.filter((a) => a.activity_kind === 'attending');
+  const hosting = activity.filter((a) => a.activity_kind === 'hosting');
+
+  const Group = ({ title, note, items }: { title: string; note: string; items: Activity[] }) => (
+    <div className="acct-book-group">
+      <h3 className="acct-book-h">{title}</h3>
+      {items.length === 0 ? (
+        <p className="acct-book-empty">{note}</p>
+      ) : (
+        <ul className="acct-book-list">
+          {items.map((a) => (
+            <li key={`${a.record_kind}-${a.id}`} className="acct-book-item">
+              <div className="acct-book-main">
+                <span className="acct-book-venue">{a.venue_name ?? 'Venue to be confirmed'}</span>
+                <span className={`acct-book-tag ${a.record_kind}`}>{a.record_kind === 'booking' ? 'Booked' : 'Enquiry'}</span>
+              </div>
+              <div className="acct-book-meta">
+                {fmtDates(a.date_from, a.date_to) ?? 'Dates flexible'}{a.status ? ` · ${a.status}` : ''}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
+  return (
+    <section className="acct-panel">
+      <h2 className="acct-panel-title">Bookings</h2>
+      <p className="acct-panel-sub">Retreats you&rsquo;re attending and venues you&rsquo;re sourcing to host — all in one place.</p>
+      <Group title="Attending" note="No retreats yet. When you book or enquire about a retreat to attend, it&rsquo;ll appear here." items={attending} />
+      <Group title="Hosting" note="Nothing yet. When you enquire about a venue to host your own retreat, it&rsquo;ll appear here." items={hosting} />
     </section>
   );
 }

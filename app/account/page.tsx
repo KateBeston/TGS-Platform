@@ -3,11 +3,12 @@ import { createClient } from '@/lib/supabase/server';
 import AccountShell from '@/components/AccountShell';
 import VenueGrid from '@/components/VenueGrid';
 import type { Card } from '@/lib/venues';
+import type { Activity } from '@/components/AccountShell';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
 
 const TAB_MAP: Record<string, string> = {
-  profile: 'Profile', saved: 'Saved venues', preferences: 'Preferences',
+  profile: 'Profile', bookings: 'Bookings', saved: 'Saved venues', preferences: 'Preferences',
   communications: 'Communications', venue: 'Venue management',
 };
 
@@ -22,12 +23,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   const sp = await searchParams;
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
-    'Profile' | 'Saved venues' | 'Preferences' | 'Communications' | 'Venue management';
+    'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Venue management';
 
-  const [{ data: profile }, { data: roles }, { data: savedRows }] = await Promise.all([
+  const [{ data: profile }, { data: roles }, { data: savedRows }, { data: activity }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     supabase.from('account_roles').select('role').eq('user_id', user.id),
     supabase.from('profile_saved_venues').select('venue_id').eq('user_id', user.id),
+    supabase.rpc('get_my_platform_activity'),
   ]);
 
   const savedIds = (savedRows ?? []).map((r: { venue_id: number }) => r.venue_id);
@@ -48,6 +50,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       profile={profile ?? {}}
       isOwner={roleSet.has('venue_owner')}
       savedNode={savedNode}
+      activity={activity ?? []}
       initialTab={initialTab}
     />
   );

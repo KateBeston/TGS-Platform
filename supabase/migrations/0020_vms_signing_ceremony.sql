@@ -1,0 +1,9 @@
+-- VMS onboarding Pass 2 — signing ceremony.
+--   venue_applications.signature_image / signature_recorded_at — drawn signature (PNG data URL).
+--   get_vms_onboarding_documents_full() — serves document bodies so the owner can scroll
+--     and read each one in the signing step (definer; owner has no register access).
+--   record_vms_onboarding_acceptances(..., p_acceptances jsonb, p_signature text) — reworked
+--     to record each document's acceptance at its OWN timestamp (captured client-side when the
+--     owner ticked it), and to store the drawn signature on the application.
+--     p_acceptances is { document_slug: iso_timestamp }.
+-- Full definitions applied live via MCP; see functions in the database.
