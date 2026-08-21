@@ -3755,3 +3755,23 @@ img { max-width: 100%; height: auto; display: block; }
 .acct-orient-text em{font-style:normal;font-size:12.5px;color:var(--muted)}
 .acct-orient-cur{font-family:var(--sans);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark);flex-shrink:0}
 @media (max-width:600px){.welcome-cards{grid-template-columns:1fr}.welcome-title{font-size:32px}}
+
+/* Host profile (host-only, within Preferences) */
+.host-profile-wrap{margin-top:8px;padding-top:32px;border-top:1px solid var(--border)}
+.host-profile{max-width:640px}
+.host-sec{margin-bottom:30px}
+.host-sec-h{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark);margin:0 0 6px}
+.host-sec-note{font-size:13px;line-height:1.6;color:var(--muted);margin:0 0 14px;max-width:52ch}
+.host-chips{display:flex;flex-wrap:wrap;gap:8px}
+.host-chip{cursor:pointer}
+.host-chip input{position:absolute;opacity:0;width:0;height:0}
+.host-chip span{display:inline-block;padding:7px 14px;border:1px solid var(--border);background:var(--warm-white);font-size:13px;color:var(--charcoal);transition:all .15s}
+.host-chip:hover span{border-color:var(--gold)}
+.host-chip input:checked + span{background:var(--gold);border-color:var(--gold);color:var(--charcoal)}
+.host-group{border:1px solid var(--border);margin-bottom:8px;background:var(--warm-white)}
+.host-group-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;background:none;border:0;padding:13px 16px;cursor:pointer;text-align:left;font-family:inherit}
+.host-group-title{font-family:var(--sans);font-size:13.5px;color:var(--charcoal)}
+.host-group-meta{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.host-group-meta em{font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-dark)}
+.host-group-toggle{font-size:18px;color:var(--muted);width:16px;text-align:center}
+.host-group .host-chips{padding:0 16px 16px}

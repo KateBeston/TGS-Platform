@@ -4,6 +4,7 @@ import AccountShell from '@/components/AccountShell';
 import VenueGrid from '@/components/VenueGrid';
 import type { Card } from '@/lib/venues';
 import type { Activity } from '@/components/AccountShell';
+import { getHostData, type HostData } from '@/app/actions/host';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
 
@@ -43,6 +44,9 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     savedCards = (data ?? []) as Card[];
   }
   const roleSet = new Set((roles ?? []).map((r: { role: string }) => r.role));
+  const isHost = roleSet.has('retreat_host') || (profile?.primary_audience === 'host');
+  let hostData: HostData | null = null;
+  if (isHost) hostData = await getHostData();
 
   const savedNode = savedCards.length
     ? <VenueGrid cards={savedCards} labels={false} />
@@ -53,8 +57,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       email={user.email ?? ''}
       profile={profile ?? {}}
       isOwner={roleSet.has('venue_owner')}
+      isHost={isHost}
       savedNode={savedNode}
       activity={activity ?? []}
+      hostData={hostData}
       initialTab={initialTab}
     />
   );

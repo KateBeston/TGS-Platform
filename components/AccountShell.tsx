@@ -4,6 +4,8 @@ import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { signOut } from '@/app/actions/auth';
 import { updateProfile, updateComms, changeEmail, changePassword, setOrientation } from '@/app/actions/account';
+import HostProfile from '@/components/HostProfile';
+import type { HostData } from '@/app/actions/host';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
 const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings', 'Venue management'] as const;
@@ -21,8 +23,8 @@ type Profile = {
 };
 
 export default function AccountShell({
-  email, profile, isOwner, savedNode, activity, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; savedNode: ReactNode; activity: Activity[]; initialTab?: Tab }) {
+  email, profile, isOwner, isHost, savedNode, activity, hostData, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; hostData: HostData | null; initialTab?: Tab }) {
   const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
   const [tab, setTab] = useState<Tab>(safeInitial);
   const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
@@ -48,7 +50,7 @@ export default function AccountShell({
       {tab === 'Profile' && <ProfilePanel profile={profile} email={email} />}
       {tab === 'Bookings' && <BookingsPanel activity={activity} />}
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
-      {tab === 'Preferences' && <PreferencesPanel profile={profile} />}
+      {tab === 'Preferences' && <PreferencesPanel profile={profile} isHost={isHost} hostData={hostData} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
       {tab === 'Settings' && <SettingsPanel email={email} />}
       {tab === 'Venue management' && isOwner && <VenuePanel isOwner={isOwner} />}
@@ -149,7 +151,7 @@ function SavedPanel({ savedNode }: { savedNode: ReactNode }) {
   );
 }
 
-function PreferencesPanel({ profile }: { profile: Profile }) {
+function PreferencesPanel({ profile, isHost, hostData }: { profile: Profile; isHost: boolean; hostData: HostData | null }) {
   const audience = profile.primary_audience === 'host' ? 'host' : 'guest';
   const Opt = ({ kind, title, desc }: { kind: 'guest' | 'host'; title: string; desc: string }) => {
     const current = audience === kind;
@@ -175,6 +177,13 @@ function PreferencesPanel({ profile }: { profile: Profile }) {
         <Opt kind="guest" title="Wellness guest" desc="Looking for wellness experiences and spaces to visit." />
         <Opt kind="host" title="Retreat host" desc="Looking for a venue to host my own retreat." />
       </div>
+      {isHost && hostData && (
+        <div className="host-profile-wrap">
+          <h2 className="acct-panel-title" style={{ marginTop: 40 }}>Your host profile</h2>
+          <p className="acct-panel-sub">Your practice and what you look for in a venue. This is yours as a retreat host — it shapes your venue matches and helps us understand our host community.</p>
+          <HostProfile data={hostData} />
+        </div>
+      )}
     </section>
   );
 }
