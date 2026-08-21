@@ -1,0 +1,10 @@
+-- Host specialisation, linked to the account and the live taxonomy so it grows as
+-- the taxonomy does. Three own-managed (RLS) join tables:
+--   host_retreat_styles   → modality_categories (in_retreat)  — "retreat styles"
+--   host_teaches          → modality_practices                — "what you teach"
+--   host_amenity_preferences → facility_items                 — "amenities you look for"
+-- get_host_taxonomy() (definer) serves the full curated taxonomy options for the
+-- host profile UI (the taxonomy base tables are staff-gated). Currently returns the
+-- master lists (12 retreat styles / 115 practices / 254 amenities); if you later want
+-- to gate to venue-published items only, add `and is_published` in the function.
+-- (Full definitions applied live via MCP.)
