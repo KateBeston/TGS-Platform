@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { verifyTurnstile } from '@/lib/turnstile';
 
-type State = { error?: string; sent?: boolean; ok?: boolean } | null;
+// State carries ok / error / sent / needsMfa across auth actions
+type State = { error?: string; sent?: boolean; ok?: boolean; needsMfa?: boolean } | null;
 
 const siteUrl = () =>
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theglobalsanctum.com';
@@ -71,6 +72,12 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
   // Ensure a platform profile exists — covers an owner-first person signing in to
   // browse as a guest (no-op if they already have one).
   await supabase.rpc('ensure_platform_profile');
+  // If the account has two-factor enabled, the session is only aal1 until they
+  // complete the code challenge — signal the client to prompt for it.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.currentLevel === 'aal1' && aal.nextLevel === 'aal2') {
+    return { needsMfa: true };
+  }
   return { ok: true };
 }
 

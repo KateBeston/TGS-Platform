@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, signUp, requestReset } from '@/app/actions/auth';
+import { createClient } from '@/lib/supabase/client';
 import Turnstile from '@/components/Turnstile';
 
 type Mode = 'login' | 'signup' | 'reset';
@@ -36,7 +37,41 @@ function useSuccess(ok: boolean | undefined, onSuccess?: () => void) {
 
 function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSuccess?: () => void }) {
   const [state, action, pending] = useActionState(signIn, null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaError, setMfaError] = useState('');
+  const [mfaBusy, setMfaBusy] = useState(false);
+  const router = useRouter();
   useSuccess(state?.ok, onSuccess);
+
+  const completeMfa = async () => {
+    setMfaError(''); setMfaBusy(true);
+    const supabase = createClient();
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const factor = factors?.totp?.find((f) => f.status === 'verified');
+    if (!factor) { setMfaBusy(false); setMfaError('No authenticator is set up on this account.'); return; }
+    const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: factor.id });
+    if (chErr || !ch) { setMfaBusy(false); setMfaError('Could not verify — please try again.'); return; }
+    const { error: vErr } = await supabase.auth.mfa.verify({ factorId: factor.id, challengeId: ch.id, code: mfaCode.trim() });
+    setMfaBusy(false);
+    if (vErr) { setMfaError('That code didn\u2019t match — enter the current 6-digit code from your app.'); return; }
+    if (onSuccess) onSuccess();
+    router.refresh(); router.push('/account');
+  };
+
+  if (state?.needsMfa) {
+    return (
+      <div className="auth-form">
+        <p className="auth-mfa-lead">Enter the 6-digit code from your authenticator app to finish signing in.</p>
+        <label className="auth-field"><span>Authentication code</span>
+          <input value={mfaCode} onChange={(e) => setMfaCode(e.target.value)} inputMode="numeric" maxLength={6} autoFocus placeholder="123456" /></label>
+        {mfaError && <p className="auth-error">{mfaError}</p>}
+        <button type="button" className="auth-submit" onClick={completeMfa} disabled={mfaBusy || mfaCode.trim().length < 6}>
+          {mfaBusy ? 'Verifying…' : 'Verify & sign in'}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form action={action} className="auth-form">
       <label className="auth-field"><span>Email</span>

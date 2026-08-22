@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signOut } from '@/app/actions/auth';
 import { updateProfile, updateComms, changeEmail, changePassword, setOrientation } from '@/app/actions/account';
 import HostProfile from '@/components/HostProfile';
+import TwoFactorSetup from '@/components/TwoFactorSetup';
 import type { HostData } from '@/app/actions/host';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
@@ -231,6 +232,10 @@ function SettingsPanel({ email }: { email: string }) {
         {pwState?.message && <p className="acct-msg">{pwState.message}</p>}
         <div className="acct-actions"><button className="acct-btn" disabled={pwPending}>{pwPending ? 'Updating…' : 'Change password'}</button></div>
       </form>
+      <div className="acct-2fa-sec">
+        <h3 className="acct-sec-h">Two-factor authentication</h3>
+        <TwoFactorSetup />
+      </div>
     </section>
   );
 }
