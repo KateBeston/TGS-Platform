@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
-import QuoteBand from '@/components/QuoteBand';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { articles, heroUrl } from '@/lib/sanity';
 import { createClient } from '@/lib/supabase/server';
@@ -308,10 +307,6 @@ export default async function Home() {
           </div>
         </section>
       )}
-
-      <QuoteBand
-        quote="Let yourself be silently drawn by the strange pull of what you really love. It will not lead you astray."
-        author="Rumi" />
 
       <section className="trending">
         <div className="trending-inner">
