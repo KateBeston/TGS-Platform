@@ -3798,3 +3798,6 @@ img { max-width: 100%; height: auto; display: block; }
 .style-card-name{font-family:var(--serif);font-size:23px;color:var(--charcoal);line-height:1.2}
 .style-card-desc{font-size:13.5px;line-height:1.6;color:var(--muted)}
 .style-card-go{margin-top:6px;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark)}
+
+/* Category / practice page tagline (evocative subheading above the description) */
+.page-lead{font-family:var(--serif);font-weight:300;font-size:22px;line-height:1.4;color:var(--gold-dark);font-style:italic;margin:var(--s3) 0 var(--s2);max-width:60ch}

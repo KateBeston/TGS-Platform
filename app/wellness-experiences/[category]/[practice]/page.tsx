@@ -64,6 +64,7 @@ export default async function PracticePage({ params }: Params) {
             <div className="intro-main">
               <p className="eyebrow">{c.name}</p>
               <h1>{p.name}</h1>
+              {p.tagline && <p className="page-lead">{p.tagline}</p>}
               {p.description && <p className="intro-standfirst">{p.description}</p>}
               {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
             </div>

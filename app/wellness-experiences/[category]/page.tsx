@@ -47,6 +47,7 @@ export default async function CategoryPage({ params }: Params) {
             <Link href="/wellness-experiences">Wellness experiences</Link>
           </div>
           <h1 style={{ marginTop: 'var(--s4)' }}>{c.name}</h1>
+          {c.tagline && <p className="page-lead">{c.tagline}</p>}
           {c.description && <p className="page-sub">{c.description}</p>}
           <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
             {c.venue_count} venue{c.venue_count === 1 ? '' : 's'} ·{' '}
