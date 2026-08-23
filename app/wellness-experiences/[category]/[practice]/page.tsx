@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import PracticeVenues from '@/components/PracticeVenues';
-import { categoryBySlug, practiceBySlug, practicesIn, venuesFor, servicesForPractice } from '@/lib/experiences';
-import { placeOf, venueHref } from '@/lib/venues';
+import ExperienceResults from '@/components/ExperienceResults';
+import { categoryBySlug, practiceBySlug, practicesIn, venuesFor, practicesOfVenues } from '@/lib/experiences';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,19 +27,17 @@ export default async function PracticePage({ params }: Params) {
   ]);
   if (!c || !p) notFound();
 
-  const [siblings, venues, services] = await Promise.all([
+  const [siblings, venues] = await Promise.all([
     practicesIn(c.id),
     venuesFor({ practiceId: p.id }),
-    servicesForPractice(p.id),
   ]);
+  const practiceMap = await practicesOfVenues(venues.map((v: any) => v.id));
 
   const facts = Array.isArray(p.at_a_glance) ? p.at_a_glance : [];
   const paragraphs = ((p.intro ?? '') as string)
     .split(/\n{2,}|\r\n{2,}/)
     .map((s: string) => s.trim())
     .filter(Boolean);
-
-  const cards = venues.map((v: any) => ({ ...v, place: placeOf(v), href: venueHref(v), service: services.get(v.id) ?? null }));
 
   const related = siblings.filter((s: any) => s.id !== p.id);
 
@@ -60,7 +57,7 @@ export default async function PracticePage({ params }: Params) {
               {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
             </div>
           )}
-          {p.description && <p className="page-sub">{p.description}</p>}
+          {p.description && <p className="cat-desc">{p.description}</p>}
           <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
             {venues.length} venue{venues.length === 1 ? '' : 's'}
           </p>
@@ -68,7 +65,7 @@ export default async function PracticePage({ params }: Params) {
       </section>
 
       <div className="wrap cat-body">
-        <PracticeVenues venues={cards} practiceName={p.name} />
+        <ExperienceResults venues={venues} practices={practiceMap} highlight={p.name} />
       </div>
 
       {facts.length > 0 && (

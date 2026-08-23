@@ -55,7 +55,7 @@ export default async function CategoryPage({ params }: Params) {
               ))}
             </div>
           )}
-          {c.description && <p className="page-sub">{c.description}</p>}
+          {c.description && <p className="cat-desc">{c.description}</p>}
           <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
             {c.venue_count} venue{c.venue_count === 1 ? '' : 's'} ·{' '}
             {practices.length} practice{practices.length === 1 ? '' : 's'}
