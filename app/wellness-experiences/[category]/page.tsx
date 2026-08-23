@@ -77,6 +77,16 @@ export default async function CategoryPage({ params }: Params) {
         <ExperienceResults venues={venues} practices={practiceMap} />
       </div>
 
+      {c.intro && (
+        <section className="cat-intro">
+          <div className="wrap">
+            {c.intro.split(/\n+/).filter((s) => s.trim()).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </section>
+      )}
+
       {related.length > 0 && (
         <section className="cat-related">
           <div className="wrap">

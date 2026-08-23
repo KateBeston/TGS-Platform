@@ -3801,3 +3801,9 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Category / practice page tagline (evocative subheading above the description) */
 .page-lead{font-family:var(--serif);font-weight:300;font-size:22px;line-height:1.4;color:var(--gold-dark);font-style:italic;margin:var(--s3) 0 var(--s2);max-width:60ch}
+
+/* Category page — editorial intro body (below the venues) */
+.cat-intro{padding:var(--s7) 0;border-top:1px solid var(--border);margin-top:var(--s6)}
+.cat-intro .wrap{max-width:720px}
+.cat-intro p{font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.7;color:var(--charcoal);margin:0 0 var(--s4)}
+.cat-intro p:last-child{margin-bottom:0}
