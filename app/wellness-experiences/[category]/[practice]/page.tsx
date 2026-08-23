@@ -45,53 +45,49 @@ export default async function PracticePage({ params }: Params) {
   const related = siblings.filter((s: any) => s.id !== p.id);
 
   return (
-    <div className="pr-page">
-      <div className="wrap">
-        <nav className="crumb" aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
-          <span aria-hidden="true"> &rsaquo; </span>
-          <Link href="/wellness-experiences">Wellness Experiences</Link>
-          <span aria-hidden="true"> &rsaquo; </span>
-          <Link href={`/wellness-experiences/${c.slug}`}>{c.name}</Link>
-          <span aria-hidden="true"> &rsaquo; </span>
-          <span className="crumb-current">{p.name}</span>
-        </nav>
-      </div>
-
-      <section className="intro">
+    <>
+      <section className="page-head">
         <div className="wrap">
-          <div className={facts.length ? 'intro-grid' : ''}>
-            <div className="intro-main">
-              <p className="eyebrow">{c.name}</p>
-              <h1>{p.name}</h1>
-              {p.tagline && <p className="page-lead">{p.tagline}</p>}
-              {p.description && <p className="intro-standfirst">{p.description}</p>}
+          <nav className="tb-crumb" aria-label="Breadcrumb">
+            <Link href="/wellness-experiences">Wellness experiences</Link>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <Link href={`/wellness-experiences/${c.slug}`}>{c.name}</Link>
+          </nav>
+          <h1 style={{ marginTop: 'var(--s4)' }}>{p.name}</h1>
+          {p.tagline && <p className="page-lead">{p.tagline}</p>}
+          {paragraphs.length > 0 && (
+            <div className="cat-lead">
               {paragraphs.map((para: string, i: number) => <p key={i}>{para}</p>)}
             </div>
-            {facts.length > 0 && (
-              <aside className="intro-aside">
-                <h4>At a glance</h4>
-                <dl>
-                  {facts.map((f: any, i: number) => (
-                    <div key={i}>
-                      <dt>{f.label}</dt>
-                      <dd>{f.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </aside>
-            )}
-          </div>
+          )}
+          {p.description && <p className="page-sub">{p.description}</p>}
+          <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
+            {venues.length} venue{venues.length === 1 ? '' : 's'}
+          </p>
         </div>
       </section>
 
-      <PracticeVenues venues={cards} practiceName={p.name} />
+      <div className="wrap cat-body">
+        <PracticeVenues venues={cards} practiceName={p.name} />
+      </div>
+
+      {facts.length > 0 && (
+        <section className="cat-intro">
+          <div className="wrap">
+            <dl className="pr-glance">
+              {facts.map((f: any, i: number) => (
+                <div key={i}><dt>{f.label}</dt><dd>{f.value}</dd></div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
-        <section className="related">
+        <section className="cat-related">
           <div className="wrap">
             <h3>Related practices in {c.name}</h3>
-            <div className="pills">
+            <div className="cat-pills">
               {related.map((s: any) => (
                 <Link key={s.id} href={`/wellness-experiences/${c.slug}/${s.slug}`}>
                   {s.name}
@@ -101,6 +97,6 @@ export default async function PracticePage({ params }: Params) {
           </div>
         </section>
       )}
-    </div>
+    </>
   );
 }

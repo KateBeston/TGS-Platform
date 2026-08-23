@@ -3807,3 +3807,15 @@ img { max-width: 100%; height: auto; display: block; }
 .cat-intro .wrap{max-width:720px}
 .cat-intro p{font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.7;color:var(--charcoal);margin:0 0 var(--s4)}
 .cat-intro p:last-child{margin-bottom:0}
+
+/* Practice page — at-a-glance facts within the editorial intro */
+.pr-glance{display:grid;grid-template-columns:1fr 1fr;gap:14px 40px;margin-top:var(--s5);padding-top:var(--s5);border-top:1px solid var(--border)}
+.pr-glance div{display:flex;flex-direction:column;gap:3px}
+.pr-glance dt{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pr-glance dd{margin:0;font-family:var(--serif);font-size:18px;color:var(--charcoal)}
+@media (max-width:560px){.pr-glance{grid-template-columns:1fr}}
+
+/* Category / practice header — the selling intro (between tagline and description) */
+.cat-lead{max-width:64ch;margin:var(--s4) 0 var(--s3)}
+.cat-lead p{font-family:var(--serif);font-weight:300;font-size:19px;line-height:1.75;color:var(--charcoal);margin:0 0 var(--s3)}
+.cat-lead p:last-child{margin-bottom:0}

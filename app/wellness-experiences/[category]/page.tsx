@@ -48,6 +48,13 @@ export default async function CategoryPage({ params }: Params) {
           </div>
           <h1 style={{ marginTop: 'var(--s4)' }}>{c.name}</h1>
           {c.tagline && <p className="page-lead">{c.tagline}</p>}
+          {c.intro && (
+            <div className="cat-lead">
+              {c.intro.split(/\n+/).filter((s) => s.trim()).map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+          )}
           {c.description && <p className="page-sub">{c.description}</p>}
           <p className="page-sub" style={{ fontSize: 15, marginTop: 'var(--s3)' }}>
             {c.venue_count} venue{c.venue_count === 1 ? '' : 's'} ·{' '}
@@ -76,16 +83,6 @@ export default async function CategoryPage({ params }: Params) {
 
         <ExperienceResults venues={venues} practices={practiceMap} />
       </div>
-
-      {c.intro && (
-        <section className="cat-intro">
-          <div className="wrap">
-            {c.intro.split(/\n+/).filter((s) => s.trim()).map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-          </div>
-        </section>
-      )}
 
       {related.length > 0 && (
         <section className="cat-related">
