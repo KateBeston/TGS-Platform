@@ -3892,3 +3892,13 @@ img { max-width: 100%; height: auto; display: block; }
   .bc-drawer{width:100vw}
   .bc-drawer-max{width:100vw}
 }
+
+/* Page-by-page responsive pass — venue detail + auth forms on phones */
+@media (max-width:600px){
+  /* booking-builder date row: 3 columns (2 dates + button) would crush — stack it */
+  .bb-dates{grid-template-columns:1fr}
+  /* login/signup two-field rows stack rather than squeeze side by side */
+  .auth-row{grid-template-columns:1fr}
+  /* the sticky venue tab-bar: drop the venue name/divider so the section tabs get full width to scroll */
+  .tab-venue,.tab-venue-div{display:none}
+}
