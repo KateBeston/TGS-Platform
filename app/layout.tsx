@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import Analytics, { AnalyticsNoScript } from '@/components/Analytics';
 import ConsentBanner from '@/components/ConsentBanner';
@@ -11,6 +11,7 @@ import { SavedVenuesProvider } from '@/components/SavedVenues';
 import { AccountDrawerProvider } from '@/components/AccountDrawer';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
+import PWARegister from '@/components/PWARegister';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -31,6 +32,19 @@ export const metadata: Metadata = {
     type: 'website',
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: '/icons/icon-192.png',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'The Global Sanctum',
+    statusBarStyle: 'default',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#FDFCF8',
 };
 
 export default function RootLayout({
@@ -49,6 +63,7 @@ export default function RootLayout({
       </head>
       <body>
         <AnalyticsNoScript />
+        <PWARegister />
         {/* Records how somebody arrived, once per session. First touch
             rather than last — a Journal reader who later searches for us
             was brought here by the Journal. */}
