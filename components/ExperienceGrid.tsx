@@ -56,9 +56,16 @@ export default function ExperienceGrid({ categories }: { categories: Cat[] }) {
             >
               {c.image ? <img className="wx-ec-img" src={c.image} alt="" /> : null}
               <div className="wx-ec-ov" />
+              <a
+                className="wx-ec-cardlink"
+                href={`/wellness-experiences/${c.slug}`}
+                aria-label={`Explore ${c.name}`}
+              />
               <span className="wx-ec-num">{String(i + 1).padStart(2, '0')}</span>
               <div className="wx-ec-c">
-                <h3 className="wx-ec-name">{c.name}</h3>
+                <h3 className="wx-ec-name">
+                  <a className="wx-ec-namelink" href={`/wellness-experiences/${c.slug}`}>{c.name}</a>
+                </h3>
                 {c.tagline ? <p className="wx-ec-tag">{c.tagline}</p> : null}
                 <div className="wx-ec-rule" />
                 <div className="wx-ec-chips">
