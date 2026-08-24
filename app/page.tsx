@@ -5,6 +5,8 @@ import HomeSearch from '@/components/HomeSearch';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { articles, heroUrl } from '@/lib/sanity';
 import { createClient } from '@/lib/supabase/server';
+import { categories } from '@/lib/experiences';
+import HomeExperiences from '@/components/HomeExperiences';
 
 function fmtDate(iso: string | null) {
   if (!iso) return '';
@@ -41,6 +43,12 @@ const PATHS = [
     cta: 'Explore Experiences', href: '/wellness-experiences',
     image: '/images/path-experiences.jpg' },
 ];
+
+const WX_FALLBACK_IMG: Record<string, string> = {
+  'nature-adventure-wellness': 'https://images.unsplash.com/photo-1768992363350-b1f5b6176239?w=900&q=75&auto=format&fit=crop',
+  'skin-aesthetic-wellness': 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=900&q=75&auto=format&fit=crop',
+  'fitness-and-conditioning': 'https://images.unsplash.com/photo-1747240549807-fc3962949818?w=900&q=75&auto=format&fit=crop',
+};
 
 const SETTINGS = [
   ['Coastal Sanctuaries', 'coastal', '/images/setting-coastal.jpg', 'Wellness by the sea, where the horizon does the calming'],
@@ -175,6 +183,23 @@ export default async function Home() {
     .filter((a) => !/test/i.test(a.title ?? ''))
     .slice(0, 4);
 
+  // Wellness experience categories (+ their practices) for the home rail.
+  const [catList, { data: allPractices }] = await Promise.all([
+    categories(),
+    supabase.from('experience_practices').select('name,slug,category_slug,venue_count')
+      .order('display_order', { nullsFirst: false }).order('name'),
+  ]);
+  const byCat = new Map<string, any[]>();
+  for (const p of (allPractices ?? []) as any[]) {
+    const list = byCat.get(p.category_slug) ?? []; list.push(p); byCat.set(p.category_slug, list);
+  }
+  const wxCategories = (catList as any[]).filter((c) => c.in_wellness).map((c) => ({
+    name: c.name as string, slug: c.slug as string,
+    image: (c.hero_image_url ?? WX_FALLBACK_IMG[c.slug] ?? null) as string | null,
+    tagline: (c.tagline ?? '') as string,
+    practices: byCat.get(c.slug) ?? [],
+  }));
+
   const venues = (data ?? []) as Card[];
   const premium = venues.filter((v) => v.tier_order <= 2);
   const featured = venues.filter((v) => v.tier_order > 2);
@@ -291,6 +316,21 @@ export default async function Home() {
             <Link href="/settings" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
           </div>
         </div>
+      </section>
+
+      <section className="hx-section">
+        <div className="hx-header">
+          <div>
+            <div className="intro-eyebrow">Wellness Experiences</div>
+            <h2 className="intro-title">Wellness, in <em>All Its Forms</em></h2>
+            <p className="intro-text">
+              From ancient thermal rituals to breathwork, sound healing and modern recovery,
+              explore the practices and the venues that offer them.
+            </p>
+          </div>
+          <Link href="/wellness-experiences" className="hx-all">Explore all experiences <span>&rarr;</span></Link>
+        </div>
+        <HomeExperiences categories={wxCategories} />
       </section>
 
       {!!premium.length && (
