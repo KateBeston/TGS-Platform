@@ -3838,3 +3838,13 @@ img { max-width: 100%; height: auto; display: block; }
 .cat-lead p{font-family:var(--sans);font-weight:400;font-size:14px;line-height:1.7;color:#2e2e2e;margin:0 0 var(--s2);max-width:none}
 .cat-lead p:last-child{margin-bottom:0}
 .cat-desc{font-family:var(--sans);font-weight:400;font-size:12.5px;line-height:1.7;color:var(--mist);max-width:none;margin:0 0 var(--s2)}
+
+/* Settings index — grouped by category */
+.set-group{margin:var(--s6) 0 var(--s7)}
+.set-group-h{font-family:var(--serif);font-size:20px;font-weight:300;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark);margin:0 0 20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.set-card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);background:var(--warm-white);padding:22px 20px;text-decoration:none;transition:border-color .2s,background .2s}
+.set-card:hover{border-color:var(--gold);background:var(--warm-cream)}
+.set-card-name{font-family:var(--serif);font-size:21px;font-weight:300;letter-spacing:.06em;text-transform:uppercase;color:var(--charcoal);line-height:1.2}
+.set-card-tag{font-family:var(--sans);font-size:12px;line-height:1.5;color:var(--mist)}
+.set-card-go{margin-top:4px;font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark)}

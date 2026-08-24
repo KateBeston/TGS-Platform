@@ -276,7 +276,7 @@ export default async function Home() {
         <div className="explore-body">
           <div className="explore-mosaic">
             {SETTINGS.map(([name, slug, image, tagline]) => (
-              <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
+              <Link key={slug} href={`/settings/${slug}`} className="mosaic-tile">
                 <img src={image} alt="" loading="lazy" />
                 <div className="mosaic-overlay" />
                 <div className="mosaic-content">
@@ -288,7 +288,7 @@ export default async function Home() {
             ))}
           </div>
           <div className="explore-aside">
-            <Link href="/venues" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
+            <Link href="/settings" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
           </div>
         </div>
       </section>
