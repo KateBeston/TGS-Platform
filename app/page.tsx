@@ -287,6 +287,9 @@ export default async function Home() {
             </Link>
           ))}
         </div>
+        <div className="explore-more">
+          <Link href="/venues" className="explore-more-btn">Explore All Spaces <span>&rarr;</span></Link>
+        </div>
       </section>
 
       {!!premium.length && (
