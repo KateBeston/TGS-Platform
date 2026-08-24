@@ -3886,3 +3886,9 @@ img { max-width: 100%; height: auto; display: block; }
   .hx-tile-large .hx-tile-name{font-size:23px}
   .hx-tile-body{left:16px;right:16px;bottom:16px}
 }
+
+/* Booking-cart drawer — full width on phones (was fixed 380/560px, overflowing narrow screens) */
+@media (max-width:600px){
+  .bc-drawer{width:100vw}
+  .bc-drawer-max{width:100vw}
+}
