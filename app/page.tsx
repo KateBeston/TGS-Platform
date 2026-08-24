@@ -43,12 +43,12 @@ const PATHS = [
 ];
 
 const SETTINGS = [
-  ['Coastal Sanctuaries', 'coastal', '/images/setting-coastal.jpg'],
-  ['Forest Hideaways', 'forest', '/images/philosophy-forest.jpg'],
-  ['Desert Retreats', 'desert', '/images/setting-desert.jpg'],
-  ['Tropical Sanctuaries', 'tropical', '/images/setting-tropical.jpg'],
-  ['Urban Sanctuaries', 'urban', '/images/setting-urban.jpg'],
-  ['Mountain Sanctuaries', 'mountain', '/images/philosophy-meditation.jpg'],
+  ['Coastal Sanctuaries', 'coastal', '/images/setting-coastal.jpg', 'Wellness by the sea, where the horizon does the calming'],
+  ['Forest Hideaways', 'forest', '/images/philosophy-forest.jpg', 'Deep in the canopy, far from everything'],
+  ['Desert Retreats', 'desert', '/images/setting-desert.jpg', 'Stillness and clarity under vast open skies'],
+  ['Tropical Sanctuaries', 'tropical', '/images/setting-tropical.jpg', 'Warmth, greenery and the unhurried pace of the tropics'],
+  ['Urban Sanctuaries', 'urban', '/images/setting-urban.jpg', 'A pocket of calm in the heart of the city'],
+  ['Mountain Sanctuaries', 'mountain', '/images/philosophy-meditation.jpg', 'Clear air, long views and quiet at altitude'],
 ];
 
 const DESTINATIONS = [
@@ -275,11 +275,15 @@ export default async function Home() {
           </p>
         </div>
         <div className="explore-mosaic">
-          {SETTINGS.map(([name, slug, image]) => (
+          {SETTINGS.map(([name, slug, image, tagline]) => (
             <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
               <img src={image} alt="" loading="lazy" />
               <div className="mosaic-overlay" />
-              <div className="mosaic-label">{name}</div>
+              <div className="mosaic-content">
+                <h3 className="mosaic-name">{name}</h3>
+                <p className="mosaic-tag">{tagline}</p>
+                <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
+              </div>
             </Link>
           ))}
         </div>
