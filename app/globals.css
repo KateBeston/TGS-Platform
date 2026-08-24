@@ -2350,11 +2350,14 @@ img { max-width: 100%; height: auto; display: block; }
 .mosaic-cta{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
 .mosaic-ar{transition:transform .3s}
 .mosaic-tile:hover .mosaic-ar{transform:translateX(5px)}
-.explore-more{display:flex;justify-content:flex-end;padding:30px var(--s5) 0}
-.explore-more-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--charcoal);border-bottom:1px solid var(--gold);padding-bottom:4px}
+.explore-body{display:flex;gap:40px;align-items:center;max-width:1240px;margin:0 auto;padding:0 var(--s5)}
+.explore-body .explore-mosaic{flex:1;min-width:0}
+.explore-aside{flex:0 0 180px;display:flex;justify-content:center;align-items:center}
+.explore-more-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--charcoal);border-bottom:1px solid var(--gold);padding-bottom:4px;text-align:center}
 .explore-more-btn span{transition:transform .3s}
 .explore-more-btn:hover{color:var(--ink-gold);text-decoration:none}
 .explore-more-btn:hover span{transform:translateX(4px)}
+@media (max-width:900px){.explore-body{flex-direction:column;gap:26px;align-items:stretch}.explore-aside{flex:none;border-left:none;border-top:1px solid var(--border);padding-top:24px;justify-content:flex-end}}
 .mosaic-tile:hover { text-decoration: none; }
 .mosaic-overlay {
   position: absolute; inset: 0;

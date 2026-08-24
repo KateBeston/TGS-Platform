@@ -266,29 +266,30 @@ export default async function Home() {
       <section className="explore">
         <div className="explore-header">
           <div className="intro-eyebrow">Discover Differently</div>
-          <h2 className="intro-title">Explore Intentional Spaces <em>Around The World</em></h2>
+          <h2 className="intro-title">Immerse Yourself in <em>Extraordinary Settings</em></h2>
           <p className="intro-text">
-            From soul-restoring coastal sanctuaries to mountain retreats where silence
-            does the work. Thermal springs rising from volcanic earth, forest hideaways
-            hidden in ancient canopy &mdash; spaces where wellness lives in the
-            foundations.
+            From tranquil coastlines to urban escapes, experience retreats and wellness in the
+            world&rsquo;s most extraordinary settings, where the place itself becomes part of the
+            restoration.
           </p>
         </div>
-        <div className="explore-mosaic">
-          {SETTINGS.map(([name, slug, image, tagline]) => (
-            <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
-              <img src={image} alt="" loading="lazy" />
-              <div className="mosaic-overlay" />
-              <div className="mosaic-content">
-                <h3 className="mosaic-name">{name}</h3>
-                <p className="mosaic-tag">{tagline}</p>
-                <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
-              </div>
-            </Link>
-          ))}
-        </div>
-        <div className="explore-more">
-          <Link href="/venues" className="explore-more-btn">Explore All Spaces <span>&rarr;</span></Link>
+        <div className="explore-body">
+          <div className="explore-mosaic">
+            {SETTINGS.map(([name, slug, image, tagline]) => (
+              <Link key={slug} href={`/venues?setting=${slug}`} className="mosaic-tile">
+                <img src={image} alt="" loading="lazy" />
+                <div className="mosaic-overlay" />
+                <div className="mosaic-content">
+                  <h3 className="mosaic-name">{name}</h3>
+                  <p className="mosaic-tag">{tagline}</p>
+                  <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="explore-aside">
+            <Link href="/venues" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
+          </div>
         </div>
       </section>
 
