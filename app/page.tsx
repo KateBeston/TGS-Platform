@@ -289,32 +289,30 @@ export default async function Home() {
       </section>
 
       <section className="explore">
-        <div className="explore-header">
-          <div className="intro-eyebrow">Discover Differently</div>
-          <h2 className="intro-title">Immerse Yourself in <em>Extraordinary Settings</em></h2>
-          <p className="intro-text">
-            From tranquil coastlines to urban escapes, experience retreats and wellness in the
-            world&rsquo;s most extraordinary settings, where the place itself becomes part of the
-            restoration.
-          </p>
+        <div className="explore-header-row">
+          <div className="explore-header-text">
+            <div className="intro-eyebrow">Discover Differently</div>
+            <h2 className="intro-title">Immerse Yourself in <em>Extraordinary Settings</em></h2>
+            <p className="intro-text">
+              From tranquil coastlines to urban escapes, experience retreats and wellness in the
+              world&rsquo;s most extraordinary settings, where the place itself becomes part of the
+              restoration.
+            </p>
+          </div>
+          <Link href="/settings" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
         </div>
-        <div className="explore-body">
-          <div className="explore-mosaic">
-            {SETTINGS.map(([name, slug, image, tagline]) => (
-              <Link key={slug} href={`/settings/${slug}`} className="mosaic-tile">
-                <img src={image} alt="" loading="lazy" />
-                <div className="mosaic-overlay" />
-                <div className="mosaic-content">
-                  <h3 className="mosaic-name">{name}</h3>
-                  <p className="mosaic-tag">{tagline}</p>
-                  <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
-                </div>
-              </Link>
-            ))}
-          </div>
-          <div className="explore-aside">
-            <Link href="/settings" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
-          </div>
+        <div className="explore-carousel">
+          {SETTINGS.map(([name, slug, image, tagline]) => (
+            <Link key={slug} href={`/settings/${slug}`} className="mosaic-tile">
+              <img src={image} alt="" loading="lazy" />
+              <div className="mosaic-overlay" />
+              <div className="mosaic-content">
+                <h3 className="mosaic-name">{name}</h3>
+                <p className="mosaic-tag">{tagline}</p>
+                <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

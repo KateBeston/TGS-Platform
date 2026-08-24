@@ -2323,12 +2323,19 @@ img { max-width: 100%; height: auto; display: block; }
 /* ── settings mosaic ──────────────────────────────────────────────── */
 
 .explore { padding: var(--s8) 0; background: var(--warm-cream); }
+.explore-header-row{display:flex;justify-content:space-between;align-items:flex-end;gap:32px;max-width:1400px;margin:0 auto 40px;padding:0 clamp(20px,3vw,56px)}
+.explore-header-text{max-width:640px}
+.explore-header-text .intro-eyebrow,.explore-header-text .intro-title,.explore-header-text .intro-text{text-align:left;margin-left:0;margin-right:0}
+.explore-header-text .intro-text{max-width:560px}
+.explore-header-row .explore-more-btn{flex:0 0 auto;white-space:nowrap;margin-bottom:6px}
 .explore-header {
   text-align: center; max-width: 760px; margin: 0 auto 56px; padding: 0 var(--s5);
 }
 .explore-mosaic {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
 }
+.explore-carousel{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px clamp(20px,3vw,56px) 20px;-webkit-overflow-scrolling:touch;max-width:1520px;margin:0 auto}
+.explore-carousel .mosaic-tile{flex:0 0 380px;aspect-ratio:3 / 4;scroll-snap-align:start}
 .mosaic-tile {
   position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: block;
 }
@@ -3869,3 +3876,9 @@ img { max-width: 100%; height: auto; display: block; }
 .hx-all:hover{color:var(--ink-gold);text-decoration:none}
 .hx-all:hover span{transform:translateX(4px)}
 @media (max-width:820px){.hx-grid{grid-template-columns:repeat(2,1fr);grid-template-rows:auto}.hx-tile{aspect-ratio:4 / 3}.hx-tile-large{grid-column:span 2;grid-row:auto}}
+
+/* Settings carousel — mobile: stack header, smaller cards */
+@media (max-width:760px){
+  .explore-header-row{flex-direction:column;align-items:flex-start;gap:20px}
+  .explore-carousel .mosaic-tile{flex-basis:290px}
+}
