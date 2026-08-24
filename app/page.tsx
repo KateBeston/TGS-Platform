@@ -186,7 +186,7 @@ export default async function Home() {
         <div className="hero-overlay" />
         <div className="hero-content">
           <h1 className="hero-headline">
-            The world&rsquo;s sanctuary for wellness and retreats, <em>thoughtfully curated.</em>
+            The world&rsquo;s sanctuary for wellness and retreats,<br /><em>thoughtfully curated.</em>
           </h1>
           <p className="hero-subtext">
             Whether you&rsquo;re planning a retreat or seeking your own restoration, discover exceptional wellness venues, retreat spaces and experiences the world over.
