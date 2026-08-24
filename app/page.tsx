@@ -301,18 +301,20 @@ export default async function Home() {
           </div>
           <Link href="/settings" className="explore-more-btn">Explore More Settings <span>&rarr;</span></Link>
         </div>
-        <div className="explore-carousel">
-          {SETTINGS.map(([name, slug, image, tagline]) => (
-            <Link key={slug} href={`/settings/${slug}`} className="mosaic-tile">
-              <img src={image} alt="" loading="lazy" />
-              <div className="mosaic-overlay" />
-              <div className="mosaic-content">
-                <h3 className="mosaic-name">{name}</h3>
-                <p className="mosaic-tag">{tagline}</p>
-                <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
-              </div>
-            </Link>
-          ))}
+        <div className="explore-carousel-wrap">
+          <Carousel label="extraordinary settings">
+            {SETTINGS.map(([name, slug, image, tagline]) => (
+              <Link key={slug} href={`/settings/${slug}`} className="mosaic-tile">
+                <img src={image} alt="" loading="lazy" />
+                <div className="mosaic-overlay" />
+                <div className="mosaic-content">
+                  <h3 className="mosaic-name">{name}</h3>
+                  <p className="mosaic-tag">{tagline}</p>
+                  <span className="mosaic-cta">Explore <span className="mosaic-ar">&rarr;</span></span>
+                </div>
+              </Link>
+            ))}
+          </Carousel>
         </div>
       </section>
 
