@@ -319,18 +319,20 @@ export default async function Home() {
       </section>
 
       <section className="hx-section">
-        <div className="hx-header">
-          <div>
-            <div className="intro-eyebrow">Wellness Experiences</div>
-            <h2 className="intro-title">Wellness, in <em>All Its Forms</em></h2>
-            <p className="intro-text">
-              From ancient thermal rituals to breathwork, sound healing and modern recovery,
-              explore the practices and the venues that offer them.
-            </p>
-          </div>
-          <Link href="/wellness-experiences" className="hx-all">Explore all experiences <span>&rarr;</span></Link>
+        <div className="hx-header-c">
+          <div className="intro-eyebrow">Wellness Experiences</div>
+          <h2 className="intro-title">Wellness, <em>One Experience at a Time</em></h2>
+          <p className="intro-text">
+            Not every journey is a multi-day retreat. A wellness experience is the single session
+            or practice itself: a thermal bathing ritual, an hour of sound healing, an Ayurvedic
+            treatment, a morning of yoga. Restorative moments to seek out anywhere in the world,
+            on their own terms.
+          </p>
         </div>
         <HomeExperiences categories={wxCategories} />
+        <div className="hx-all-wrap">
+          <Link href="/wellness-experiences" className="hx-all">Explore all wellness experiences <span>&rarr;</span></Link>
+        </div>
       </section>
 
       {!!premium.length && (
