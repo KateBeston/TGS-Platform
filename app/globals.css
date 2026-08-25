@@ -3922,3 +3922,9 @@ img { max-width: 100%; height: auto; display: block; }
 .lyv-close-sub { font-size: 15px; line-height: 1.75; color: rgba(255,255,255,.72); margin: 0 auto 32px; max-width: 520px; }
 .lyv-close-alt { font-size: 13.5px; color: rgba(255,255,255,.6); margin: 22px 0 0; }
 .lyv-close-alt a { color: var(--gold); text-decoration: underline; }
+
+/* country-aware phone field */
+.phone-row{display:flex;gap:8px}
+.phone-dial{flex:0 0 auto;max-width:150px}
+.phone-num{flex:1 1 auto}
+.phone-invalid{font-size:11.5px;line-height:1.4;color:#a3382f;margin:6px 0 0}

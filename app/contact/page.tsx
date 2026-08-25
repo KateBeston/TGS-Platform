@@ -74,6 +74,7 @@ export default async function Contact({
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
+  const { data: countries } = await supabase.from('countries').select('id,name,iso_code,dialling_code').order('name');
   const { data: sources } = await supabase.from('lead_sources')
     .select('name,slug').eq('is_active', true).order('display_order');
 
@@ -137,7 +138,7 @@ export default async function Contact({
       <div id="send-message">
         <Section tone="white" title="Send Us a Message"
           subtitle="All fields marked with an asterisk are required.">
-          <ContactForm sources={sources ?? []}
+          <ContactForm sources={sources ?? []} countries={countries ?? []}
             prefill={{ role: sp.role, message: sp.intent }} />
         </Section>
       </div>

@@ -3,6 +3,7 @@
 import { useActionState, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { signOut } from '@/app/actions/auth';
+import PhoneField from '@/components/PhoneField';
 import { updateProfile, updateComms, changeEmail, changePassword, setOrientation } from '@/app/actions/account';
 import HostProfile from '@/components/HostProfile';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
@@ -23,9 +24,11 @@ type Profile = {
   created_at?: string | null;
 };
 
+type Country = { id: number; name: string; iso_code: string; dialling_code: string };
+
 export default function AccountShell({
-  email, profile, isOwner, isHost, savedNode, activity, hostData, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; hostData: HostData | null; initialTab?: Tab }) {
+  email, profile, isOwner, isHost, savedNode, activity, hostData, countries, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
   const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
   const [tab, setTab] = useState<Tab>(safeInitial);
   const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
@@ -84,7 +87,7 @@ function ProfilePanel({ profile, email }: { profile: Profile; email: string }) {
           <input name="display_name" defaultValue={profile.display_name ?? ''} />
           <small>How you&rsquo;d like to be addressed, if different.</small></label>
         <label className="acct-f"><span>Phone</span>
-          <input name="phone" type="tel" defaultValue={profile.phone ?? ''} /></label>
+          <PhoneField countries={countries} value={profile.phone ?? ''} name="phone" defaultIso="AU" /></label>
         <label className="acct-f"><span>Email</span>
           <input value={email} disabled />
           <small>Your email is the login for your Global Sanctum account and can&rsquo;t be changed here.</small></label>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PhoneField from '@/components/PhoneField';
 import { firstTouch } from '@/lib/attribution';
 import { trackOnce } from '@/lib/track';
 
@@ -25,10 +26,11 @@ const ROLES = [
 ];
 
 export default function ContactForm({
-  sources,
+  sources, countries,
   prefill,
 }: {
   sources: { name: string; slug: string }[];
+  countries: { id: number; name: string; iso_code: string; dialling_code: string }[];
   prefill?: { role?: string; message?: string };
 }) {
   const [sent, setSent] = useState(false);
@@ -110,8 +112,8 @@ export default function ContactForm({
         </div>
         <div className="f">
           <label htmlFor="c-phone">Phone</label>
-          <input id="c-phone" value={f.phone}
-            onChange={(e) => set('phone', e.target.value)} />
+          <PhoneField countries={countries} value={f.phone}
+            onChange={(e164) => set('phone', e164)} defaultIso="AU" />
         </div>
 
         <div className="f f-wide">
