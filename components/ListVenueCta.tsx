@@ -28,7 +28,7 @@ export default function ListVenueCta({
               Create your account to begin — or sign in with your existing Global Sanctum account and
               we&rsquo;ll add venue management to it. Every venue is reviewed by our team before it goes live.
             </p>
-            <a className="lvm-btn" href={`${VMS}/sign-up`}>Create your account &rarr;</a>
+            <a className="lvm-btn" href={`${VMS}/?join=1`}>Create your account &rarr;</a>
             <p className="lvm-alt">Already a partner? <a href={`${VMS}/login`}>Sign in</a></p>
           </div>
         </div>
