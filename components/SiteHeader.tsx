@@ -95,7 +95,7 @@ export default function SiteHeader() {
           <Link href="/" className="nav-logo-area">
             <span className="nav-logo" aria-hidden="true" />
             <span className="nav-brand-stack">
-              <span className="nav-brand-text">The Global Sanctum</span>
+              <span className="nav-brand-text">The Global Sanctum<sup style={{ fontSize: '0.5em', verticalAlign: 'top', letterSpacing: 0, marginLeft: 1 }}>™</sup></span>
               <span className="nav-tagline">
                 Retreat spaces. Wellness experiences. Globally curated.
               </span>
