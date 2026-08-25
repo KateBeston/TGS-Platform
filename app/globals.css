@@ -3902,3 +3902,23 @@ img { max-width: 100%; height: auto; display: block; }
   /* the sticky venue tab-bar: drop the venue name/divider so the section tabs get full width to scroll */
   .tab-venue,.tab-venue-div{display:none}
 }
+
+/* List Your Venue — Sanctum VMS section, CTA rows, closing band */
+.section--charcoal { background: var(--charcoal); color: #fff; }
+.section--charcoal .section-label { color: var(--gold); }
+.section--charcoal .section-title { color: #fff; }
+.section--charcoal .section-subtitle { color: rgba(255,255,255,.72); }
+.lyv-vms { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+.lyv-vms-item h3 { font-family: var(--serif); font-size: 22px; font-weight: 400; color: #fff; margin: 0 0 10px; }
+.lyv-vms-item p { font-size: 14.5px; line-height: 1.75; color: rgba(255,255,255,.68); margin: 0; }
+
+.lyv-cta-row { display: flex; justify-content: center; padding: 52px 24px; background: var(--warm-white); }
+.section .lyv-cta-row { background: transparent; padding: 46px 0 0; }
+.section--charcoal .lyv-cta-row { background: transparent; padding: 52px 0 0; }
+
+.lyv-close { background: var(--charcoal); color: #fff; padding: 96px 24px; text-align: center; }
+.lyv-close-inner { max-width: 620px; margin: 0 auto; }
+.lyv-close-title { font-family: var(--serif); font-weight: 300; font-size: clamp(28px,4vw,40px); line-height: 1.15; margin: 12px 0 16px; color: #fff; }
+.lyv-close-sub { font-size: 15px; line-height: 1.75; color: rgba(255,255,255,.72); margin: 0 auto 32px; max-width: 520px; }
+.lyv-close-alt { font-size: 13.5px; color: rgba(255,255,255,.6); margin: 22px 0 0; }
+.lyv-close-alt a { color: var(--gold); text-decoration: underline; }

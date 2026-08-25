@@ -71,6 +71,21 @@ const GAINS = [
    'Our concierge handles your enquiries and booking coordination today. Calendar management and self-serve booking are coming.'],
 ];
 
+const VMS_FEATURES = [
+  ['Your listing, in your hands',
+   'Build and edit your venue profile, photography, services and availability. Every change is reviewed by our team before it goes live.'],
+  ['Bookings, start to finish',
+   'See every booking request, confirm or offer alternative dates, and manage changes, all in one considered view.'],
+  ['Payouts direct to you',
+   'Connected securely through Stripe, your earnings flow straight to your own account. We take only our agreed commission.'],
+  ['Availability and seasons',
+   'Set your open dates, seasons and rates, with two-way calendar management arriving soon.'],
+  ['Account and security',
+   'Two-factor protection, considered access for your team, and full control of your own details.'],
+  ['Your subscription',
+   'View your tier, understand your commission, and move between plans whenever it suits you.'],
+];
+
 const STEPS = [
   ['Apply', 'Tell us about your venue. We read every application properly rather than filtering them.'],
   ['Onboard', 'We help build your profile — photography guidance, descriptions, facility mapping.'],
@@ -133,6 +148,27 @@ export default async function ListYourVenue() {
         </div>
       </Section>
 
+      <div className="lyv-cta-row">
+        <ListVenueCta className="btn-solid" label="Apply to list your venue" />
+      </div>
+
+      <Section tone="charcoal" label="Sanctum VMS"
+        title="Your venue, managed in one considered place"
+        subtitle="Every partner is given Sanctum VMS, your private portal for listing, bookings, payouts and everything in between">
+        <div className="lyv-vms">
+          {VMS_FEATURES.map(([title, body]) => (
+            <div key={title} className="lyv-vms-item">
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="lyv-cta-row">
+          <ListVenueCta className="btn-solid" style={{ background: '#fff', color: 'var(--charcoal)', borderColor: '#fff' }}
+            label="Create your venue account" />
+        </div>
+      </Section>
+
       <Section tone="cream" label="What you gain" title="Built to serve your success">
         <div className="lyv-gains">
           {GAINS.map(([title, body]) => (
@@ -154,6 +190,9 @@ export default async function ListYourVenue() {
             </div>
           ))}
         </div>
+        <div className="lyv-cta-row">
+          <ListVenueCta className="btn-solid" label="Start your application" />
+        </div>
       </Section>
 
       <Section tone="cream"
@@ -171,6 +210,22 @@ export default async function ListYourVenue() {
                apply — so applying early costs you none of it.`}
         </p>
       </Section>
+
+      <section className="lyv-close">
+        <div className="lyv-close-inner">
+          <div className="hero-eyebrow">Begin</div>
+          <h2 className="lyv-close-title">List your venue with The Global Sanctum</h2>
+          <p className="lyv-close-sub">
+            Create your account, tell us about your space, and join a curated
+            collection of the world&rsquo;s most considered retreat and wellness venues.
+          </p>
+          <ListVenueCta className="btn-solid" style={{ background: '#fff', color: 'var(--charcoal)', borderColor: '#fff' }}
+            label="Apply to list your venue" />
+          <p className="lyv-close-alt">
+            Already a partner? <a href="https://vms.theglobalsanctum.com/login">Sign in to Sanctum VMS</a>
+          </p>
+        </div>
+      </section>
 
     </>
   );

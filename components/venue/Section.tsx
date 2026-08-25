@@ -4,7 +4,7 @@ import { AddToCart } from './BookingCart';
 export function Section({
   tone = 'white', label, title, subtitle, children, id,
 }: {
-  tone?: 'white' | 'cream';
+  tone?: 'white' | 'cream' | 'charcoal';
   label?: string; title?: string; subtitle?: string;
   children: React.ReactNode;
   id?: string;
