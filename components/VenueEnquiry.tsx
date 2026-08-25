@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import PhoneField from '@/components/PhoneField';
 import { trackOnce } from '@/lib/track';
 
 /* The enquiry form on a venue page.
@@ -16,6 +18,8 @@ import { trackOnce } from '@/lib/track';
 export default function VenueEnquiry({
   venueId, venueName, marketplace,
 }: { venueId: number; venueName: string; marketplace: string }) {
+  const [countries, setCountries] = useState<{ id: number; name: string; iso_code: string; dialling_code: string }[]>([]);
+  useEffect(() => { createClient().from('countries').select('id,name,iso_code,dialling_code').order('name').then(({ data }) => setCountries(data ?? [])); }, []);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState('');
@@ -99,8 +103,8 @@ export default function VenueEnquiry({
         </div>
         <div className="f">
           <label htmlFor="e-phone">Phone</label>
-          <input id="e-phone" value={f.phone}
-            onChange={(e) => set('phone', e.target.value)} />
+          <PhoneField countries={countries} value={f.phone}
+            onChange={(e164) => set('phone', e164)} defaultIso="AU" />
         </div>
         <div className="f">
           <label htmlFor="e-from">Arriving</label>
