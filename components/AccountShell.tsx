@@ -51,7 +51,7 @@ export default function AccountShell({
         ))}
       </nav>
 
-      {tab === 'Profile' && <ProfilePanel profile={profile} email={email} />}
+      {tab === 'Profile' && <ProfilePanel profile={profile} email={email} countries={countries} />}
       {tab === 'Bookings' && <BookingsPanel activity={activity} />}
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} isHost={isHost} hostData={hostData} />}
@@ -71,7 +71,7 @@ function Saved({ ok }: { ok?: boolean }) {
   return <p className="acct-saved-note">Saved.</p>;
 }
 
-function ProfilePanel({ profile, email }: { profile: Profile; email: string }) {
+function ProfilePanel({ profile, email, countries }: { profile: Profile; email: string; countries: Country[] }) {
   const [state, action, pending] = useActionState(updateProfile, null);
   return (
     <section className="acct-panel">
