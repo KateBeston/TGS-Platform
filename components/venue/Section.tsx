@@ -1,5 +1,6 @@
 import { duration, money } from '@/lib/venue';
 import { AddToCart } from './BookingCart';
+import { RoomDetails } from './RoomDetails';
 
 export function Section({
   tone = 'white', label, title, subtitle, children, id,
@@ -330,8 +331,8 @@ export function RoomGrid({ rooms, ratePlans = [], currency = 'AUD' }: { rooms: a
       {rooms.map((r) => (
         <article key={r.id} className="room-card">
           <div className="room-card-image">
-            {r.image_url
-              ? <img src={r.image_url} alt={r.name} />
+            {(r.primary_image_url ?? r.image_url)
+              ? <img src={r.primary_image_url ?? r.image_url} alt={r.name} />
               : <div className="placeholder-img">{r.name ?? 'Room'}</div>}
           </div>
           <div className="room-card-body">
@@ -345,13 +346,9 @@ export function RoomGrid({ rooms, ratePlans = [], currency = 'AUD' }: { rooms: a
               ].filter(Boolean).join(' · ')}
             </div>
             {r.description && <p className="room-card-desc">{r.description}</p>}
-            {!!r.room_amenities?.length && (
-              <div className="amenity-pill-row" style={{ marginTop: 16 }}>
-                {r.room_amenities.map((a: string) => (
-                  <span key={a} className="amenity-pill">{a}</span>
-                ))}
-              </div>
-            )}
+            <div className="room-card-links">
+              <RoomDetails room={r} />
+            </div>
             <div className="room-card-action">
               {(() => { const rp = planFor(r.id); return rp && rp.base_price != null
                 ? <div className="room-card-price">From {money(rp.base_price, rp.currency ?? currency)} <span>{basisLabel(rp.pricing_basis)}</span></div>
