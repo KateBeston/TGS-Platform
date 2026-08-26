@@ -1,0 +1,37 @@
+TGS BOOKING — PHASE 1: Wellness Experiences (listing + detail)
+
+WHAT THIS IS
+The first booking pages on the platform: a browsable Wellness Experiences
+listing and a rich detail page for each experience. Display only — no money,
+no cart yet (those are Phases 3–4). This proves the pages and the data path.
+
+FILES (drop into Documents\GitHub\[platform repo], overwrite):
+  lib/bookingExperiences.ts                  (new — reads the experience_cards view)
+  components/experiences/ExperienceCard.tsx  (new — the listing card)
+  app/experiences/page.tsx                   (new — the listing at /experiences)
+  app/experiences/[slug]/page.tsx            (new — the detail at /experiences/[slug])
+  app/globals.css                            (REPLACES — ~90 lines added at the end)
+
+ALREADY LIVE IN THE DATABASE (nothing to deploy for these):
+  • View  public.experience_cards  — joins bookable services to venue display
+    info, reading only from views (never venue_services directly), so no
+    internal field can leak to the public site.
+  • Slugs generated for every bookable service (e.g. "balinese-massage-1"),
+    so the detail-page URLs resolve.
+
+ROUTES
+  /experiences            listing, filterable by ?category=
+  /experiences/[slug]     detail, e.g. /experiences/ocean-view-massage-1
+
+ONE THING TO KNOW ABOUT THE DATA
+  All 29 bookable services right now sit on the TEST venues — real venues
+  haven't added services yet, so the listing shows those for now and will
+  fill with real experiences as venues open their calendars. Before launch,
+  we either filter test records here or clear the test venues (a launch task).
+
+NEXT (Phase 2)
+  The "Availability & booking" section on the detail page is a placeholder.
+  Phase 2 replaces it with the real date/time picker, "X places left"
+  scarcity, and the option/quantity selector (needs session_slots seeded).
+
+Deploy: unzip → replace the five files → GitHub Desktop commit + push → Vercel builds.
