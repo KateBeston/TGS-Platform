@@ -6,6 +6,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type Room = {
   id: number;
@@ -51,6 +52,8 @@ function minStayLine(r: Room): string | null {
 
 export function RoomDetails({ room: r }: { room: Room }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -80,7 +83,7 @@ export function RoomDetails({ room: r }: { room: Room }) {
         Room details &amp; policies
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div className="rm-overlay" role="dialog" aria-modal="true" aria-label={`${r.name} details`} onClick={() => setOpen(false)}>
           <div className="rm" onClick={(e) => e.stopPropagation()}>
             <div className="rm-img">
@@ -144,7 +147,8 @@ export function RoomDetails({ room: r }: { room: Room }) {
               <button type="button" className="rm-cls" onClick={() => setOpen(false)}>Close</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

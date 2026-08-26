@@ -1,26 +1,19 @@
-TGS PLATFORM — Room details & policies modal (accommodation cards)
+TGS PLATFORM — Room modal + gallery (MODAL POSITION FIX)
+** Supersedes the earlier room-modal / room-modal-and-gallery zips. **
 
 FILES (drop into the platform repo, overwrite):
-  components/venue/RoomDetails.tsx   (NEW — the client modal)
-  components/venue/Section.tsx       (REPLACES — room card wired to modal + image fix)
-  app/globals.css                    (REPLACES — modal styles added at end)
+  components/venue/RoomDetails.tsx   (FIXED — modal now renders via a portal)
+  components/venue/RoomGallery.tsx   (unchanged)
+  components/venue/Section.tsx       (unchanged)
+  app/globals.css                    (unchanged)
 
-WHAT CHANGED
-  • Every accommodation room card now has a "Room details & policies" link that
-    opens a modal: room details, full in-room amenities, occupancy & bedding,
-    and booking policy. Built from real room data; every field is conditional,
-    so rooms with thin data show only what they have.
-  • Room images now render — the card read `image_url` but the data is
-    `primary_image_url`; fixed to use primary_image_url. (This is why rooms
-    never showed images.)
-  • The card is leaner: the full amenity list moved into the modal, so the card
-    no longer repeats what "In every room" already shows.
+THE FIX
+  The room card has `overflow: hidden` and a hover `transform`. The modal was a
+  DOM child of the card, so it was being clipped by the card (sitting off,
+  cut edges) and trapped by the hover transform (the flickering on hover), and
+  never showed as a full-screen card.
+  RoomDetails now renders the modal through a React portal to document.body, so
+  it escapes the card and opens as a true centred full-screen overlay. Nothing
+  else changed.
 
-ALREADY LIVE IN THE DATABASE (no deploy needed)
-  • published_venue_rooms view extended with primary_image_url, outlook, and the
-    policy fields (max_occupancy, max_adults, max_children, children_permitted,
-    rollaway_beds, min_nights, min_nights_note, advance_notice_hours).
-  • Sacred Valley Retreat's two rooms populated with fuller descriptions, images,
-    richer amenities, and the policy fields, so the modal shows properly.
-
-Deploy: unzip → replace the three files → commit + push → Vercel builds.
+Deploy: unzip → replace the files → commit + push → Vercel builds.

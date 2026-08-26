@@ -1,6 +1,7 @@
 import { duration, money } from '@/lib/venue';
 import { AddToCart } from './BookingCart';
 import { RoomDetails } from './RoomDetails';
+import { RoomGallery } from './RoomGallery';
 
 export function Section({
   tone = 'white', label, title, subtitle, children, id,
@@ -330,11 +331,11 @@ export function RoomGrid({ rooms, ratePlans = [], currency = 'AUD' }: { rooms: a
     <div className="room-grid">
       {rooms.map((r) => (
         <article key={r.id} className="room-card">
-          <div className="room-card-image">
-            {(r.primary_image_url ?? r.image_url)
-              ? <img src={r.primary_image_url ?? r.image_url} alt={r.name} />
-              : <div className="placeholder-img">{r.name ?? 'Room'}</div>}
-          </div>
+          <RoomGallery
+            images={[r.primary_image_url ?? r.image_url, ...(r.image_urls ?? [])]
+              .filter((v: string | null, i: number, a: (string | null)[]): v is string => !!v && a.indexOf(v) === i)}
+            name={r.name ?? 'Room'}
+          />
           <div className="room-card-body">
             <h3 className="room-card-name">{r.name}</h3>
             <div className="room-card-meta">
