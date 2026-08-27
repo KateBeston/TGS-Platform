@@ -1,28 +1,14 @@
-TGS PLATFORM — Auto-advancing carousel on room cards + venue hero
-** Supersedes the earlier room-gallery/modal zips — deploy this one. **
+TGS PLATFORM — Promotional badges on cards + listing hero
+** Self-contained venue display. Supersedes the read-uploaded-images zip. **
 
-FILES (drop into the platform repo, overwrite):
-  components/venue/ImageCarousel.tsx  (NEW — shared carousel used by both)
-  components/venue/RoomGallery.tsx     (now a thin wrapper over ImageCarousel)
-  components/venue/WellnessVenue.tsx   (hero now uses the carousel)
-  components/venue/RetreatVenue.tsx    (hero now uses the carousel)
-  components/venue/RoomDetails.tsx     (modal via portal — unchanged)
-  components/venue/Section.tsx         (room card wiring — unchanged)
-  app/globals.css                      (carousel styles)
+NEW THIS ROUND
+  • Promotional badges (from venue_listings.promo_badges) render as pills:
+      - on the venue CARD, overlaid top-left on the image (first badge gold).
+      - on the listing HERO, beneath the location.
+  • lib/venues.ts Card type now includes promo_badges; VenueCard.tsx and both
+    venue components render them.
 
-WHAT'S NEW
-  • One shared carousel now powers the accommodation room cards AND the main
-    venue hero, so they look and behave identically.
-  • Auto-advance: gently slides to the next image every 12 seconds, and pauses
-    while the pointer is over it. Manual navigation restarts the timer.
-  • Elegant slide: each image fades and slides in over ~0.9s.
-  • Bottom-right frameless carousel (small squares + arrows) as before; leftmost
-    thumbnail is next; click any to bring it to the main.
-  • Hero keeps the venue type, name and location overlaid, and Save.
+Also includes the earlier work (uploaded-media images, the room/hero carousel,
+the room modal), so this is the complete current venue display.
 
-ALREADY LIVE IN THE DATABASE (no deploy needed)
-  • venues.image_urls (text[]) added and exposed via published_venues.
-  • Sacred Valley Retreat given four hero images (stock) so it shows.
-  (Rooms already had image_urls from the previous step.)
-
-Deploy: unzip → replace the files → commit + push → Vercel builds.
+DB already live: venue_cards view carries promo_badges.

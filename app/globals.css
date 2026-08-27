@@ -4049,3 +4049,10 @@ img { max-width: 100%; height: auto; display: block; }
 .ic-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ic-thumb:hover{transform:translateY(-2px)}
 @media(max-width:640px){.ic--hero .ic-thumb{width:48px;height:48px}}
+
+/* ═══════════ Promotional badges (card + hero) ═══════════ */
+.card-badges{position:absolute;top:12px;left:12px;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.card-badge{font-family:var(--sans);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--charcoal);background:rgba(253,252,249,.94);padding:5px 11px;box-shadow:0 2px 8px rgba(49,49,49,.14)}
+.card-badge:first-child{background:var(--gold);color:var(--warm-white)}
+.hero-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:6px}
+.hero-badge{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--warm-white);background:rgba(196,162,101,.92);padding:6px 14px}

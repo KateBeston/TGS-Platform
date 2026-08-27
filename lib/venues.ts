@@ -36,6 +36,7 @@ export type Card = {
   editor_note: string | null;
   /** What the venue is in, not what it is near. */
   tags: string[] | null;
+  promo_badges: string[] | null;
   price_from: number | null;
   price_currency: string | null;
   price_unit: string | null;

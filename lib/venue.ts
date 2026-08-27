@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -73,6 +73,8 @@ export async function loadVenue(marketplace: string, slug: string) {
         .order('display_order', { nullsFirst: false }),
       supabase.from('published_venue_rate_plans').select('*').eq('venue_id', id),
       supabase.from('published_venue_extras').select('*').eq('venue_id', id),
+      supabase.from('published_venue_media').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -85,14 +87,48 @@ export async function loadVenue(marketplace: string, slug: string) {
     relatedCards = (rc ?? []).sort((a: any, b: any) => (Number(order.get(a.id) ?? 0)) - (Number(order.get(b.id) ?? 0)));
   }
 
+  // ── Images. Uploaded media (from the portal) is the source of truth; the
+  // stock image_url / image_urls columns are the fallback for venues that
+  // have not uploaded yet, so nothing breaks in the meantime.
+  const mediaRows = (media.data ?? []) as any[];
+  const uniq = (arr: (string | null | undefined)[]) =>
+    arr.filter((v, i, a): v is string => !!v && a.indexOf(v) === i);
+
+  const heroUploaded = uniq(
+    mediaRows
+      .filter((m) => m.placement_key === 'hero_primary' || m.placement_key === 'hero_gallery')
+      .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0)
+        || (a.display_order ?? 0) - (b.display_order ?? 0))
+      .map((m) => m.url),
+  );
+  const cardAny = card as Record<string, any>;
+  const venueAny = (venue.data ?? {}) as Record<string, any>;
+  const heroImages = heroUploaded.length
+    ? heroUploaded
+    : uniq([cardAny.image_url, venueAny.primary_image_url, ...(venueAny.image_urls ?? [])]);
+
+  const roomsWithImages = ((rooms.data ?? []) as any[]).map((r) => {
+    const uploaded = uniq(
+      mediaRows
+        .filter((m) => m.placement_key === 'room_card' && m.room_type_id === r.id)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+        .map((m) => m.url),
+    );
+    const gallery_images = uploaded.length
+      ? uploaded
+      : uniq([r.primary_image_url, ...(r.image_urls ?? [])]);
+    return { ...r, gallery_images };
+  });
+
   return {
     ...(card as Record<string, any>),
     ...((venue.data ?? {}) as Record<string, any>),
+    hero_images: heroImages,
     // Host and languages, from the profile view. The host block is already
     // gated in the view — it is null unless the venue chose to show it.
     ...((profile.data ?? {}) as Record<string, any>),
     spaces: spaces.data ?? [],
-    rooms: rooms.data ?? [],
+    rooms: roomsWithImages,
     services: services.data ?? [],
     facilities: facilities.data ?? [],
     settings: settings.data ?? [],

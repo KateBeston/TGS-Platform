@@ -67,8 +67,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
   return (
     <>
       <ImageCarousel
-        images={[v.image_url, ...(v.image_urls ?? [])].filter(
-          (s: string | null, i: number, a: (string | null)[]): s is string => !!s && a.indexOf(s) === i)}
+        images={v.hero_images ?? []}
         alt={v.venue_name}
         variant="hero"
       >
@@ -77,6 +76,11 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-eyebrow">{v.venue_type}</div>
           <h1 className="hero-venue-name">{v.headline ?? v.venue_name}</h1>
           <div className="hero-location">{place}</div>
+          {!!(v.promo_badges?.length) && (
+            <div className="hero-badges">
+              {v.promo_badges.map((b: string) => <span key={b} className="hero-badge">{b}</span>)}
+            </div>
+          )}
           <div className="hero-save"><FavouriteButton venueId={v.id} variant="hero" /> Save</div>
         </div>
       </ImageCarousel>

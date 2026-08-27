@@ -331,11 +331,7 @@ export function RoomGrid({ rooms, ratePlans = [], currency = 'AUD' }: { rooms: a
     <div className="room-grid">
       {rooms.map((r) => (
         <article key={r.id} className="room-card">
-          <RoomGallery
-            images={[r.primary_image_url ?? r.image_url, ...(r.image_urls ?? [])]
-              .filter((v: string | null, i: number, a: (string | null)[]): v is string => !!v && a.indexOf(v) === i)}
-            name={r.name ?? 'Room'}
-          />
+          <RoomGallery images={r.gallery_images ?? []} name={r.name ?? 'Room'} />
           <div className="room-card-body">
             <h3 className="room-card-name">{r.name}</h3>
             <div className="room-card-meta">

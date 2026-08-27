@@ -70,12 +70,18 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
   const blurb = card.listing_description ?? card.venue_short_description;
   const name = card.headline ?? card.venue_name;
   const tags = (card.tags ?? []) as string[];
+  const badges = (card.promo_badges ?? []) as string[];
 
   const image = (
     <div className={`${['premium','featured','standard','essentials'][size - 1]}-card-image`}>
       {card.image_url
         ? <img src={card.image_url} alt="" loading="lazy" />
         : <span className="placeholder-img">The Global Sanctum</span>}
+      {badges.length > 0 && (
+        <div className="card-badges">
+          {badges.slice(0, 3).map((b) => <span key={b} className="card-badge">{b}</span>)}
+        </div>
+      )}
       <FavouriteButton venueId={card.id} variant="card" />
     </div>
   );
