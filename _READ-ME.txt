@@ -1,21 +1,33 @@
-TGS PLATFORM — Fix booking drawer clipping / can't minimise
+TGS PLATFORM — Booking sidebar rebuilt as a clean slide-in box (Stage 1)
+** Self-contained venue display. Supersedes the previous platform zip. **
 
-FILE (overwrite): app/globals.css
+WHAT CHANGED (components/venue/BookingCart.tsx + globals.css)
+  The old full-height slide-in drawer is gone. In its place:
 
-THE BUG
-  The booking drawer was positioned at top:0 with z-index:70, but the sticky
-  site header is z-index:100. So the drawer's header — the "Your booking" title
-  with the maximise and MINIMISE (–) controls — rendered BEHIND the site header
-  and couldn't be seen or clicked. That's why it wouldn't minimise, and why it
-  looked cut off at the top.
+  • A clean FLOATING BOX that tucks away to a small "Your booking" trigger
+    bottom-right, and slides in when tapped (–, tuck away / ⤢, expand). It sits
+    below the header, inset from the edges, as a bordered card with a shadow —
+    never overlapping the hero, never clipped. Your page layout is untouched
+    (full-width bands, hero, tabs all exactly as before).
 
-THE FIX (one rule, .bc-drawer)
-  top: 0            → top: 76px               (drops below the 76px header)
-  height: 100vh     → height: calc(100dvh - 76px)   (fits the space below it,
-                                                      dvh so mobile browser
-                                                      chrome doesn't clip the foot)
-  The drawer head, controls and footer are now all visible; minimise works.
+  • OVERVIEW at the top of the box — a short summary and the feature icons the
+    product receives (minimum stay, whole-venue buyout, and cancellation /
+    confirmation once that data is wired). Then YOUR BOOKING: dates, guests,
+    and the cart grouped by type — Accommodation / Wellness services / Room
+    extras — each line with a stepper and price, then the estimate and actions.
 
-Note: the bottom-right "Booking" pill is the drawer's MINIMISED state, not a
-stray button. Now that minimise is reachable again, clicking – returns to it.
-The larger Luxury-Escapes-style booking flow is a separate future piece.
+  • WHOLE-VENUE BUYOUT is now a RETREAT-ONLY toggle: RetreatVenue passes
+    allowBuyout; WellnessVenue does not, so wellness venues never show it.
+
+WIRING (RetreatVenue.tsx / WellnessVenue.tsx)
+  Both now pass minStayNights + summary; RetreatVenue also passes allowBuyout.
+
+Nothing here touches the database or money. The "Review booking" button is
+still inert — it becomes the hand-off to the cart page in the next stage.
+
+NEXT STAGES: cart/review page → checkout (guest details + Société upsell) →
+payment (Stripe test mode, then Andrew/Jeremy/security gate).
+
+FLAGGED: the Overview's cancellation + confirmation lines only appear once the
+venue's cancellation policy + booking-settings (instant vs request) are passed
+in — a small follow-up. Right now you'll see summary + min stay + buyout.

@@ -38,6 +38,11 @@ function money(amount: number, currency: string | null): string {
   } catch { return `${currency || 'AUD'} ${Math.round(amount)}`; }
 }
 
+const IcClock = () => <svg className="bc-fi" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
+const IcLock = () => <svg className="bc-fi" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="10" /><path d="M6 10V7a6 6 0 0112 0v3" /></svg>;
+const IcShield = () => <svg className="bc-fi" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z" /></svg>;
+const IcBolt = () => <svg className="bc-fi" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>;
+
 function Stepper({ value, min, max, onChange }: { value: number; min: number; max: number; onChange: (n: number) => void }) {
   return (
     <div className="bb-stepper">
@@ -61,10 +66,13 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', children,
+  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '',
+  allowBuyout = false, minStayNights = null, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
-  venueName?: string; location?: string; children: ReactNode;
+  venueName?: string; location?: string; allowBuyout?: boolean; minStayNights?: number | null;
+  summary?: string | null; confirmation?: string | null; cancellation?: string | null;
+  children: ReactNode;
 }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -74,7 +82,7 @@ export function BookingCart({
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
   const [drawer, setDrawer] = useState<Drawer>('min');
   const [buyout, setBuyout] = useState(false);
-  const buyoutPlan = ratePlans.find((rp) => rp.applies_to === 'Whole Venue');
+  const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;
 
   const nights = useMemo(() => {
     if (!from || !to || to <= from) return 0;
@@ -170,113 +178,109 @@ export function BookingCart({
 
   const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout };
 
+  const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
+  if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });
+  if (allowBuyout && buyoutPlan) features.push({ icon: <IcLock />, label: 'Whole-venue buyout available' });
+  if (cancellation) features.push({ icon: <IcShield />, label: cancellation });
+  if (confirmation) features.push({ icon: <IcBolt />, label: confirmation });
+
+  const GROUP_LABEL: Record<string, string> = { room: 'Accommodation', exp: 'Wellness services', extra: 'Room extras' };
+  const groups = (['room', 'exp', 'extra'] as Kind[])
+    .map((k) => ({ key: k, label: GROUP_LABEL[k], items: lines.filter((l) => l.kind === k) }))
+    .filter((g) => g.items.length > 0);
+
   return (
     <CartCtx.Provider value={value}>
-      <div className={`bc-wrap bc-${drawer}`}>{children}</div>
+      {children}
 
-      {/* Minimised: a quiet pill */}
-      <button type="button" className="bc-pill" onClick={() => setDrawer('open')} aria-label="Open booking" hidden={drawer !== 'min'}>
-        <span className="bc-pill-label">Booking</span>
-        <span className="bc-pill-meta">{count > 0 ? `${count} · ${money(total, currency)}` : 'Start'}</span>
+      {/* Tucked away: a quiet trigger, bottom-right */}
+      <button type="button" className="bc-trigger" onClick={() => setDrawer('open')} aria-label="Open booking" hidden={drawer !== 'min'}>
+        <span className="bc-trigger-label">Your booking</span>
+        <span className="bc-trigger-meta">{count > 0 ? `${count} · ${money(total, currency)}` : 'Start'}</span>
       </button>
 
-      {/* Drawer */}
-      <aside className={`bc-drawer bc-drawer-${drawer}`} aria-label="Your booking">
-        <div className="bc-drawer-head">
-          <span className="bc-drawer-title">Your booking</span>
-          <div className="bc-drawer-controls">
-            <button type="button" onClick={() => setDrawer(drawer === 'max' ? 'open' : 'max')} aria-label={drawer === 'max' ? 'Restore' : 'Maximise'}>
-              {drawer === 'max' ? '⤡' : '⤢'}
-            </button>
-            <button type="button" onClick={() => setDrawer('min')} aria-label="Minimise">–</button>
-          </div>
-        </div>
-
-        <div className="bc-drawer-body">
-          <div className="bc-dates">
-            <label className="bb-field"><span>Arrival</span><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-            <label className="bb-field"><span>Departure</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
-            <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
+      {/* The floating booking box */}
+      {drawer !== 'min' && (
+        <aside className={`bc-box bc-box-${drawer}`} aria-label="Your booking">
+          <div className="bc-box-head">
+            <span className="bc-box-title">Your booking</span>
+            <div className="bc-box-controls">
+              <button type="button" onClick={() => setDrawer(drawer === 'max' ? 'open' : 'max')} aria-label={drawer === 'max' ? 'Restore' : 'Expand'}>{drawer === 'max' ? '⤡' : '⤢'}</button>
+              <button type="button" onClick={() => setDrawer('min')} aria-label="Tuck away">–</button>
+            </div>
           </div>
 
-          {buyoutPlan && (
-            <div className="bc-buyout">
-              <div className="bc-buyout-head">How to book</div>
-              <button type="button" className={`bc-opt${!buyout ? ' on' : ''}`} onClick={() => setBuyout(false)}>
-                <span className="bc-opt-row">
-                  <span className="bc-opt-name">Room by room</span>
-                  <span className="bc-opt-price">{roomEstimate != null ? `from ${money(roomEstimate, currency)}` : 'Choose rooms'}</span>
-                </span>
-                {roomEstimate != null && <span className="bc-opt-pp">{money(roomEstimate / guestN, currency)} per person</span>}
-                {bestValue === 'rooms' && <span className="bc-best">Best value for your group</span>}
-              </button>
-              <button type="button" className={`bc-opt${buyout ? ' on' : ''}`} onClick={selectBuyout}>
-                <span className="bc-opt-row">
-                  <span className="bc-opt-name">Whole venue</span>
-                  <span className="bc-opt-price">{buyoutTotal != null ? money(buyoutTotal, currency) : 'Add dates'}</span>
-                </span>
-                {buyoutTotal != null && <span className="bc-opt-pp">{money(buyoutTotal / guestN, currency)} per person</span>}
-                {bestValue === 'buyout' && <span className="bc-best">Best value for your group</span>}
-                <span className="bc-opt-note">Exclusive use of all {rooms.length} room{rooms.length === 1 ? '' : 's'} and every space</span>
-              </button>
-              {buyout && rooms.length > 0 && (
-                <div className="bc-included-rooms">
-                  <div className="bc-included-label">What&rsquo;s included</div>
-                  {rooms.map((r) => (
-                    <div key={r.id} className="bc-incl">
-                      <span className="bc-incl-name">{r.name}</span>
-                      <span className="bc-incl-detail">{[r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · ')}</span>
-                      {r.room_amenities?.length ? <span className="bc-incl-am">{r.room_amenities.join(' · ')}</span> : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="bc-box-body">
+            {(summary || features.length > 0) && (
+              <div className="bc-ov">
+                <div className="bc-ov-h">Overview</div>
+                {summary && <p className="bc-ov-desc">{summary}</p>}
+                {features.map((f, i) => <div key={i} className="bc-feat">{f.icon}<span>{f.label}</span></div>)}
+                <hr className="bc-rule strong" />
+              </div>
+            )}
 
-          {extras.length > 0 && (
-            <div className="bc-extras">
-              <div className="bc-extras-label">Extras</div>
-              {extras.map((e) => (
-                <div key={e.id} className="bb-row">
-                  <div className="bb-row-main">
-                    <span className="bb-row-name">{e.name}</span>
-                    <span className="bb-row-detail">{[e.extra_category, e.price_basis].filter(Boolean).join(' · ')}</span>
-                    <span className="bb-row-price">{e.price != null ? money(Number(e.price), currency) : 'Price on request'}</span>
-                  </div>
-                  <Stepper value={extraQty[e.id] ?? 0} min={0} max={e.maximum_quantity ?? 20} onChange={(n) => setExtraQty({ ...extraQty, [e.id]: n })} />
-                </div>
-              ))}
+            <div className="bc-bk-h">Your booking</div>
+            <div className="bc-dates">
+              <label className="bb-field"><span>Arrival</span><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+              <label className="bb-field"><span>Departure</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+              <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
             </div>
-          )}
 
-          {count === 0 && <p className="bb-empty">Nothing added yet. Choose rooms and experiences from the tabs, or extras above.</p>}
-          {count > 0 && (
-            <ul className="bc-lines">
-              {lines.map((l) => (
-                <li key={l.key} className="bc-line">
-                  <span className="bc-line-what"><span>{l.label}</span><span className="bc-line-sub">{l.detail}</span></span>
-                  <span className="bc-line-right">
-                    {l.key === 'buyout' ? null : <Stepper value={l.qty} min={0} max={l.max} onChange={(n) => setQty(l.kind, l.id, n)} />}
-                    <span className="bc-line-amt">{l.amount != null ? money(l.amount, currency) : '—'}</span>
+            {allowBuyout && buyoutPlan && (
+              <div className="bc-buyout">
+                <div className="bc-buyout-head">How to book</div>
+                <button type="button" className={`bc-opt${!buyout ? ' on' : ''}`} onClick={() => setBuyout(false)}>
+                  <span className="bc-opt-row">
+                    <span className="bc-opt-name">Room by room</span>
+                    <span className="bc-opt-price">{roomEstimate != null ? `from ${money(roomEstimate, currency)}` : 'Choose rooms'}</span>
                   </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  {roomEstimate != null && <span className="bc-opt-pp">{money(roomEstimate / guestN, currency)} per person</span>}
+                  {bestValue === 'rooms' && <span className="bc-best">Best value for your group</span>}
+                </button>
+                <button type="button" className={`bc-opt${buyout ? ' on' : ''}`} onClick={selectBuyout}>
+                  <span className="bc-opt-row">
+                    <span className="bc-opt-name">Whole venue</span>
+                    <span className="bc-opt-price">{buyoutTotal != null ? money(buyoutTotal, currency) : 'Add dates'}</span>
+                  </span>
+                  {buyoutTotal != null && <span className="bc-opt-pp">{money(buyoutTotal / guestN, currency)} per person</span>}
+                  {bestValue === 'buyout' && <span className="bc-best">Best value for your group</span>}
+                  <span className="bc-opt-note">Exclusive use of all {rooms.length} room{rooms.length === 1 ? '' : 's'} and every space</span>
+                </button>
+              </div>
+            )}
 
-        <div className="bc-drawer-foot">
-          <div className="bc-total"><span>Estimated total</span><span>{money(total, currency)}</span></div>
-          {anyUnpriced && <p className="bb-note">Some items are priced on request and are not in this estimate.</p>}
-          <div className="bc-actions">
-            <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
-            <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
-            <button type="button" className="bb-btn bb-btn-primary" disabled>Book</button>
+            {count === 0 && <p className="bb-empty">Nothing added yet. Choose rooms and experiences from the tabs, and they&rsquo;ll collect here.</p>}
+            {count > 0 && groups.map((g) => (
+              <div key={g.key} className="bc-grp">
+                <div className="bc-grp-h">{g.label}</div>
+                <ul className="bc-lines">
+                  {g.items.map((l) => (
+                    <li key={l.key} className="bc-line">
+                      <span className="bc-line-what"><span>{l.label}</span><span className="bc-line-sub">{l.detail}</span></span>
+                      <span className="bc-line-right">
+                        {l.key === 'buyout' ? null : <Stepper value={l.qty} min={0} max={l.max} onChange={(n) => setQty(l.kind, l.id, n)} />}
+                        <span className="bc-line-amt">{l.amount != null ? money(l.amount, currency) : '—'}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed when you request to book.</p>
-        </div>
-      </aside>
+
+          <div className="bc-box-foot">
+            <div className="bc-total"><span>Estimated total</span><span>{money(total, currency)}</span></div>
+            {anyUnpriced && <p className="bb-note">Some items are priced on request and are not in this estimate.</p>}
+            <div className="bc-actions">
+              <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
+              <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
+              <button type="button" className="bb-btn bb-btn-primary" disabled>Review booking</button>
+            </div>
+            <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
+          </div>
+        </aside>
+      )}
     </CartCtx.Provider>
   );
 }
