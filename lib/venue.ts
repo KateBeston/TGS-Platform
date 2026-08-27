@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -75,6 +75,9 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('published_venue_extras').select('*').eq('venue_id', id),
       supabase.from('published_venue_media').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
+      supabase.from('cancellation_policies')
+        .select('id, wording, deposit_is_refundable, cancellation_rules(days_before_arrival, refund_percent, sequence, description)')
+        .eq('venue_id', id).eq('is_active', true).eq('is_default', true).maybeSingle(),
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -120,6 +123,16 @@ export async function loadVenue(marketplace: string, slug: string) {
     return { ...r, gallery_images };
   });
 
+  // Cancellation — the free-cancellation window is the widest days_before_arrival
+  // that still gives a full (100%) refund. Drives "Free cancellation until X"
+  // from real per-venue tiers rather than a hardcoded string.
+  const cpData = (cancellationPolicy.data ?? null) as any;
+  const cpRules = (cpData?.cancellation_rules ?? []) as any[];
+  const fullRefundDays = cpRules
+    .filter((r) => Number(r.refund_percent) >= 100 && r.days_before_arrival != null)
+    .map((r) => Number(r.days_before_arrival));
+  const free_cancellation_days = fullRefundDays.length ? Math.max(...fullRefundDays) : null;
+
   return {
     ...(card as Record<string, any>),
     ...((venue.data ?? {}) as Record<string, any>),
@@ -148,6 +161,8 @@ export async function loadVenue(marketplace: string, slug: string) {
     promotions: promotions.data ?? [],
     rate_plans: ratePlans.data ?? [],
     extras: extras.data ?? [],
+    free_cancellation_days,
+    cancellation_wording: cpData?.wording ?? null,
     marketplaceSegment: marketplace,
   } as Venue;
 }

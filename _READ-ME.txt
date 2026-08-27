@@ -1,36 +1,35 @@
-TGS PLATFORM — Cart-event tracking (Phase 1) + holistic cart/checkout
-=====================================================================
-CUMULATIVE zip: includes the holistic cart + checkout from last time, plus
-the behavioural tracking layer. Drop over the matching files. New files:
-app/checkout/page.tsx, app/api/cart-event/route.ts.
+TGS PLATFORM — Cancellation facility (platform side) + cart/checkout + tracking
+================================================================================
+CUMULATIVE zip: holistic cart + checkout + cart-event tracking + the new
+cancellation label. Drop over matching files. New: app/checkout/page.tsx,
+app/api/cart-event/route.ts.
 
-** DATABASE IS ALREADY LIVE ** — the cart_events table, indexes and RLS were
-applied straight to Supabase (project qvriwjipnradsbilepyd). You do NOT run any
-SQL. This zip is only the code that writes to it.
+** DATABASE ALREADY LIVE ** (project qvriwjipnradsbilepyd) — you run no SQL:
+  • cancellation_rules gained policy_id (FK to cancellation_policies) + indexes.
+  • The duplicate jsonb cancellation_policies.tiers was retired — the structured
+    tiers in cancellation_rules (days_before_arrival + refund_percent) are now
+    the single source of truth.
+  • The 9 live venues were seeded a default policy + 3 tiers:
+        100% refund until 30 days before, 50% until 14, 0% thereafter.
+  • Anon can read ACTIVE policies + their tiers (terms are public-facing).
 
-TRACKING (Phase 1 — capture only)
-  lib/track.ts               — adds trackCartEvent() alongside the existing
-      GTM track()/trackOnce(). Fire-and-forget POST to /api/cart-event, sharing
-      the page-view session id (sessionStorage 'tgs_sid') so the funnel joins.
-  app/api/cart-event/route.ts (NEW) — validates event_type + item_type, sets
-      user_id from the AUTH SESSION server-side (never trusted from the client),
-      writes one cart_events row. Mirrors /api/pageview; never breaks a page.
-  BookingCart.tsx  — fires 'add' / 'remove' / 'quantity_change' with the venue
-      and item, via a new venueId prop.
-  RetreatVenue/WellnessVenue.tsx — pass venueId to the sidebar.
-  app/booking/page.tsx — fires 'cart_view' on load and 'checkout_start' on
-      Checkout now.
+PLATFORM CHANGES
+  lib/venue.ts  — loads each venue's active default policy + tiers and computes
+      free_cancellation_days (the widest full-refund window). Exposed on the
+      venue as free_cancellation_days + cancellation_wording.
+  BookingCart.tsx + RetreatVenue/WellnessVenue.tsx — pass freeCancelDays; the
+      cart slice carries it so the label stays accurate if dates change.
+  app/booking/page.tsx + app/checkout/page.tsx — render a DATE-AWARE label:
+      • with a stay date:  "Free cancellation until 15 Oct 2026" (arrival − N)
+      • no date yet:       "Free cancellation up to 30 days before arrival"
+      • inside the window: "Cancellation policy applies"
+      • no policy:         nothing (never an invented claim)
 
-WHAT IT CAPTURES: viewed (page_views) → add / remove / quantity_change →
-cart_view → checkout_start, keyed by session_id (+ user_id when logged in) and
-stamped with venue_id. Joins to page_views (session_id) and enquiries (demand)
-for Sanctum Institute and venue reporting.
-
-ANALYTICS ONLY: cart_events is never the financial record of a booking. The
-'book' event exists for the funnel but is a marker, not money — the authoritative
-order is created server-side (the next build).
-
-NOT YET (by design): reporting surfaces (VMS funnel + Institute) = Phase 2 of
-analytics; abandoned-cart recovery emails = held behind account-level consent
-wording (Jeremy). The order write path (real orders/bookings/booking_items,
-test mode) is the next build.
+STILL TO DO
+  • PORTAL editor — the structured per-venue tier editor (add/reorder tiers,
+    deposit refundability, wording) lives in the portal repo, which isn't in
+    this zip. Send me the portal repo and I'll build it, or I'll hand you the
+    component to paste in. This is what lets you change a venue's policy without SQL.
+  • Default tiers (100/30, 50/14, 0/after) are seeded; adjust per venue once the
+    editor exists.
+  • Jeremy signs the consumer-facing wording before go-live.

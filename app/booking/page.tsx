@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { trackCartEvent } from '@/lib/track';
 
 type Item = { key: string; kind: string; id: number; label: string; detail: string; qty: number; max: number; amount: number | null; unit: number | null; image: string | null; eyebrow: string; qtyLabel: string };
-type VenueSlice = { venueName: string; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; backHref: string; items: Item[]; total: number };
+type VenueSlice = { venueName: string; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 
 function money(a: number | null, c: string | null): string {
@@ -17,6 +17,17 @@ function money(a: number | null, c: string | null): string {
 function fmtDate(s: string) { if (!s) return null; try { return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return s; } }
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 function isPast(f: string) { if (!f) return false; const d = new Date(f); return !isNaN(d.getTime()) && d < startOfToday(); }
+function cancellationLabel(freeCancelDays: number | null, from: string): string | null {
+  if (freeCancelDays == null) return null;
+  if (from) {
+    const d = new Date(from); if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() - freeCancelDays);
+      if (d >= startOfToday()) return `Free cancellation until ${fmtDate(d.toISOString())}`;
+      return 'Cancellation policy applies';
+    }
+  }
+  return `Free cancellation up to ${freeCancelDays} days before arrival`;
+}
 
 export default function CartPage() {
   const router = useRouter();
@@ -99,7 +110,7 @@ export default function CartPage() {
                       <div className="cv-item-main">
                         <div className="cv-eyebrow">{it.eyebrow}</div>
                         <div className="cv-item-name">{it.label}</div>
-                        <div className="cv-item-detail">{[it.detail, v.cancellation].filter(Boolean).join(' · ')}</div>
+                        <div className="cv-item-detail">{[it.detail, cancellationLabel(v.freeCancelDays, v.from)].filter(Boolean).join(' · ')}</div>
                       </div>
                       <div className="cv-item-r">
                         {it.qtyLabel && !past && it.key !== 'buyout' && (

@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
-type VenueSlice = { venueName: string; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; backHref: string; items: Item[]; total: number };
+type VenueSlice = { venueName: string; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 type Contact = { first: string; last: string; email: string; phone: string };
 
 function money(a: number | null, c: string | null) { if (a == null) return '—'; try { return new Intl.NumberFormat('en-AU', { style: 'currency', currency: c || 'AUD', maximumFractionDigits: 0 }).format(a); } catch { return `${c || 'AUD'} ${Math.round(a)}`; } }
 function fmtDate(s: string) { if (!s) return null; try { return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return s; } }
+const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+function cancellationLabel(freeCancelDays: number | null, from: string): string | null {
+  if (freeCancelDays == null) return null;
+  if (from) { const d = new Date(from); if (!isNaN(d.getTime())) { d.setDate(d.getDate() - freeCancelDays); if (d >= startOfToday()) return `Free cancellation until ${fmtDate(d.toISOString())}`; return 'Cancellation policy applies'; } }
+  return `Free cancellation up to ${freeCancelDays} days before arrival`;
+}
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<Cart | null>(null);
@@ -47,7 +53,7 @@ export default function CheckoutPage() {
                 <div className="cv-nest">
                   {v.items.map((it) => (
                     <div key={it.key} className="cv-item">
-                      <div className="cv-item-main"><div className="cv-eyebrow">{it.eyebrow}</div><div className="cv-item-name">{it.label}</div><div className="cv-item-detail">{[it.qty > 1 ? `×${it.qty}` : null, it.detail, v.cancellation].filter(Boolean).join(' · ')}</div></div>
+                      <div className="cv-item-main"><div className="cv-eyebrow">{it.eyebrow}</div><div className="cv-item-name">{it.label}</div><div className="cv-item-detail">{[it.qty > 1 ? `×${it.qty}` : null, it.detail, cancellationLabel(v.freeCancelDays, v.from)].filter(Boolean).join(' · ')}</div></div>
                       <div className="cv-item-r"><div className="cv-price"><span className="cv-now">{money(it.amount, v.currency)}</span></div></div>
                     </div>
                   ))}

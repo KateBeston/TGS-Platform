@@ -68,11 +68,11 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null,
+  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
   allowBuyout = false, minStayNights = null, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
-  venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; allowBuyout?: boolean; minStayNights?: number | null;
+  venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
   children: ReactNode;
 }) {
@@ -230,7 +230,7 @@ export function BookingCart({
       if (!cart.venues) cart.venues = {};
       if (count > 0) {
         cart.venues[key] = {
-          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, backHref: key,
+          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, freeCancelDays, backHref: key,
           items: lines.map((l) => ({ key: l.key, kind: l.kind, id: l.id, label: l.label, detail: l.detail, qty: l.qty, max: l.max, amount: l.amount, unit: l.unit, image: l.image, eyebrow: l.eyebrow, qtyLabel: l.qtyLabel })),
           total,
         };
@@ -240,7 +240,7 @@ export function BookingCart({
       cart.savedAt = Date.now();
       localStorage.setItem('tgs_cart', JSON.stringify(cart));
     } catch { /* storage unavailable — the sidebar still works */ }
-  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, total, count]);
+  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, freeCancelDays, total, count]);
 
   const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
   if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });
