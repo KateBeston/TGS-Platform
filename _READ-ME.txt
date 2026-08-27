@@ -1,12 +1,21 @@
-TGS PLATFORM — Dynamic accommodation subtitle
-** Self-contained venue display. Supersedes the promo-badges zip. **
+TGS PLATFORM — Fix booking drawer clipping / can't minimise
 
-CHANGE
-  lib/venue.ts adds roomSummary(): the accommodation subtitle is worked out from
-  the rooms with correct singular/plural —
-    "12 rooms across 2 types", "5 rooms across 6 types",
-    "8 rooms" (single type), "1 room" (singular).
-  RetreatVenue.tsx uses it in place of the old hardcoded "N rooms across M types".
+FILE (overwrite): app/globals.css
 
-Also includes the earlier venue-display work (promo badges, uploaded-media
-images, room/hero carousel, room modal).
+THE BUG
+  The booking drawer was positioned at top:0 with z-index:70, but the sticky
+  site header is z-index:100. So the drawer's header — the "Your booking" title
+  with the maximise and MINIMISE (–) controls — rendered BEHIND the site header
+  and couldn't be seen or clicked. That's why it wouldn't minimise, and why it
+  looked cut off at the top.
+
+THE FIX (one rule, .bc-drawer)
+  top: 0            → top: 76px               (drops below the 76px header)
+  height: 100vh     → height: calc(100dvh - 76px)   (fits the space below it,
+                                                      dvh so mobile browser
+                                                      chrome doesn't clip the foot)
+  The drawer head, controls and footer are now all visible; minimise works.
+
+Note: the bottom-right "Booking" pill is the drawer's MINIMISED state, not a
+stray button. Now that minimise is reachable again, clicking – returns to it.
+The larger Luxury-Escapes-style booking flow is a separate future piece.
