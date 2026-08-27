@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 /* The booking drawer.
  *
@@ -178,6 +179,25 @@ export function BookingCart({
 
   const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout };
 
+  const router = useRouter();
+  // Keep a resolved snapshot of the booking in the browser so the review page
+  // can read it after navigation. One venue per order: this overwrites.
+  useEffect(() => {
+    try {
+      if (count > 0) {
+        const snapshot = {
+          venueName, location, currency, from, to, guests, buyout,
+          backHref: typeof window !== 'undefined' ? window.location.pathname : '/',
+          items: lines.map((l) => ({ key: l.key, kind: l.kind, label: l.label, detail: l.detail, qty: l.qty, amount: l.amount })),
+          total, savedAt: Date.now(),
+        };
+        localStorage.setItem('tgs_booking', JSON.stringify(snapshot));
+      } else {
+        localStorage.removeItem('tgs_booking');
+      }
+    } catch { /* storage unavailable — the sidebar still works, review just won't populate */ }
+  }, [lines, from, to, guests, buyout, venueName, location, currency, total, count]);
+
   const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
   if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });
   if (allowBuyout && buyoutPlan) features.push({ icon: <IcLock />, label: 'Whole-venue buyout available' });
@@ -275,7 +295,7 @@ export function BookingCart({
             <div className="bc-actions">
               <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
               <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
-              <button type="button" className="bb-btn bb-btn-primary" disabled>Review booking</button>
+              <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0}>Review booking</button>
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
           </div>
