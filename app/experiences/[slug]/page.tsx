@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getExperience, experienceImage, experiencePlace } from '@/lib/bookingExperiences';
+import ExperienceBooking from '@/components/venue/ExperienceBooking';
 
 export const dynamic = 'force-dynamic';
 
@@ -103,10 +104,7 @@ export default async function ExperienceDetail({ params }: Params) {
 
           <section className="xd-sect" id="availability">
             <h2>Availability &amp; booking</h2>
-            <div className="xd-avail-placeholder">
-              <p>Choose your date and time, see how many places remain, and reserve or add to your cart.</p>
-              <p className="xd-avail-note">The live availability calendar opens as this venue publishes its sessions.</p>
-            </div>
+            <p className="xd-prose">Choose a preferred date, time and party size, and add it to your booking. You send everything as one request; the venue confirms your time. Live session availability opens as this venue publishes its calendar.</p>
           </section>
         </div>
 
@@ -119,8 +117,12 @@ export default async function ExperienceDetail({ params }: Params) {
               </div>
             )}
 
-            <a href="#availability" className="xd-btn xd-btn-primary">Check availability</a>
-            <button className="xd-btn xd-btn-ghost" disabled title="Gifting is coming soon">Give as a gift</button>
+            <ExperienceBooking
+              id={e.id} name={e.name} basePrice={e.base_price} currency={e.currency}
+              durationMinutes={e.duration_minutes} maxParticipants={e.max_participants}
+              venueName={e.venue_name} venueId={e.venue_id} listingSlug={e.listing_slug}
+              marketplace={e.marketplace} image={img} place={place}
+            />
 
             {facts.length > 0 && (
               <dl className="xd-facts">

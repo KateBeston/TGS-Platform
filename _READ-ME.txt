@@ -1,35 +1,23 @@
-TGS PLATFORM — Cancellation facility (platform side) + cart/checkout + tracking
-================================================================================
-CUMULATIVE zip: holistic cart + checkout + cart-event tracking + the new
-cancellation label. Drop over matching files. New: app/checkout/page.tsx,
-app/api/cart-event/route.ts.
+TGS PLATFORM — Experience booking control (booking process, piece 1 of 3)
+=========================================================================
+Drop over matching files. New: components/venue/ExperienceBooking.tsx.
 
-** DATABASE ALREADY LIVE ** (project qvriwjipnradsbilepyd) — you run no SQL:
-  • cancellation_rules gained policy_id (FK to cancellation_policies) + indexes.
-  • The duplicate jsonb cancellation_policies.tiers was retired — the structured
-    tiers in cancellation_rules (days_before_arrival + refund_percent) are now
-    the single source of truth.
-  • The 9 live venues were seeded a default policy + 3 tiers:
-        100% refund until 30 days before, 50% until 14, 0% thereafter.
-  • Anon can read ACTIVE policies + their tiers (terms are public-facing).
+WHAT THIS DOES
+  The experience detail page (/experiences/[slug]) had a booking PLACEHOLDER.
+  It now has a real request-to-book control in the sidebar:
+    • preferred date, time of day, guests (stepper), estimated total
+    • "Add to booking" adds the experience to the SAME holistic cart as rooms,
+      filed under the experience's own venue (/{marketplace}/{listing_slug}),
+      so an experience sits beside that venue's rooms in one booking
+    • confirmation state with "Review booking" (to /booking) and "Add another time"
+    • fires the cart-event tracking you already capture
 
-PLATFORM CHANGES
-  lib/venue.ts  — loads each venue's active default policy + tiers and computes
-      free_cancellation_days (the widest full-refund window). Exposed on the
-      venue as free_cancellation_days + cancellation_wording.
-  BookingCart.tsx + RetreatVenue/WellnessVenue.tsx — pass freeCancelDays; the
-      cart slice carries it so the label stays accurate if dates change.
-  app/booking/page.tsx + app/checkout/page.tsx — render a DATE-AWARE label:
-      • with a stay date:  "Free cancellation until 15 Oct 2026" (arrival − N)
-      • no date yet:       "Free cancellation up to 30 days before arrival"
-      • inside the window: "Cancellation policy applies"
-      • no policy:         nothing (never an invented claim)
+WHY REQUEST-TO-BOOK: there are 0 published session slots, 0 instant-book venues,
+and payments are gated — so the honest, launchable model is: assemble a booking,
+send it as a request, the venue confirms. When venues later publish live
+sessions, this control gains a slot picker; the cart shape does not change.
 
-STILL TO DO
-  • PORTAL editor — the structured per-venue tier editor (add/reorder tiers,
-    deposit refundability, wording) lives in the portal repo, which isn't in
-    this zip. Send me the portal repo and I'll build it, or I'll hand you the
-    component to paste in. This is what lets you change a venue's policy without SQL.
-  • Default tiers (100/30, 50/14, 0/after) are seeded; adjust per venue once the
-    editor exists.
-  • Jeremy signs the consumer-facing wording before go-live.
+STILL TO COME (pieces 2–3, next):
+  2. Checkout submission — the "Request to book" button is still inert; next it
+     records the assembled cart as a booking request and confirms to the guest.
+  3. End-to-end wire-through and a pass over the venue-stay path.
