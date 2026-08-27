@@ -67,11 +67,11 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '',
+  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null,
   allowBuyout = false, minStayNights = null, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
-  venueName?: string; location?: string; allowBuyout?: boolean; minStayNights?: number | null;
+  venueName?: string; location?: string; venueImage?: string | null; allowBuyout?: boolean; minStayNights?: number | null;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
   children: ReactNode;
 }) {
@@ -140,29 +140,30 @@ export function BookingCart({
     (roomEstimate != null && buyoutTotal != null) ? (buyoutTotal < roomEstimate ? 'buyout' : 'rooms') : null;
 
   const lines = useMemo(() => {
-    const out: { key: string; label: string; detail: string; amount: number | null; kind: Kind; id: number; qty: number; max: number }[] = [];
+    type Line = { key: string; label: string; detail: string; amount: number | null; kind: Kind; id: number; qty: number; max: number; image: string | null; eyebrow: string; qtyLabel: string; unit: number | null };
+    const out: Line[] = [];
     if (buyout && buyoutPlan) {
-      out.push({ key: 'buyout', label: 'Whole venue — exclusive use', detail: nights ? `${nights} night${nights === 1 ? '' : 's'} · all rooms` : 'Add dates', amount: buyoutTotal, kind: 'room', id: -1, qty: 1, max: 1 });
+      out.push({ key: 'buyout', label: 'Whole venue — exclusive use', detail: nights ? `${nights} night${nights === 1 ? '' : 's'} · all rooms` : 'Add dates', amount: buyoutTotal, kind: 'room', id: -1, qty: 1, max: 1, image: venueImage, eyebrow: 'Whole venue', qtyLabel: '', unit: buyoutTotal });
     } else {
     for (const r of rooms) {
       const q = roomQty[r.id] ?? 0; if (!q) continue;
       const rp = roomPlan(r.id);
-      const amount = rp && rp.base_price != null && nights ? byBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1) * q : null;
-      out.push({ key: `room-${r.id}`, label: r.name, detail: nights ? `${nights} night${nights === 1 ? '' : 's'}` : 'Add dates', amount, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9 });
+      const unit = rp && rp.base_price != null && nights ? byBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1) : null;
+      out.push({ key: `room-${r.id}`, label: r.name, detail: [nights ? `${nights} night${nights === 1 ? '' : 's'}` : 'Add dates', r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · '), amount: unit != null ? unit * q : null, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9, image: r.gallery_images?.[0] ?? venueImage, eyebrow: 'Accommodation', qtyLabel: 'Rooms', unit });
     }
     }
     for (const s of services) {
       const q = expQty[s.id] ?? 0; if (!q) continue;
-      const amount = s.base_price != null ? Number(s.base_price) * q : null;
-      out.push({ key: `exp-${s.id}`, label: s.name, detail: 'Experience', amount, kind: 'exp', id: s.id, qty: q, max: 20 });
+      const unit = s.base_price != null ? Number(s.base_price) : null;
+      out.push({ key: `exp-${s.id}`, label: s.name, detail: [s.duration_label, s.service_category].filter(Boolean).join(' · ') || 'Wellness service', amount: unit != null ? unit * q : null, kind: 'exp', id: s.id, qty: q, max: 20, image: s.gallery_images?.[0] ?? venueImage, eyebrow: 'Wellness service', qtyLabel: 'Guests', unit });
     }
     for (const e of extras) {
       const q = extraQty[e.id] ?? 0; if (!q) continue;
-      const amount = e.price != null ? extraBasis(Number(e.price), e.price_basis) * q : null;
-      out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20 });
+      const unit = e.price != null ? extraBasis(Number(e.price), e.price_basis) : null;
+      out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount: unit != null ? unit * q : null, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20, image: e.gallery_images?.[0] ?? venueImage, eyebrow: 'Room extra', qtyLabel: 'Qty', unit });
     }
     return out;
-  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN, buyout, buyoutTotal, buyoutPlan]);
+  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -180,23 +181,54 @@ export function BookingCart({
   const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout };
 
   const router = useRouter();
-  // Keep a resolved snapshot of the booking in the browser so the review page
-  // can read it after navigation. One venue per order: this overwrites.
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restore this venue's slice from the global cart on mount.
   useEffect(() => {
     try {
-      if (count > 0) {
-        const snapshot = {
-          venueName, location, currency, from, to, guests, buyout,
-          backHref: typeof window !== 'undefined' ? window.location.pathname : '/',
-          items: lines.map((l) => ({ key: l.key, kind: l.kind, label: l.label, detail: l.detail, qty: l.qty, amount: l.amount })),
-          total, savedAt: Date.now(),
-        };
-        localStorage.setItem('tgs_booking', JSON.stringify(snapshot));
-      } else {
-        localStorage.removeItem('tgs_booking');
+      const key = window.location.pathname;
+      const slice = JSON.parse(localStorage.getItem('tgs_cart') || '{}')?.venues?.[key];
+      if (slice) {
+        if (slice.from) setFrom(slice.from);
+        if (slice.to) setTo(slice.to);
+        if (slice.guests) setGuests(String(slice.guests));
+        if (slice.buyout) setBuyout(true);
+        const rq: Record<number, number> = {}, eq: Record<number, number> = {}, xq: Record<number, number> = {};
+        for (const it of slice.items ?? []) {
+          if (it.key === 'buyout' || it.id == null) continue;
+          if (it.kind === 'room') rq[it.id] = it.qty;
+          else if (it.kind === 'exp') eq[it.id] = it.qty;
+          else if (it.kind === 'extra') xq[it.id] = it.qty;
+        }
+        if (Object.keys(rq).length) setRoomQty(rq);
+        if (Object.keys(eq).length) setExpQty(eq);
+        if (Object.keys(xq).length) setExtraQty(xq);
       }
-    } catch { /* storage unavailable — the sidebar still works, review just won't populate */ }
-  }, [lines, from, to, guests, buyout, venueName, location, currency, total, count]);
+    } catch { /* ignore */ }
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Accumulate this venue's booking into ONE global cart (one order, many venues).
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const key = window.location.pathname;
+      const cart = JSON.parse(localStorage.getItem('tgs_cart') || '{}');
+      if (!cart.venues) cart.venues = {};
+      if (count > 0) {
+        cart.venues[key] = {
+          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, backHref: key,
+          items: lines.map((l) => ({ key: l.key, kind: l.kind, id: l.id, label: l.label, detail: l.detail, qty: l.qty, max: l.max, amount: l.amount, unit: l.unit, image: l.image, eyebrow: l.eyebrow, qtyLabel: l.qtyLabel })),
+          total,
+        };
+      } else {
+        delete cart.venues[key];
+      }
+      cart.savedAt = Date.now();
+      localStorage.setItem('tgs_cart', JSON.stringify(cart));
+    } catch { /* storage unavailable — the sidebar still works */ }
+  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, total, count]);
 
   const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
   if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });

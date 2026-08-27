@@ -1,27 +1,40 @@
-TGS PLATFORM — Booking review page + cart hand-off (Stage 2 of the flow)
-** Self-contained venue display + the new /booking page. Supersedes the
-   stage1 zip. **
+TGS PLATFORM — Holistic cart + checkout (built from your uploaded repo)
+======================================================================
+Drop these over the matching files. One NEW file: app/checkout/page.tsx.
 
-NEW
-  • components/venue/BookingCart.tsx — the sidebar now saves a resolved snapshot
-    of the booking to the browser (localStorage) as it changes, and its
-    "Review booking" button navigates to /booking. (One venue per order: a new
-    booking overwrites the last.)
-  • app/booking/page.tsx (NEW) — the review / cart page. Reads that snapshot and
-    lays out the whole order: arrival / departure / guests, the items grouped by
-    type (Accommodation / Wellness services / Room extras) with prices, the
-    estimated total, the terms links, and Edit booking (back to the venue).
-    "Request to book" is present but inert — it becomes the checkout entry next.
-  • app/globals.css — the .br-* review-page styles.
+CHANGED
+  components/venue/BookingCart.tsx   — the sidebar now writes ONE holistic
+      cart (tgs_cart), accumulating across venues and rehydrating when you
+      return to a venue. Each saved item carries its image, sub-heading,
+      quantity label, unit price and the venue's cancellation line.
+  components/venue/RetreatVenue.tsx  — passes the venue hero image.
+  components/venue/WellnessVenue.tsx — passes the venue hero image.
+  app/booking/page.tsx  — REPLACED. Now the rich semi-nested CART page:
+      venue-grouped blocks (venue image + nested item rows with thumbnails,
+      sub-heading, quantity dropdown on the right that recomputes price live,
+      Edit / Delete), past-due venues dim with Reschedule / Delete, sticky
+      sidebar (total, per-venue breakdown, Checkout now / Continue browsing),
+      trust row. Reads/writes tgs_cart.
+  app/checkout/page.tsx  — NEW. "Checkout now" lands here: Review (from the
+      holistic cart) + Who's going (primary-contact modal, saved to browser)
+      + Cancellation protection STUB + Payment STUB (terms + inert Request to
+      book) + sticky Summary.
+  app/globals.css  — cart (.cart-*, .cv-*), modal (.ck-modal*/.ck-field*) and
+      checkout (.ck-*) styles appended.
 
-Still nothing touches the database or money. The cart lives only in the
-browser; it becomes a real order at checkout.
+NOTE — this replaces the old single-venue review flow. The sidebar no longer
+writes the old tgs_booking key; the cart lives in tgs_cart.
 
-TO TEST LIVE
-  1. On a venue, open the sidebar, add a room and/or a service, set dates/guests.
-  2. Click "Review booking" → lands on /booking showing the order.
-  3. "Edit booking" returns to the venue with the cart intact.
-  4. Empty cart → /booking shows a tidy empty state.
+WHAT SHOWS vs WHAT'S PENDING DATA
+  • Venue + room images: REAL (from your uploaded media).
+  • "Free cancellation until X": renders from the venue's cancellation line.
+    Until the cancellation facility is populated (the approved next build:
+    policy_id FK + portal editor + seed defaults), this line is usually blank
+    and the card simply omits it — no invented terms.
+  • Promo was/now (−15%) and "only N left": NOT shown yet — both need a data
+    mapping (promo→rate; live availability = Phase 2). Flagged, not faked.
+  • Payment + cancellation protection are gated stubs (Andrew / Jeremy).
 
-NEXT: checkout — guest details, Société membership upsell, then payment
-(Stripe test mode, gated by Andrew + Jeremy before anything real).
+TEST: add rooms/services on a couple of venues → sidebar "Review booking" →
+/booking shows the holistic cart; change a quantity (price updates); Delete;
+let a venue's dates pass → it dims with Reschedule; Checkout now → /checkout.
