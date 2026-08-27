@@ -1,19 +1,22 @@
-TGS PLATFORM — Room modal + gallery (MODAL POSITION FIX)
-** Supersedes the earlier room-modal / room-modal-and-gallery zips. **
+TGS PLATFORM — Room gallery redesign (bottom-right carousel) + modal fix
+** Supersedes all earlier room-modal / room-gallery zips — deploy this one. **
 
 FILES (drop into the platform repo, overwrite):
-  components/venue/RoomDetails.tsx   (FIXED — modal now renders via a portal)
-  components/venue/RoomGallery.tsx   (unchanged)
-  components/venue/Section.tsx       (unchanged)
-  app/globals.css                    (unchanged)
+  components/venue/RoomGallery.tsx   (REDESIGNED — bottom-right carousel)
+  components/venue/RoomDetails.tsx    (modal via portal — the earlier fix)
+  components/venue/Section.tsx        (room card wiring)
+  app/globals.css                     (gallery + modal styles)
 
-THE FIX
-  The room card has `overflow: hidden` and a hover `transform`. The modal was a
-  DOM child of the card, so it was being clipped by the card (sitting off,
-  cut edges) and trapped by the hover transform (the flickering on hover), and
-  never showed as a full-screen card.
-  RoomDetails now renders the modal through a React portal to document.body, so
-  it escapes the card and opens as a true centred full-screen overlay. Nothing
-  else changed.
+GALLERY CHANGE
+  • Main image is clean — no arrows or overlays on it.
+  • A small carousel floats in the bottom-right, inside the image: small square
+    thumbnails with small arrows either side. No frame, no borders — just the
+    squares (a soft shadow lifts them off the photo) and the arrows.
+  • Arrows step through the images; the leftmost thumbnail is the next one up;
+    clicking a thumbnail brings that image into the main view.
+  • One image = no carousel; no images = the name placeholder.
+
+Also includes the modal portal fix (modal renders on document.body so it isn't
+clipped by the card). Nothing else changed.
 
 Deploy: unzip → replace the files → commit + push → Vercel builds.
