@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { trackCartEvent } from '@/lib/track';
 
 type Item = { key: string; kind: string; id: number; label: string; detail: string; qty: number; max: number; amount: number | null; unit: number | null; image: string | null; eyebrow: string; qtyLabel: string };
 type VenueSlice = { venueName: string; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; backHref: string; items: Item[]; total: number };
@@ -23,7 +24,15 @@ export default function CartPage() {
   const [loaded, setLoaded] = useState(false);
   const [resched, setResched] = useState<string | null>(null);
 
-  useEffect(() => { try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); } catch { /* ignore */ } setLoaded(true); }, []);
+  useEffect(() => {
+    let parsed: Cart | null = null;
+    try { const r = localStorage.getItem('tgs_cart'); parsed = r ? JSON.parse(r) : null; setCart(parsed); } catch { /* ignore */ }
+    setLoaded(true);
+    try {
+      const vs = parsed?.venues ? Object.values(parsed.venues).filter((v) => v.items?.length) : [];
+      if (vs.length) trackCartEvent({ eventType: 'cart_view', metadata: { venues: vs.length, items: vs.reduce((n, v) => n + v.items.reduce((m, it) => m + it.qty, 0), 0), total: vs.reduce((s, v) => s + (v.total || 0), 0) } });
+    } catch { /* ignore */ }
+  }, []);
 
   const write = (next: Cart) => { setCart(next); try { localStorage.setItem('tgs_cart', JSON.stringify(next)); } catch { /* ignore */ } };
   const recompute = (v: VenueSlice): VenueSlice => ({ ...v, total: v.items.reduce((s, it) => s + (it.amount ?? 0), 0) });
@@ -124,7 +133,7 @@ export default function CartPage() {
             <div className="cart-fees">Includes taxes &amp; fees</div>
             <hr className="cart-rule" />
             {entries.map(([key, v]) => <div key={key} className="cart-line"><span>{v.venueName}</span><span>{money(v.total, v.currency)}</span></div>)}
-            <button type="button" className="cart-cta cart-cta-primary" disabled={anyPast} onClick={() => router.push('/checkout')}>Checkout now</button>
+            <button type="button" className="cart-cta cart-cta-primary" disabled={anyPast} onClick={() => { trackCartEvent({ eventType: 'checkout_start', metadata: { venues: entries.length, items: itemCount, total: grand } }); router.push('/checkout'); }}>Checkout now</button>
             <Link className="cart-cta cart-cta-ghost" href="/venues">Continue browsing</Link>
             {anyPast && <p className="cart-warn">Reschedule or remove the past-due venues before checkout.</p>}
             <div className="cart-secure">Secure payments · encrypted</div>

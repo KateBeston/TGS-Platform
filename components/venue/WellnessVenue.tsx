@@ -85,7 +85,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         </div>
       </ImageCarousel>
 
-      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} minStayNights={v.minimum_stay_nights ?? null} summary={v.venue_short_description ?? v.listing_description ?? null}>
+      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} minStayNights={v.minimum_stay_nights ?? null} summary={v.venue_short_description ?? v.listing_description ?? null}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
 

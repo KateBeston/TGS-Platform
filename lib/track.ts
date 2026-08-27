@@ -30,3 +30,40 @@ export function trackOnce(event: string, payload: Payload = {}) {
   fired.add(key);
   track(event, payload);
 }
+
+/* ── First-party behavioural cart tracking ──
+ * Separate from the GTM/dataLayer events above: this writes one row to
+ * cart_events (via /api/cart-event), sharing the page-view session id
+ * (sessionStorage 'tgs_sid') so the funnel joins on session_id. Analytics
+ * only — never the financial record of a booking. Never throws or blocks. */
+
+export type CartEventType =
+  | 'add' | 'remove' | 'quantity_change' | 'cart_view' | 'checkout_start' | 'checkout_abandon' | 'book';
+
+export type CartEvent = {
+  eventType: CartEventType;
+  venueId?: number | null;
+  itemType?: 'room' | 'exp' | 'extra' | 'buyout' | null;
+  itemId?: number | null;
+  quantity?: number | null;
+  unitPrice?: number | null;
+  currency?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+export function trackCartEvent(e: CartEvent) {
+  try {
+    if (typeof window === 'undefined') return;
+    let sid = sessionStorage.getItem('tgs_sid');
+    if (!sid) {
+      sid = (self.crypto as { randomUUID?: () => string })?.randomUUID?.() ?? String(Math.random()).slice(2) + Date.now();
+      sessionStorage.setItem('tgs_sid', sid);
+    }
+    fetch('/api/cart-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...e, sessionId: sid }),
+      keepalive: true,
+    }).catch(() => { /* silent */ });
+  } catch { /* never break the page */ }
+}

@@ -1,40 +1,36 @@
-TGS PLATFORM — Holistic cart + checkout (built from your uploaded repo)
-======================================================================
-Drop these over the matching files. One NEW file: app/checkout/page.tsx.
+TGS PLATFORM — Cart-event tracking (Phase 1) + holistic cart/checkout
+=====================================================================
+CUMULATIVE zip: includes the holistic cart + checkout from last time, plus
+the behavioural tracking layer. Drop over the matching files. New files:
+app/checkout/page.tsx, app/api/cart-event/route.ts.
 
-CHANGED
-  components/venue/BookingCart.tsx   — the sidebar now writes ONE holistic
-      cart (tgs_cart), accumulating across venues and rehydrating when you
-      return to a venue. Each saved item carries its image, sub-heading,
-      quantity label, unit price and the venue's cancellation line.
-  components/venue/RetreatVenue.tsx  — passes the venue hero image.
-  components/venue/WellnessVenue.tsx — passes the venue hero image.
-  app/booking/page.tsx  — REPLACED. Now the rich semi-nested CART page:
-      venue-grouped blocks (venue image + nested item rows with thumbnails,
-      sub-heading, quantity dropdown on the right that recomputes price live,
-      Edit / Delete), past-due venues dim with Reschedule / Delete, sticky
-      sidebar (total, per-venue breakdown, Checkout now / Continue browsing),
-      trust row. Reads/writes tgs_cart.
-  app/checkout/page.tsx  — NEW. "Checkout now" lands here: Review (from the
-      holistic cart) + Who's going (primary-contact modal, saved to browser)
-      + Cancellation protection STUB + Payment STUB (terms + inert Request to
-      book) + sticky Summary.
-  app/globals.css  — cart (.cart-*, .cv-*), modal (.ck-modal*/.ck-field*) and
-      checkout (.ck-*) styles appended.
+** DATABASE IS ALREADY LIVE ** — the cart_events table, indexes and RLS were
+applied straight to Supabase (project qvriwjipnradsbilepyd). You do NOT run any
+SQL. This zip is only the code that writes to it.
 
-NOTE — this replaces the old single-venue review flow. The sidebar no longer
-writes the old tgs_booking key; the cart lives in tgs_cart.
+TRACKING (Phase 1 — capture only)
+  lib/track.ts               — adds trackCartEvent() alongside the existing
+      GTM track()/trackOnce(). Fire-and-forget POST to /api/cart-event, sharing
+      the page-view session id (sessionStorage 'tgs_sid') so the funnel joins.
+  app/api/cart-event/route.ts (NEW) — validates event_type + item_type, sets
+      user_id from the AUTH SESSION server-side (never trusted from the client),
+      writes one cart_events row. Mirrors /api/pageview; never breaks a page.
+  BookingCart.tsx  — fires 'add' / 'remove' / 'quantity_change' with the venue
+      and item, via a new venueId prop.
+  RetreatVenue/WellnessVenue.tsx — pass venueId to the sidebar.
+  app/booking/page.tsx — fires 'cart_view' on load and 'checkout_start' on
+      Checkout now.
 
-WHAT SHOWS vs WHAT'S PENDING DATA
-  • Venue + room images: REAL (from your uploaded media).
-  • "Free cancellation until X": renders from the venue's cancellation line.
-    Until the cancellation facility is populated (the approved next build:
-    policy_id FK + portal editor + seed defaults), this line is usually blank
-    and the card simply omits it — no invented terms.
-  • Promo was/now (−15%) and "only N left": NOT shown yet — both need a data
-    mapping (promo→rate; live availability = Phase 2). Flagged, not faked.
-  • Payment + cancellation protection are gated stubs (Andrew / Jeremy).
+WHAT IT CAPTURES: viewed (page_views) → add / remove / quantity_change →
+cart_view → checkout_start, keyed by session_id (+ user_id when logged in) and
+stamped with venue_id. Joins to page_views (session_id) and enquiries (demand)
+for Sanctum Institute and venue reporting.
 
-TEST: add rooms/services on a couple of venues → sidebar "Review booking" →
-/booking shows the holistic cart; change a quantity (price updates); Delete;
-let a venue's dates pass → it dims with Reschedule; Checkout now → /checkout.
+ANALYTICS ONLY: cart_events is never the financial record of a booking. The
+'book' event exists for the funnel but is a marker, not money — the authoritative
+order is created server-side (the next build).
+
+NOT YET (by design): reporting surfaces (VMS funnel + Institute) = Phase 2 of
+analytics; abandoned-cart recovery emails = held behind account-level consent
+wording (Jeremy). The order write path (real orders/bookings/booking_items,
+test mode) is the next build.

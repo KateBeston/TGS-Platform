@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { trackCartEvent } from '@/lib/track';
 
 /* The booking drawer.
  *
@@ -67,11 +68,11 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null,
+  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null,
   allowBuyout = false, minStayNights = null, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
-  venueName?: string; location?: string; venueImage?: string | null; allowBuyout?: boolean; minStayNights?: number | null;
+  venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; allowBuyout?: boolean; minStayNights?: number | null;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
   children: ReactNode;
 }) {
@@ -94,8 +95,19 @@ export function BookingCart({
   const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'exp' ? expQty : extraQty);
   const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'exp' ? setExpQty : setExtraQty);
   const qty = (k: Kind, id: number) => bag(k)[id] ?? 0;
-  const setQty = (k: Kind, id: number, n: number) => setBag(k)({ ...bag(k), [id]: Math.max(0, n) });
-  const add = (k: Kind, id: number) => { setQty(k, id, (bag(k)[id] ?? 0) + 1); setDrawer((d) => (d === 'min' ? 'open' : d)); };
+  const setQtyRaw = (k: Kind, id: number, n: number) => setBag(k)({ ...bag(k), [id]: Math.max(0, n) });
+  const setQty = (k: Kind, id: number, n: number) => {
+    const prev = bag(k)[id] ?? 0;
+    setQtyRaw(k, id, n);
+    if (n <= 0) trackCartEvent({ eventType: 'remove', venueId, itemType: k, itemId: id, quantity: 0, currency });
+    else if (n !== prev) trackCartEvent({ eventType: 'quantity_change', venueId, itemType: k, itemId: id, quantity: n, currency });
+  };
+  const add = (k: Kind, id: number) => {
+    const next = (bag(k)[id] ?? 0) + 1;
+    setQtyRaw(k, id, next);
+    trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency });
+    setDrawer((d) => (d === 'min' ? 'open' : d));
+  };
   const clear = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
   const selectBuyout = () => { setRoomQty({}); setBuyout(true); setDrawer((d) => (d === 'min' ? 'open' : d)); };
 
