@@ -152,6 +152,17 @@ export async function loadVenue(marketplace: string, slug: string) {
   } as Venue;
 }
 
+/** The accommodation subtitle, worked out from the rooms and phrased with the
+ * right singular/plural: "1 room", "8 rooms", "12 rooms across 2 types". A
+ * single room type drops the "across 1 type" that reads oddly. */
+export function roomSummary(rooms: { quantity?: number | null }[]): string {
+  const total = rooms.reduce((n, r) => n + (r.quantity ?? 1), 0);
+  const types = rooms.length;
+  const roomWord = total === 1 ? 'room' : 'rooms';
+  if (types <= 1) return `${total} ${roomWord}`;
+  return `${total} ${roomWord} across ${types} types`;
+}
+
 /** Money, said the way a price should be read. */
 export function money(amount: number | null, currency: string | null) {
   if (amount === null || amount === undefined) return null;

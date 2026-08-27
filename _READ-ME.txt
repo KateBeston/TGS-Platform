@@ -1,14 +1,12 @@
-TGS PLATFORM — Promotional badges on cards + listing hero
-** Self-contained venue display. Supersedes the read-uploaded-images zip. **
+TGS PLATFORM — Dynamic accommodation subtitle
+** Self-contained venue display. Supersedes the promo-badges zip. **
 
-NEW THIS ROUND
-  • Promotional badges (from venue_listings.promo_badges) render as pills:
-      - on the venue CARD, overlaid top-left on the image (first badge gold).
-      - on the listing HERO, beneath the location.
-  • lib/venues.ts Card type now includes promo_badges; VenueCard.tsx and both
-    venue components render them.
+CHANGE
+  lib/venue.ts adds roomSummary(): the accommodation subtitle is worked out from
+  the rooms with correct singular/plural —
+    "12 rooms across 2 types", "5 rooms across 6 types",
+    "8 rooms" (single type), "1 room" (singular).
+  RetreatVenue.tsx uses it in place of the old hardcoded "N rooms across M types".
 
-Also includes the earlier work (uploaded-media images, the room/hero carousel,
-the room modal), so this is the complete current venue display.
-
-DB already live: venue_cards view carries promo_badges.
+Also includes the earlier venue-display work (promo badges, uploaded-media
+images, room/hero carousel, room modal).

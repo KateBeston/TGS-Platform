@@ -10,7 +10,7 @@ import {
   Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero, VenueLinks,
 } from './Section';
-import { duration, money } from '@/lib/venue';
+import { duration, money, roomSummary } from '@/lib/venue';
 
 /* A space's attribute tags, built from the structured record — capacity,
  * size, floor, whether it is outdoors, and what it suits. The mockup's
@@ -280,7 +280,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         <div id="panel-stay" className="vpanel" hidden>
           <TabHero image={v.image_url} label="Accommodation"
             title="Where your group sleeps"
-            subtitle={`${v.rooms.reduce((n: number, r: any) => n + (r.quantity ?? 1), 0)} rooms across ${v.rooms.length} types`} />
+            subtitle={roomSummary(v.rooms)} />
 
           {v.accommodation_description && (
             <Section tone="white" label="Stay with us">
