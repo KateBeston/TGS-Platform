@@ -2,6 +2,7 @@ import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
 import { FavouriteButton } from '@/components/SavedVenues';
+import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
@@ -65,8 +66,12 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
 
   return (
     <>
-      <div className="hero-gallery">
-        {v.image_url && <img className="hero-main-img" src={v.image_url} alt={v.venue_name} />}
+      <ImageCarousel
+        images={[v.image_url, ...(v.image_urls ?? [])].filter(
+          (s: string | null, i: number, a: (string | null)[]): s is string => !!s && a.indexOf(s) === i)}
+        alt={v.venue_name}
+        variant="hero"
+      >
         <div className="hero-overlay" />
         <div className="hero-content">
           <div className="hero-eyebrow">{v.venue_type}</div>
@@ -74,7 +79,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           <div className="hero-location">{place}</div>
           <div className="hero-save"><FavouriteButton venueId={v.id} variant="hero" /> Save</div>
         </div>
-      </div>
+      </ImageCarousel>
 
       <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />

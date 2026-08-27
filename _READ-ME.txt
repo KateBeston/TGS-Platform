@@ -1,22 +1,28 @@
-TGS PLATFORM — Room gallery redesign (bottom-right carousel) + modal fix
-** Supersedes all earlier room-modal / room-gallery zips — deploy this one. **
+TGS PLATFORM — Auto-advancing carousel on room cards + venue hero
+** Supersedes the earlier room-gallery/modal zips — deploy this one. **
 
 FILES (drop into the platform repo, overwrite):
-  components/venue/RoomGallery.tsx   (REDESIGNED — bottom-right carousel)
-  components/venue/RoomDetails.tsx    (modal via portal — the earlier fix)
-  components/venue/Section.tsx        (room card wiring)
-  app/globals.css                     (gallery + modal styles)
+  components/venue/ImageCarousel.tsx  (NEW — shared carousel used by both)
+  components/venue/RoomGallery.tsx     (now a thin wrapper over ImageCarousel)
+  components/venue/WellnessVenue.tsx   (hero now uses the carousel)
+  components/venue/RetreatVenue.tsx    (hero now uses the carousel)
+  components/venue/RoomDetails.tsx     (modal via portal — unchanged)
+  components/venue/Section.tsx         (room card wiring — unchanged)
+  app/globals.css                      (carousel styles)
 
-GALLERY CHANGE
-  • Main image is clean — no arrows or overlays on it.
-  • A small carousel floats in the bottom-right, inside the image: small square
-    thumbnails with small arrows either side. No frame, no borders — just the
-    squares (a soft shadow lifts them off the photo) and the arrows.
-  • Arrows step through the images; the leftmost thumbnail is the next one up;
-    clicking a thumbnail brings that image into the main view.
-  • One image = no carousel; no images = the name placeholder.
+WHAT'S NEW
+  • One shared carousel now powers the accommodation room cards AND the main
+    venue hero, so they look and behave identically.
+  • Auto-advance: gently slides to the next image every 12 seconds, and pauses
+    while the pointer is over it. Manual navigation restarts the timer.
+  • Elegant slide: each image fades and slides in over ~0.9s.
+  • Bottom-right frameless carousel (small squares + arrows) as before; leftmost
+    thumbnail is next; click any to bring it to the main.
+  • Hero keeps the venue type, name and location overlaid, and Save.
 
-Also includes the modal portal fix (modal renders on document.body so it isn't
-clipped by the card). Nothing else changed.
+ALREADY LIVE IN THE DATABASE (no deploy needed)
+  • venues.image_urls (text[]) added and exposed via published_venues.
+  • Sacred Valley Retreat given four hero images (stock) so it shows.
+  (Rooms already had image_urls from the previous step.)
 
 Deploy: unzip → replace the files → commit + push → Vercel builds.
