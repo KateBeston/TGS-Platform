@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { submitBooking } from '@/app/actions/submitBooking';
+import { trackCartEvent } from '@/lib/track';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
 type VenueSlice = { venueName: string; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
@@ -22,6 +24,10 @@ export default function CheckoutPage() {
   const [loaded, setLoaded] = useState(false);
   const [contact, setContact] = useState<Contact | null>(null);
   const [modal, setModal] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
+  const [err, setErr] = useState('');
 
   useEffect(() => {
     try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); const c = localStorage.getItem('tgs_contact'); if (c) setContact(JSON.parse(c)); } catch { /* ignore */ }
@@ -38,6 +44,33 @@ export default function CheckoutPage() {
   const contactDone = !!(contact && contact.first && contact.email);
 
   const saveContact = (c: Contact) => { setContact(c); try { localStorage.setItem('tgs_contact', JSON.stringify(c)); } catch { /* ignore */ } setModal(false); };
+
+  const submit = async () => {
+    if (!cart || !contactDone || !agreed || submitting) return;
+    setSubmitting(true); setErr('');
+    const res = await submitBooking(cart as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone });
+    setSubmitting(false);
+    if (res.ok) {
+      trackCartEvent({ eventType: 'book', metadata: { orderReference: res.orderReference } });
+      try { localStorage.removeItem('tgs_cart'); } catch { /* ignore */ }
+      setDone(res.orderReference);
+    } else { setErr(res.error); }
+  };
+
+  if (done) {
+    return (
+      <div className="cart-wrap">
+        <div className="ck-done-wrap">
+          <div className="ck-done-tick" aria-hidden="true">✓</div>
+          <div className="ck-eyebrow">Booking requested</div>
+          <h1 className="cart-h1">We&rsquo;ve received your request</h1>
+          <p className="ck-done-ref">Reference <b>{done}</b></p>
+          <p className="ck-done-msg">Your booking is held while each venue confirms your dates. We&rsquo;ll be in touch by email at {contact?.email}. Nothing has been charged.</p>
+          <Link href="/experiences" className="cart-cta cart-cta-primary" style={{ display: 'inline-block', width: 'auto', padding: '13px 28px', textDecoration: 'none' }}>Continue exploring</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="cart-wrap">
@@ -80,8 +113,10 @@ export default function CheckoutPage() {
           <section className="ck-sec">
             <h2 className="ck-h2">How would you like to pay?</h2>
             <div className="ck-stub">Payment is coming in the next stage — card in test mode first, then reviewed before anything real is charged.</div>
-            <label className="ck-agree"><input type="checkbox" /><span>I agree to the <Link href="/legal">Terms &amp; Conditions</Link>, <Link href="/legal">Refund Policy</Link> and <Link href="/legal">Privacy Policy</Link>.</span></label>
-            <button type="button" className="cart-cta cart-cta-primary" disabled>Request to book</button>
+            <label className="ck-agree"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span>I agree to the <Link href="/legal">Terms &amp; Conditions</Link>, <Link href="/legal">Refund Policy</Link> and <Link href="/legal">Privacy Policy</Link>.</span></label>
+            <button type="button" className="cart-cta cart-cta-primary" disabled={!contactDone || !agreed || submitting} onClick={submit}>{submitting ? 'Sending your request…' : 'Request to book'}</button>
+            {err && <p className="ck-err">{err}</p>}
+            {!contactDone && <p className="cart-secure">Add your contact details above to request this booking.</p>}
             <p className="cart-secure">We use secure transmission and encrypted storage to protect your personal information.</p>
           </section>
         </div>

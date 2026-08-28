@@ -1,23 +1,36 @@
-TGS PLATFORM — Experience booking control (booking process, piece 1 of 3)
-=========================================================================
-Drop over matching files. New: components/venue/ExperienceBooking.tsx.
+TGS PLATFORM — Booking process finished (experiences + order write path)
+========================================================================
+Cumulative: experience booking control + the real order write path. Drop over
+matching files. New files: components/venue/ExperienceBooking.tsx,
+lib/supabase/admin.ts, app/actions/submitBooking.ts.
 
-WHAT THIS DOES
-  The experience detail page (/experiences/[slug]) had a booking PLACEHOLDER.
-  It now has a real request-to-book control in the sidebar:
-    • preferred date, time of day, guests (stepper), estimated total
-    • "Add to booking" adds the experience to the SAME holistic cart as rooms,
-      filed under the experience's own venue (/{marketplace}/{listing_slug}),
-      so an experience sits beside that venue's rooms in one booking
-    • confirmation state with "Review booking" (to /booking) and "Add another time"
-    • fires the cart-event tracking you already capture
+** ONE ENV VAR REQUIRED IN VERCEL (platform project) **
+  SUPABASE_SERVICE_ROLE_KEY = <your Supabase service-role key>
+  (Supabase dashboard → Project settings → API → service_role key.)
+  Set it as a PLAIN/secret server env var — NOT NEXT_PUBLIC. Without it the
+  "Request to book" button returns a configuration error. It is used only in
+  app/actions/submitBooking.ts, server-side, for the trusted booking write.
 
-WHY REQUEST-TO-BOOK: there are 0 published session slots, 0 instant-book venues,
-and payments are gated — so the honest, launchable model is: assemble a booking,
-send it as a request, the venue confirms. When venues later publish live
-sessions, this control gains a slot picker; the cart shape does not change.
+** DATABASE ALREADY LIVE **: a pre-existing bug in the sync_order_status()
+trigger (an ambiguous "total") was blocking ALL booking inserts. Fixed straight
+in Supabase; you run no SQL.
 
-STILL TO COME (pieces 2–3, next):
-  2. Checkout submission — the "Request to book" button is still inert; next it
-     records the assembled cart as a booking request and confirms to the guest.
-  3. End-to-end wire-through and a pass over the venue-stay path.
+THE FLOW, END TO END (request-to-book, held; no money):
+  1. /experiences/[slug] — real booking control (date, time of day, guests) adds
+     the experience to the holistic cart under its venue.
+  2. /booking — the cart (rooms + experiences + services), venue-grouped.
+  3. /checkout — contact + terms, then "Request to book".
+  4. submitBooking (server) RECOMPUTES every price from the database — services
+     and experiences from base_price; rooms captured UNPRICED (0 rate plans yet,
+     priced at confirmation) — and writes one `order` + a `booking` per venue +
+     a `booking_item` per line, status 'Pending' (held). Commission is read from
+     the venue's subscription; the cancellation policy is stamped; guest identity
+     comes from the session, never the client. Confirmation shows the reference.
+  Verified end to end against venue 1137: 2×service @320 = 640, commission 5% =
+  32, room captured unpriced, order held. Test data cleaned up.
+
+DELIBERATELY NOT YET (post-launch / gated):
+  • Room pricing needs rate plans (there are 0 — that's VMS setup).
+  • Live availability / calendar.
+  • Stripe payments (Andrew + Jeremy + pre-payments security pass).
+  • reconcile_payment / record_manual_payment guards + re-grant (payments phase).
