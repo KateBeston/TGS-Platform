@@ -171,12 +171,18 @@ img { max-width: 100%; height: auto; display: block; }
    type on warm white is invisible. Solid is correct everywhere. */
 .nav {
   position: sticky; top: 0; z-index: 100;
-  padding: 20px 48px;
+  padding: 20px 32px;
   background: var(--warm-white);
   border-bottom: 1px solid var(--charcoal-08);
 }
+/* Full bleed, not a centred column.
+   The nav used to sit inside the same 1400px column as the page content, which
+   on a wide screen pushed the menu control roughly 300px in from the edge and
+   made it read as part of the page rather than as the frame around it. The
+   controls now sit against the viewport, which is what makes the bar feel like
+   chrome. */
 .nav-inner {
-  max-width: 1400px; margin: 0 auto;
+  max-width: none; margin: 0;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .nav-left {
@@ -545,7 +551,7 @@ img { max-width: 100%; height: auto; display: block; }
   .footer-grid { grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
 }
 @media (max-width: 768px) {
-  .nav { padding: 18px 24px; }
+  .nav { padding: 18px 20px; }
   .nav-brand-text { font-size: 14px; }
   .nav-tagline { display: none; }
   .drawer { width: 100%; max-width: 100vw; }
@@ -2835,10 +2841,10 @@ img { max-width: 100%; height: auto; display: block; }
   /* Translucent, never solid: the page keeps moving behind the bar rather
      than sliding under a panel. The blur has to carry the legibility that the
      opacity no longer does, which is why it is heavier than it looks. */
-  background: rgba(253, 252, 249, .72);
-  backdrop-filter: blur(14px) saturate(1.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
-  border-bottom-color: var(--charcoal-08);
+  background: rgba(253, 252, 249, .55);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+  border-bottom-color: rgba(49, 49, 49, .06);
   padding-top: 14px; padding-bottom: 14px;
 }
 .nav--over-hero { transition: background .35s ease, backdrop-filter .35s ease, border-color .35s ease, padding .35s ease; }
