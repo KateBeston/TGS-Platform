@@ -64,6 +64,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     { id: 'enquire', label: 'Enquire' },
   ].filter(Boolean) as { id: string; label: string }[];
 
+  const wvDateMode: 'single' | 'range' = ((v.rooms?.length ?? 0) > 0 || (v.services ?? []).some((s: any) => s.date_mode === 'date_range')) ? 'range' : 'single';
+  const wvRequiresTime = wvDateMode === 'single' && (v.services ?? []).some((s: any) => s.requires_time_slot);
   return (
     <>
       <ImageCarousel
@@ -85,7 +87,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         </div>
       </ImageCarousel>
 
-      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} summary={v.venue_short_description ?? v.listing_description ?? null}>
+      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} dateMode={wvDateMode} requiresTime={wvRequiresTime} summary={v.venue_short_description ?? v.listing_description ?? null}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
 

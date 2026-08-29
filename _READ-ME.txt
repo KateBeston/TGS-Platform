@@ -1,27 +1,28 @@
-TGS PLATFORM — Bookings save to accounts + My Bookings (definitive booking set)
-===============================================================================
-SUPERSEDES all prior booking zips (experience-booking, order-write-path,
-booking-flow-complete). Deploy this one. Drop over matching files.
+TGS PLATFORM — Booking sidebar: adaptive calendar (single date vs date range)
+=============================================================================
+Layers on the bookings-in-accounts zip (these 3 files supersede those copies).
+Drop over matching files.
 
-** ENV VAR (Vercel, platform) **: SUPABASE_SERVICE_ROLE_KEY (server-only).
-** DATABASE ALREADY LIVE **: sync_order_status() trigger fix + two new functions
-   (get_my_bookings, get_my_booking_detail, granted to authenticated). No SQL.
+** DATABASE ALREADY LIVE **: published_venue_services view now exposes date_mode
++ requires_time_slot (so the public site can read them). No SQL to run.
 
-FIX (important): the write path was setting orders.wellness_guest_id to the auth
-UUID, but that column is bigint -> wellness_guests.id. A LOGGED-IN checkout would
-have errored. Now:
-  • bookings attach to the account by EMAIL (the link the platform already uses
-    in get_my_platform_activity): guest_email = the signed-in user's auth email.
-  • wellness_guest_id resolves to the real wellness_guests row when one exists.
-  • guests (not logged in) still work; their contact email is used.
-  Every order/booking/item is timestamped (created_at) as before.
+WHAT CHANGED — the sidebar calendar now adapts:
+  • Single-date venue/service  -> ONE date picker labelled "Date" (+ a "Time"
+    of day select when the service needs a time). No phantom "Departure".
+  • Multi-day (stay / retreat)  -> Arrival + Departure as before.
+  Departure tracks Arrival in single mode, so per-session pricing (nights || 1)
+  is used and the slice records the day + chosen time.
 
-MY BOOKINGS (account -> Bookings tab):
-  Richer cards now — venue, dates, guests, a status badge (Pending outlined /
-  Confirmed gold), and "Ref TGS-XXXXX · N items · booked <date>" with the total.
-  Enquiries in progress listed beneath. Data via get_my_bookings() (email-scoped,
-  SECURITY DEFINER). get_my_booking_detail(id) is live and ready for a per-booking
-  detail page (next).
+HOW THE MODE IS DECIDED (per your confirmed model):
+  • RetreatVenue  -> always "range" (retreats are multi-day).
+  • WellnessVenue -> "range" if it has rooms OR any date_range service;
+                     otherwise "single" (+ time if any service needs a time).
+  Services inherit the venue-level date (pinned within the stay), matching what
+  we agreed — no per-service pickers.
 
-STILL TO COME: individual booking detail page (function is ready); "Manage /
-cancel" actions; and the Stripe payment step (gated).
+SMALL FOLLOW-UPS (noted, not blocking):
+  • Same-day date_range buyout could read "1 day" instead of showing from=to
+    (minor label polish in the cart/checkout).
+  • buyout_date_mode (the per-venue attribution you set in the portal) isn't yet
+    read here — the RetreatVenue=range assumption covers the common case; wiring
+    the exact per-venue buyout override is a small refinement.

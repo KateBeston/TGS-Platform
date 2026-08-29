@@ -69,15 +69,17 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 
 export function BookingCart({
   rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
-  allowBuyout = false, minStayNights = null, summary = null, confirmation = null, cancellation = null, children,
+  allowBuyout = false, minStayNights = null, dateMode = 'range', requiresTime = false, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
   venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null;
+  dateMode?: 'single' | 'range'; requiresTime?: boolean;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
   children: ReactNode;
 }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [timeOfDay, setTimeOfDay] = useState('Morning');
   const [guests, setGuests] = useState('2');
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
   const [expQty, setExpQty] = useState<Record<number, number>>({});
@@ -86,11 +88,16 @@ export function BookingCart({
   const [buyout, setBuyout] = useState(false);
   const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;
 
+  // In single-date mode the booking is one day: departure tracks arrival, so
+  // nights stays 0 and per-session pricing (nights || 1) is used.
+  const setArrival = (v: string) => { setFrom(v); if (dateMode === 'single') setTo(v); };
+
   const nights = useMemo(() => {
     if (!from || !to || to <= from) return 0;
     return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000);
   }, [from, to]);
   const guestN = Math.max(1, Number(guests) || 1);
+
 
   const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'exp' ? expQty : extraQty);
   const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'exp' ? setExpQty : setExtraQty);
@@ -230,7 +237,7 @@ export function BookingCart({
       if (!cart.venues) cart.venues = {};
       if (count > 0) {
         cart.venues[key] = {
-          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, freeCancelDays, backHref: key,
+          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, freeCancelDays, timeOfDay: (dateMode === 'single' && requiresTime) ? timeOfDay : null, dateMode, backHref: key,
           items: lines.map((l) => ({ key: l.key, kind: l.kind, id: l.id, label: l.label, detail: l.detail, qty: l.qty, max: l.max, amount: l.amount, unit: l.unit, image: l.image, eyebrow: l.eyebrow, qtyLabel: l.qtyLabel })),
           total,
         };
@@ -240,7 +247,7 @@ export function BookingCart({
       cart.savedAt = Date.now();
       localStorage.setItem('tgs_cart', JSON.stringify(cart));
     } catch { /* storage unavailable — the sidebar still works */ }
-  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, freeCancelDays, total, count]);
+  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, freeCancelDays, timeOfDay, dateMode, requiresTime, total, count]);
 
   const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
   if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });
@@ -286,9 +293,25 @@ export function BookingCart({
 
             <div className="bc-bk-h">Your booking</div>
             <div className="bc-dates">
-              <label className="bb-field"><span>Arrival</span><input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
-              <label className="bb-field"><span>Departure</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
-              <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
+              {dateMode === 'single' ? (
+                <>
+                  <label className="bb-field"><span>Date</span><input type="date" value={from} onChange={(e) => setArrival(e.target.value)} /></label>
+                  {requiresTime && (
+                    <label className="bb-field"><span>Time</span>
+                      <select value={timeOfDay} onChange={(e) => setTimeOfDay(e.target.value)}>
+                        {['Morning', 'Midday', 'Afternoon', 'Evening'].map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </label>
+                  )}
+                  <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
+                </>
+              ) : (
+                <>
+                  <label className="bb-field"><span>Arrival</span><input type="date" value={from} onChange={(e) => setArrival(e.target.value)} /></label>
+                  <label className="bb-field"><span>Departure</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+                  <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
+                </>
+              )}
             </div>
 
             {allowBuyout && buyoutPlan && (
