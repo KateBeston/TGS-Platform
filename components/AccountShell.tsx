@@ -13,6 +13,12 @@ const VMS_URL = 'https://vms.theglobalsanctum.com';
 const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings', 'Venue management'] as const;
 type Tab = (typeof TABS)[number];
 
+export type MyBooking = {
+  booking_id: number; order_reference: string | null; venue_name: string | null; venue_id: number | null;
+  date_from: string | null; date_to: string | null; guest_count: number | null; status: string | null;
+  total: number | null; currency: string | null; created_at: string; item_count: number;
+};
+
 export type Activity = {
   activity_kind: 'attending' | 'hosting'; record_kind: 'enquiry' | 'booking';
   id: number; venue_name: string | null; date_from: string | null; date_to: string | null; status: string | null;
@@ -27,8 +33,8 @@ type Profile = {
 type Country = { id: number; name: string; iso_code: string; dialling_code: string };
 
 export default function AccountShell({
-  email, profile, isOwner, isHost, savedNode, activity, hostData, countries, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
+  email, profile, isOwner, isHost, savedNode, activity, bookings, hostData, countries, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
   const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
   const [tab, setTab] = useState<Tab>(safeInitial);
   const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
@@ -52,7 +58,7 @@ export default function AccountShell({
       </nav>
 
       {tab === 'Profile' && <ProfilePanel profile={profile} email={email} countries={countries} />}
-      {tab === 'Bookings' && <BookingsPanel activity={activity} />}
+      {tab === 'Bookings' && <BookingsPanel activity={activity} bookings={bookings} />}
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} isHost={isHost} hostData={hostData} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
@@ -104,39 +110,56 @@ function fmtDates(a: string | null, b: string | null) {
   return b && b !== a ? `${d(a)} – ${d(b)}` : d(a);
 }
 
-function BookingsPanel({ activity }: { activity: Activity[] }) {
-  const attending = activity.filter((a) => a.activity_kind === 'attending');
-  const hosting = activity.filter((a) => a.activity_kind === 'hosting');
+function BookingsPanel({ activity, bookings }: { activity: Activity[]; bookings: MyBooking[] }) {
+  const enquiries = activity.filter((a) => a.record_kind === 'enquiry');
+  const money = (v: number | null, c: string | null) =>
+    v == null ? null : new Intl.NumberFormat('en-AU', { style: 'currency', currency: c || 'AUD', maximumFractionDigits: 0 }).format(v);
+  const stamp = (s: string) => { try { return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return ''; } };
+  const statusClass = (st: string | null) => `s-${(st ?? 'pending').toLowerCase().replace(/\s+/g, '-')}`;
 
-  const Group = ({ title, note, items }: { title: string; note: string; items: Activity[] }) => (
-    <div className="acct-book-group">
-      <h3 className="acct-book-h">{title}</h3>
-      {items.length === 0 ? (
-        <p className="acct-book-empty">{note}</p>
+  return (
+    <section className="acct-panel">
+      <h2 className="acct-panel-title">Bookings</h2>
+      <p className="acct-panel-sub">Your held and confirmed bookings, and any enquiries in progress.</p>
+
+      {bookings.length === 0 ? (
+        <p className="acct-book-empty">No bookings yet. When you request a booking, it&rsquo;ll appear here with its reference and status.</p>
       ) : (
-        <ul className="acct-book-list">
-          {items.map((a) => (
-            <li key={`${a.record_kind}-${a.id}`} className="acct-book-item">
-              <div className="acct-book-main">
-                <span className="acct-book-venue">{a.venue_name ?? 'Venue to be confirmed'}</span>
-                <span className={`acct-book-tag ${a.record_kind}`}>{a.record_kind === 'booking' ? 'Booked' : 'Enquiry'}</span>
+        <ul className="acct-bk-list">
+          {bookings.map((b) => (
+            <li key={b.booking_id} className="acct-bk-card">
+              <div className="acct-bk-top">
+                <div>
+                  <div className="acct-bk-venue">{b.venue_name ?? 'Venue to be confirmed'}</div>
+                  <div className="acct-bk-meta">{fmtDates(b.date_from, b.date_to) ?? 'Dates to confirm'}{b.guest_count ? ` · ${b.guest_count} guests` : ''}</div>
+                </div>
+                <span className={`acct-bk-status ${statusClass(b.status)}`}>{b.status ?? 'Pending'}</span>
               </div>
-              <div className="acct-book-meta">
-                {fmtDates(a.date_from, a.date_to) ?? 'Dates flexible'}{a.status ? ` · ${a.status}` : ''}
+              <div className="acct-bk-bot">
+                <span className="acct-bk-ref">{b.order_reference ? `Ref ${b.order_reference}` : `Booking #${b.booking_id}`} &middot; {b.item_count} item{b.item_count === 1 ? '' : 's'} &middot; booked {stamp(b.created_at)}</span>
+                <span className="acct-bk-total">{b.total != null && b.total > 0 ? money(b.total, b.currency) : 'To be quoted'}</span>
               </div>
             </li>
           ))}
         </ul>
       )}
-    </div>
-  );
 
-  return (
-    <section className="acct-panel">
-      <h2 className="acct-panel-title">Bookings</h2>
-      <p className="acct-panel-sub">Retreats you&rsquo;re attending and venues you&rsquo;re sourcing to host — all in one place.</p>
-      <Group title="Attending" note="No retreats yet. When you book or enquire about a retreat to attend, it&rsquo;ll appear here." items={attending} />
-      <Group title="Hosting" note="Nothing yet. When you enquire about a venue to host your own retreat, it&rsquo;ll appear here." items={hosting} />
+      {enquiries.length > 0 && (
+        <div className="acct-book-group" style={{ marginTop: 30 }}>
+          <h3 className="acct-book-h">Enquiries in progress</h3>
+          <ul className="acct-book-list">
+            {enquiries.map((a) => (
+              <li key={`enq-${a.id}`} className="acct-book-item">
+                <div className="acct-book-main">
+                  <span className="acct-book-venue">{a.venue_name ?? 'Venue to be confirmed'}</span>
+                  <span className="acct-book-tag enquiry">Enquiry</span>
+                </div>
+                <div className="acct-book-meta">{fmtDates(a.date_from, a.date_to) ?? 'Dates flexible'}{a.status ? ` · ${a.status}` : ''}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }

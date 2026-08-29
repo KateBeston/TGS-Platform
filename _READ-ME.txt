@@ -1,30 +1,27 @@
-TGS PLATFORM — Booking flow complete (experiences + order write path +
-processing state + rich confirmation)
-=====================================================================
-SUPERSEDES the earlier order-write-path zip — deploy this one instead; it has
-everything. Drop over matching files. New files: ExperienceBooking.tsx,
-lib/supabase/admin.ts, app/actions/submitBooking.ts.
+TGS PLATFORM — Bookings save to accounts + My Bookings (definitive booking set)
+===============================================================================
+SUPERSEDES all prior booking zips (experience-booking, order-write-path,
+booking-flow-complete). Deploy this one. Drop over matching files.
 
-** ENV VAR REQUIRED (Vercel, platform project) **
-  SUPABASE_SERVICE_ROLE_KEY = <Supabase service-role key>  (server-only, NOT
-  NEXT_PUBLIC). Without it, "Request to book" errors.
+** ENV VAR (Vercel, platform) **: SUPABASE_SERVICE_ROLE_KEY (server-only).
+** DATABASE ALREADY LIVE **: sync_order_status() trigger fix + two new functions
+   (get_my_bookings, get_my_booking_detail, granted to authenticated). No SQL.
 
-** DATABASE ALREADY LIVE **: the sync_order_status() trigger bug (ambiguous
-"total") was fixed in Supabase. No SQL to run.
+FIX (important): the write path was setting orders.wellness_guest_id to the auth
+UUID, but that column is bigint -> wellness_guests.id. A LOGGED-IN checkout would
+have errored. Now:
+  • bookings attach to the account by EMAIL (the link the platform already uses
+    in get_my_platform_activity): guest_email = the signed-in user's auth email.
+  • wellness_guest_id resolves to the real wellness_guests row when one exists.
+  • guests (not logged in) still work; their contact email is used.
+  Every order/booking/item is timestamped (created_at) as before.
 
-WHAT'S NEW SINCE THE ORDER-WRITE-PATH ZIP
-  app/checkout/page.tsx —
-    • On "Request to book": a stepped PROCESSING modal (Connecting with the
-      venue -> Holding your places -> Preparing your request -> Confirming),
-      modelled on the LE "We're confirming your booking" screen, in TGS brand.
-      When Stripe goes live, add a "Processing your payment securely" step.
-    • A RICH CONFIRMATION page (was a one-line panel): status + reference,
-      print / (download / resend = stubs), a thank-you panel, the itemised
-      booking with per-item held status, a held total, honest trust framing.
-      Reads the real cart snapshot taken at submit.
-  Honest by design: says "held / nothing charged" now; flips to "confirmed /
-  paid" when payments go live. No points, no invented reviews.
+MY BOOKINGS (account -> Bookings tab):
+  Richer cards now — venue, dates, guests, a status badge (Pending outlined /
+  Confirmed gold), and "Ref TGS-XXXXX · N items · booked <date>" with the total.
+  Enquiries in progress listed beneath. Data via get_my_bookings() (email-scoped,
+  SECURITY DEFINER). get_my_booking_detail(id) is live and ready for a per-booking
+  detail page (next).
 
-THE WHOLE FLOW: experience/venue -> cart -> checkout (contact + terms) ->
-processing modal -> submitBooking (server-priced, held order + bookings +
-items) -> rich confirmation.
+STILL TO COME: individual booking detail page (function is ready); "Manage /
+cancel" actions; and the Stripe payment step (gated).

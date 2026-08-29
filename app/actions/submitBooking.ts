@@ -53,6 +53,17 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
 
   const db = createAdminClient();
 
+  // Account link is by email (see get_my_platform_activity): a booking attaches
+  // to the signed-in user when guest_email matches their auth email. Resolve the
+  // wellness_guests row too when one exists (bigint id), else leave null.
+  let wellnessGuestId: number | null = null;
+  let linkEmail = email; // contact email for guests
+  if (user?.email) {
+    linkEmail = user.email; // guarantees the My Bookings email match
+    const { data: wg } = await db.from('wellness_guests').select('id').ilike('email', user.email).maybeSingle();
+    wellnessGuestId = (wg?.id as number) ?? null;
+  }
+
   // ── resolve the venue id for each slice, and server-side prices for services ──
   const venueNames = venues.map(([, v]) => v.venueName).filter(Boolean) as string[];
   const expIds = venues.flatMap(([, v]) => (v.items ?? []).filter((i) => i.kind === 'exp' || i.kind === 'extra').map((i) => i.id));
@@ -85,7 +96,7 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
   const reference = orderRef();
   const { data: order, error: orderErr } = await db.from('orders').insert({
     status: 'Pending', currency, order_reference: reference,
-    booked_by_type: 'Wellness Guest', wellness_guest_id: user?.id ?? null,
+    booked_by_type: 'Wellness Guest', wellness_guest_id: wellnessGuestId,
     venue_count: venues.length, notes: contact?.phone ? `Phone: ${contact.phone}` : null,
   }).select('id').single();
   if (orderErr || !order) return { ok: false, error: orderErr?.message ?? 'Could not open the order.' };
@@ -125,7 +136,8 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
       created_by_type: 'Guest self-serve', created_via: 'Booked on the site',
       date_from: slice.from || null, date_to: slice.to || null,
       guest_count: slice.guests ? Number(slice.guests) : null,
-      guest_name: name, guest_email: email, guest_phone: contact?.phone?.trim() || null,
+      guest_name: name, guest_email: linkEmail, guest_phone: contact?.phone?.trim() || null,
+      wellness_guest_id: wellnessGuestId,
       cancellation_policy_id: policyId,
       commission_rate: commissionRate, commission_amount: commissionAmount,
       subtotal: bookingSubtotal, total: bookingSubtotal, currency, is_primary_booking: true,

@@ -4258,3 +4258,16 @@ img { max-width: 100%; height: auto; display: block; }
 .ck-cf-sum-row { display: flex; justify-content: space-between; align-items: baseline; }
 .ck-cf-sum-total { font-size: 16px; } .ck-cf-sum-total b { font-family: var(--serif); font-weight: 500; font-size: 22px; }
 .ck-cf-sum-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ── Account: richer booking cards ── */
+.acct-bk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.acct-bk-card { border: 1px solid var(--border, #E0D8CC); background: var(--warm-white, #FDFCF9); padding: 18px 20px; }
+.acct-bk-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.acct-bk-venue { font-family: var(--serif, Georgia); font-size: 20px; line-height: 1.2; }
+.acct-bk-meta { font-size: 13px; color: var(--muted, #4A4238); margin-top: 4px; }
+.acct-bk-status { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 5px 11px; border: 1px solid var(--border, #E0D8CC); white-space: nowrap; flex-shrink: 0; color: var(--gold-dark, #7A644F); }
+.acct-bk-status.s-confirmed { background: var(--gold, #C4A265); color: #fff; border-color: var(--gold, #C4A265); }
+.acct-bk-status.s-cancelled { color: #9a5a4a; }
+.acct-bk-bot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border, #E0D8CC); }
+.acct-bk-ref { font-size: 12px; color: var(--muted, #4A4238); letter-spacing: .02em; }
+.acct-bk-total { font-family: var(--serif, Georgia); font-size: 18px; white-space: nowrap; }

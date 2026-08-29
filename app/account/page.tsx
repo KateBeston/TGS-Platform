@@ -30,11 +30,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
     'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Settings' | 'Venue management';
 
-  const [{ data: profile }, { data: roles }, { data: savedRows }, { data: activity }, { data: countries }] = await Promise.all([
+  const [{ data: profile }, { data: roles }, { data: savedRows }, { data: activity }, { data: bookings }, { data: countries }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     supabase.from('account_roles').select('role').eq('user_id', user.id),
     supabase.from('profile_saved_venues').select('venue_id').eq('user_id', user.id),
     supabase.rpc('get_my_platform_activity'),
+    supabase.rpc('get_my_bookings'),
     supabase.from('countries').select('id,name,iso_code,dialling_code').order('name'),
   ]);
 
@@ -61,6 +62,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       isHost={isHost}
       savedNode={savedNode}
       activity={activity ?? []}
+      bookings={bookings ?? []}
       hostData={hostData}
       countries={countries ?? []}
       initialTab={initialTab}
