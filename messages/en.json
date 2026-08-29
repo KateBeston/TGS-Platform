@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "menu": "Menu",
+    "openNavigation": "Open navigation",
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to main content",
+    "signUp": "Sign up",
+    "login": "Login",
+    "logOut": "Log out",
+    "account": "Account",
+    "chooseLanguage": "Choose a language",
+    "tagline": "Retreat spaces. Wellness experiences. Globally curated."
+  },
+  "drawer": {
+    "searchPlaceholder": "Search venues, experiences, locations...",
+    "search": "Search",
+    "discover": "Discover",
+    "learn": "Learn",
+    "connect": "Connect",
+    "retreatVenues": "Retreat Venues",
+    "wellnessVenues": "Wellness Venues",
+    "wellnessExperiences": "Wellness Experiences",
+    "about": "About Us",
+    "howItWorks": "How It Works",
+    "wellnessEdit": "The Wellness Edit",
+    "contact": "Contact Us",
+    "listYourVenue": "List Your Venue"
+  },
+  "language": {
+    "notice": "This site has been translated for convenience. Where a translated page and the English version differ, the English version applies. Legal documents are published in English only.",
+    "noticeShort": "Translated for convenience. The English version applies.",
+    "viewInEnglish": "View this page in English"
+  },
+  "booking": {
+    "addToBooking": "Add to booking",
+    "reviewBooking": "Review booking",
+    "clear": "Clear",
+    "downloadQuote": "Download quote",
+    "arrival": "Arrival",
+    "departure": "Departure",
+    "date": "Date",
+    "time": "Time",
+    "guests": "Guests",
+    "addDates": "Add dates",
+    "yourBooking": "Your booking",
+    "night": "night",
+    "nights": "nights",
+    "day": "day",
+    "days": "days",
+    "minimumStay": "Minimum stay",
+    "maximumStay": "maximum stay",
+    "bookableTo": "bookable to"
+  },
+  "common": {
+    "loading": "Loading",
+    "close": "Close",
+    "back": "Back",
+    "viewAll": "View all",
+    "readMore": "Read more"
+  }
+}

@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useAuthModal } from '@/components/AuthModal';
 import { useAccountDrawer } from '@/components/AccountDrawer';
 import { signOut } from '@/app/actions/auth';
+import LanguagePicker from '@/components/LanguagePicker';
+import { useT } from '@/lib/i18n/client';
 
 /* The header, on every public page.
  *
@@ -30,9 +32,9 @@ import { signOut } from '@/app/actions/auth';
  * not routes. They resolve to /venues with the marketplace filter
  * already applied, so the link lands where it means to. */
 const DISCOVER = [
-  { label: 'Retreat Venues', href: '/venues?marketplace=Retreat' },
-  { label: 'Wellness Venues', href: '/venues?marketplace=Wellness' },
-  { label: 'Wellness Experiences', href: '/wellness-experiences' },
+  { key: 'drawer.retreatVenues', href: '/venues?marketplace=Retreat' },
+  { key: 'drawer.wellnessVenues', href: '/venues?marketplace=Wellness' },
+  { key: 'drawer.wellnessExperiences', href: '/wellness-experiences' },
 ];
 
 export default function SiteHeader() {
@@ -40,6 +42,7 @@ export default function SiteHeader() {
   const authModal = useAuthModal();
   const acc = useAccountDrawer();
   const pathname = usePathname();
+  const t = useT();
   const overHero = pathname === '/';
 
   // On the home page the nav is transparent until you scroll past the
@@ -79,17 +82,17 @@ export default function SiteHeader() {
 
   return (
     <>
-      <a href="#main" className="skip-to-content">Skip to main content</a>
+      <a href="#main" className="skip-to-content">{t('nav.skipToContent')}</a>
 
       <nav className={navClass}>
         <div className="nav-inner">
           <button type="button" className="nav-left"
             aria-expanded={open} aria-controls="site-drawer"
-            aria-label="Open navigation" onClick={() => setOpen(true)}>
+            aria-label={t('nav.openNavigation')} onClick={() => setOpen(true)}>
             <span className={`nav-hamburger ${open ? 'active' : ''}`} aria-hidden="true">
               <span /><span /><span />
             </span>
-            <span className="nav-hamburger-label">Menu</span>
+            <span className="nav-hamburger-label">{t('nav.menu')}</span>
           </button>
 
           <Link href="/" className="nav-logo-area">
@@ -97,25 +100,26 @@ export default function SiteHeader() {
             <span className="nav-brand-stack">
               <span className="nav-brand-text">The Global Sanctum<sup style={{ fontSize: '0.5em', verticalAlign: 'top', letterSpacing: 0, marginLeft: 1 }}>™</sup></span>
               <span className="nav-tagline">
-                Retreat spaces. Wellness experiences. Globally curated.
+                {t('nav.tagline')}
               </span>
             </span>
           </Link>
 
           <div className="nav-right">
+            <LanguagePicker />
             {acc?.signedIn
               ? <div className="nav-account-in">
                   <button type="button" className="nav-account-main" onClick={() => acc.open()}>
                     <span className="nav-avatar">{(acc.profile?.first_name?.[0] ?? 'A').toUpperCase()}</span>
-                    <span className="nav-account-name">{acc.profile?.first_name ?? 'Account'}</span>
+                    <span className="nav-account-name">{acc.profile?.first_name ?? t('nav.account')}</span>
                   </button>
                   <form action={signOut} className="nav-logout-form">
-                    <button type="submit" className="nav-logout">Log out</button>
+                    <button type="submit" className="nav-logout">{t('nav.logOut')}</button>
                   </form>
                 </div>
               : <div className="nav-auth-btns">
-                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('signup')}>Sign up</button>
-                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('login')}>Login</button>
+                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('signup')}>{t('nav.signUp')}</button>
+                  <button type="button" className="nav-authbtn" onClick={() => authModal?.open('login')}>{t('nav.login')}</button>
                 </div>}
           </div>
         </div>
@@ -130,48 +134,48 @@ export default function SiteHeader() {
           <div className="drawer-header-left">
             <span className="drawer-logo" aria-hidden="true" />
           </div>
-          <button type="button" className="drawer-close" aria-label="Close menu"
+          <button type="button" className="drawer-close" aria-label={t('nav.closeMenu')}
             onClick={close}>&times;</button>
         </div>
 
         <div className="drawer-search">
           <div className="drawer-search-bar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-            <input type="text" aria-label="Search"
-              placeholder="Search venues, experiences, locations..." />
+            <input type="text" aria-label={t('drawer.search')}
+              placeholder={t('drawer.searchPlaceholder')} />
           </div>
         </div>
 
         <div className="drawer-body">
           <div className="drawer-group">
-            <div className="drawer-group-label">Discover</div>
+            <div className="drawer-group-label">{t('drawer.discover')}</div>
             {DISCOVER.map((i) => (
               <Link key={i.href} href={i.href} className="drawer-link" onClick={close}>
-                {i.label}<span className="drawer-link-arrow" aria-hidden="true">→</span>
+                {t(i.key)}<span className="drawer-link-arrow" aria-hidden="true">→</span>
               </Link>
             ))}
           </div>
 
           <div className="drawer-group">
-            <div className="drawer-group-label">Learn</div>
+            <div className="drawer-group-label">{t('drawer.learn')}</div>
             <Link href="/about" className="drawer-secondary-link" onClick={close}>
-              About Us
+              {t('drawer.about')}
             </Link>
             <Link href="/how-it-works" className="drawer-secondary-link" onClick={close}>
-              How It Works
+              {t('drawer.howItWorks')}
             </Link>
             <Link href="/the-wellness-edit" className="drawer-secondary-link" onClick={close}>
-              The Wellness Edit
+              {t('drawer.wellnessEdit')}
             </Link>
           </div>
 
           <div className="drawer-group">
-            <div className="drawer-group-label">Connect</div>
+            <div className="drawer-group-label">{t('drawer.connect')}</div>
             <Link href="/contact" className="drawer-secondary-link" onClick={close}>
-              Contact Us
+              {t('drawer.contact')}
             </Link>
             <Link href="/list-your-venue" className="drawer-secondary-link" onClick={close}>
-              List Your Venue
+              {t('drawer.listYourVenue')}
             </Link>
           </div>
         </div>

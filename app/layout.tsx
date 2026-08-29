@@ -12,6 +12,8 @@ import { AccountDrawerProvider } from '@/components/AccountDrawer';
 import SiteFooter from '@/components/SiteFooter';
 import JournalSignup from '@/components/JournalSignup';
 import PWARegister from '@/components/PWARegister';
+import { I18nProvider } from '@/lib/i18n/client';
+import { currentLocale, loadMessages } from '@/lib/i18n/server';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -49,11 +51,17 @@ export const viewport: Viewport = {
   themeColor: '#FDFCF8',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: { children: React.ReactNode }) {
+  // Resolved from the request rather than hardcoded, so <html lang> and dir are
+  // right on the first paint. Arabic and Hebrew need dir="rtl" here or the whole
+  // page lays out backwards.
+  const locale = await currentLocale();
+  const messages = await loadMessages(locale.code);
+
   return (
-    <html lang="en-AU">
+    <html lang={locale.code === 'en' ? 'en-AU' : locale.code} dir={locale.dir}>
       <head>
         {/* Before anything else. Denied by default, so a visitor who
             never answers is treated as having declined rather than as
@@ -75,6 +83,7 @@ export default function RootLayout({
             GA4 sees nothing. Without this it records only the landing
             page and every session looks like a bounce. */}
         <Suspense fallback={null}><PageViews /></Suspense>
+        <I18nProvider locale={locale.code} messages={messages as unknown as Record<string, unknown>}>
         <AuthModalProvider>
         <AccountDrawerProvider>
         <SavedVenuesProvider>
@@ -88,6 +97,7 @@ export default function RootLayout({
         </SavedVenuesProvider>
         </AccountDrawerProvider>
         </AuthModalProvider>
+        </I18nProvider>
         <ConsentBanner />
       </body>
     </html>

@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "menu": "",
+    "openNavigation": "",
+    "closeMenu": "",
+    "skipToContent": "",
+    "signUp": "",
+    "login": "",
+    "logOut": "",
+    "account": "",
+    "chooseLanguage": "",
+    "tagline": ""
+  },
+  "drawer": {
+    "searchPlaceholder": "",
+    "search": "",
+    "discover": "",
+    "learn": "",
+    "connect": "",
+    "retreatVenues": "",
+    "wellnessVenues": "",
+    "wellnessExperiences": "",
+    "about": "",
+    "howItWorks": "",
+    "wellnessEdit": "",
+    "contact": "",
+    "listYourVenue": ""
+  },
+  "language": {
+    "notice": "",
+    "noticeShort": "",
+    "viewInEnglish": ""
+  },
+  "booking": {
+    "addToBooking": "",
+    "reviewBooking": "",
+    "clear": "",
+    "downloadQuote": "",
+    "arrival": "",
+    "departure": "",
+    "date": "",
+    "time": "",
+    "guests": "",
+    "addDates": "",
+    "yourBooking": "",
+    "night": "",
+    "nights": "",
+    "day": "",
+    "days": "",
+    "minimumStay": "",
+    "maximumStay": "",
+    "bookableTo": ""
+  },
+  "common": {
+    "loading": "",
+    "close": "",
+    "back": "",
+    "viewAll": "",
+    "readMore": ""
+  }
+}

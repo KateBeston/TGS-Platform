@@ -183,14 +183,21 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex; align-items: center; gap: 14px; cursor: pointer;
   background: none; border: 0; padding: 0; color: var(--charcoal);
 }
-.nav-hamburger { display: flex; flex-direction: column; gap: 4px; }
+/* Three rules, the middle one short. The gaps are deliberately wider than the
+   stroke: at a hairline weight, tight spacing reads as a solid block rather
+   than as three lines. */
+.nav-hamburger { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .nav-hamburger span {
-  width: 22px; height: 1px; background: var(--charcoal);
-  transition: transform .3s, opacity .3s, background .3s;
+  height: 1px; background: var(--charcoal); display: block;
+  transition: width .35s ease, transform .3s, opacity .3s, background .3s;
 }
-.nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+.nav-hamburger span:nth-child(1),
+.nav-hamburger span:nth-child(3) { width: 28px; }
+.nav-hamburger span:nth-child(2) { width: 16px; }
+.nav-left:hover .nav-hamburger span:nth-child(2) { width: 28px; }
+.nav-hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(2px, 5px); }
 .nav-hamburger.active span:nth-child(2) { opacity: 0; }
-.nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+.nav-hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(2px, -5px); }
 .nav-hamburger-label {
   font-family: var(--sans); font-size: 11px; font-weight: 500;
   letter-spacing: .22em; text-transform: uppercase; color: var(--charcoal);
@@ -2825,14 +2832,22 @@ img { max-width: 100%; height: auto; display: block; }
 .nav--over-hero .nav-enquire { color: #FFFFFF; }
 
 .nav--over-hero.scrolled {
-  background: rgba(253, 252, 249, .95);
-  backdrop-filter: blur(8px);
+  /* Translucent, never solid: the page keeps moving behind the bar rather
+     than sliding under a panel. The blur has to carry the legibility that the
+     opacity no longer does, which is why it is heavier than it looks. */
+  background: rgba(253, 252, 249, .72);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
   border-bottom-color: var(--charcoal-08);
+  padding-top: 14px; padding-bottom: 14px;
 }
+.nav--over-hero { transition: background .35s ease, backdrop-filter .35s ease, border-color .35s ease, padding .35s ease; }
 .nav--over-hero.scrolled .nav-left,
 .nav--over-hero.scrolled .nav-logo-area { color: var(--charcoal); }
 .nav--over-hero.scrolled .nav-hamburger-label { color: var(--charcoal); }
 .nav--over-hero.scrolled .nav-hamburger span { background: var(--charcoal); }
+.nav--over-hero .nav-right { color: #FFFFFF; }
+.nav--over-hero.scrolled .nav-right { color: var(--charcoal); }
 .nav--over-hero.scrolled .nav-enquire { color: var(--charcoal); }
 
 /* ── Featured venue card (tgs_home_v6 .venue-card) ──
@@ -4190,6 +4205,44 @@ img { max-width: 100%; height: auto; display: block; }
 .ck-pill-warn{background:#f3ead6;border-color:#e4d4ad;color:#7a6234}
 .ck-contact-email{font-size:13px;color:var(--muted)}
 .ck-stub{border:1px dashed var(--border);background:var(--warm-cream);padding:16px 18px;font-size:12.5px;font-style:italic;color:var(--muted);line-height:1.6}
+
+/* ── Language picker ──────────────────────────────────────────────────
+   Inherits colour from .nav-right so it flips with the bar rather than
+   carrying its own light and dark rules. */
+.lang { position: relative; display: flex; align-items: center; }
+.lang-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; padding: 0; cursor: pointer; color: inherit;
+}
+.lang-mark { width: 16px; height: 16px; flex: none; }
+.lang-code {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 500;
+  letter-spacing: .19em; text-transform: uppercase;
+}
+.lang-menu {
+  position: absolute; top: calc(100% + 16px); right: 0; z-index: 120;
+  min-width: 168px; padding: 6px 0 0;
+  background: var(--warm-white); border: 1px solid var(--charcoal-08);
+  box-shadow: 0 14px 40px rgba(49, 49, 49, .10);
+  display: none;
+}
+.lang.open .lang-menu { display: block; }
+.lang-opt {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 18px;
+  width: 100%; padding: 9px 16px; background: none; border: 0; cursor: pointer;
+  font-family: var(--sans); font-size: 12px; color: var(--charcoal); text-align: left;
+}
+.lang-opt:hover { background: var(--warm-cream); }
+.lang-opt.on .lang-native { color: var(--gold-dark); }
+.lang-abbr { font-size: 9.5px; letter-spacing: .16em; color: var(--gold-dark); }
+.lang-notice {
+  margin: 6px 0 0; padding: 10px 16px 12px;
+  border-top: 1px solid var(--charcoal-08);
+  font-family: var(--sans); font-size: 10.5px; line-height: 1.6; color: var(--muted);
+}
+[dir="rtl"] .lang-menu { right: auto; left: 0; }
+[dir="rtl"] .lang-opt { text-align: right; }
+
 .bc-stay-note { font-size: 11.5px; color: var(--muted); margin: 10px 0 0; letter-spacing: .01em; }
 .bc-stay-issue { font-size: 12px; color: var(--gold-dark); margin: 10px 0 0; padding: 9px 11px; background: var(--warm-cream); border-left: 2px solid var(--gold); line-height: 1.5; }
 .ck-docs { border: 1px solid var(--border); padding: 18px 20px; margin: 0 0 18px; background: var(--warm-cream); }
