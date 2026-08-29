@@ -28,6 +28,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [err, setErr] = useState('');
+  const [step, setStep] = useState(0);
+  const [snap, setSnap] = useState<Cart | null>(null);
 
   useEffect(() => {
     try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); const c = localStorage.getItem('tgs_contact'); if (c) setContact(JSON.parse(c)); } catch { /* ignore */ }
@@ -47,25 +49,74 @@ export default function CheckoutPage() {
 
   const submit = async () => {
     if (!cart || !contactDone || !agreed || submitting) return;
-    setSubmitting(true); setErr('');
-    const res = await submitBooking(cart as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone });
-    setSubmitting(false);
+    const snapshot = cart;
+    setSubmitting(true); setErr(''); setStep(0);
+    const t1 = setTimeout(() => setStep(1), 550);
+    const t2 = setTimeout(() => setStep(2), 1150);
+    const res = await submitBooking(snapshot as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone });
+    clearTimeout(t1); clearTimeout(t2);
     if (res.ok) {
+      setStep(3);
       trackCartEvent({ eventType: 'book', metadata: { orderReference: res.orderReference } });
+      setSnap(snapshot);
       try { localStorage.removeItem('tgs_cart'); } catch { /* ignore */ }
+      await new Promise((r) => setTimeout(r, 650));
+      setSubmitting(false);
       setDone(res.orderReference);
-    } else { setErr(res.error); }
+    } else { setSubmitting(false); setErr(res.error); }
   };
 
+  const STEPS = ['Connecting with the venue', 'Holding your places', 'Preparing your request', 'Confirming your booking'];
+
   if (done) {
+    const cv = snap?.venues ? Object.values(snap.venues).filter((v) => v.items?.length) : [];
+    const heldTotal = cv.reduce((sm, v) => sm + (v.total || 0), 0);
+    const cur = cv[0]?.currency || 'AUD';
     return (
       <div className="cart-wrap">
-        <div className="ck-done-wrap">
-          <div className="ck-done-tick" aria-hidden="true">✓</div>
+        <div className="ck-cf">
+          <div className="ck-cf-tick" aria-hidden="true">✓</div>
           <div className="ck-eyebrow">Booking requested</div>
-          <h1 className="cart-h1">We&rsquo;ve received your request</h1>
-          <p className="ck-done-ref">Reference <b>{done}</b></p>
-          <p className="ck-done-msg">Your booking is held while each venue confirms your dates. We&rsquo;ll be in touch by email at {contact?.email}. Nothing has been charged.</p>
+          <h1 className="cart-h1">Your booking is held</h1>
+          <p className="ck-cf-sub">We&rsquo;ve received your request and each venue is confirming your dates. Nothing has been charged.</p>
+          <p className="ck-cf-ref">Reference <b>{done}</b></p>
+
+          <div className="ck-cf-actions">
+            <button type="button" className="ck-cf-action" onClick={() => window.print()}>Print confirmation</button>
+            <span className="ck-cf-action ck-cf-action-off">Download summary</span>
+            <span className="ck-cf-action ck-cf-action-off">Resend confirmation email</span>
+          </div>
+
+          <div className="ck-cf-panel">
+            <p>Thank you for booking with The Global Sanctum. We&rsquo;re preparing everything and will be in touch by email at <b>{contact?.email}</b> as each venue confirms.</p>
+            <p>If you don&rsquo;t see an email shortly, do check your spam or junk folder.</p>
+          </div>
+
+          <h2 className="ck-cf-sec">Your booking</h2>
+          {cv.map((v, i) => (
+            <div key={i} className="ck-cf-card">
+              <div className="ck-cf-card-head">
+                <div className="cv-name">{v.venueName}</div>
+                <div className="cv-meta">{[v.location, [fmtDate(v.from), fmtDate(v.to)].filter(Boolean).join('–'), v.guests ? `${v.guests} guests` : null].filter(Boolean).join(' · ')}</div>
+              </div>
+              {v.items.map((it) => (
+                <div key={it.key} className="ck-cf-line">
+                  <div className="ck-cf-line-l">
+                    <div className="cv-eyebrow">{it.eyebrow}</div>
+                    <div className="ck-cf-line-name">{it.label}{it.qty > 1 ? ` · ×${it.qty}` : ''}</div>
+                    <div className="ck-cf-line-status">{it.amount != null ? 'Held — the venue will confirm your time' : 'Held — priced on confirmation'}</div>
+                  </div>
+                  <div className="ck-cf-line-r">{it.amount != null ? money(it.amount, v.currency) : 'To be quoted'}</div>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          <div className="ck-cf-sum">
+            <div className="ck-cf-sum-row ck-cf-sum-total"><span>Held total</span><b>{money(heldTotal, cur)}</b></div>
+            <div className="ck-cf-sum-note">Anything shown as &ldquo;to be quoted&rdquo; is confirmed with the venue before anything is charged.</div>
+          </div>
+
           <Link href="/experiences" className="cart-cta cart-cta-primary" style={{ display: 'inline-block', width: 'auto', padding: '13px 28px', textDecoration: 'none' }}>Continue exploring</Link>
         </div>
       </div>
@@ -74,6 +125,22 @@ export default function CheckoutPage() {
 
   return (
     <div className="cart-wrap">
+      {submitting && (
+        <div className="ck-proc-back">
+          <div className="ck-proc">
+            <h2 className="ck-proc-h">We&rsquo;re confirming your booking</h2>
+            <p className="ck-proc-sub">Stay on this screen until your confirmation appears.</p>
+            <div className="ck-proc-steps">
+              {STEPS.map((label, i) => (
+                <div key={i} className={`ck-proc-step ${i < step ? 'is-done' : i === step ? 'is-active' : ''}`}>
+                  <span className="ck-proc-mark">{i < step ? '✓' : i + 1}</span>
+                  <span className="ck-proc-label">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="cart-head"><div><div className="ck-eyebrow">Checkout</div><h1 className="cart-h1">Complete your booking</h1></div><Link className="cart-head-actions" href="/booking" style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gold-dark)', textDecoration: 'underline' }}>Back to cart</Link></div>
 
       <div className="cart-cols">

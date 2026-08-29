@@ -4220,3 +4220,41 @@ img { max-width: 100%; height: auto; display: block; }
 .ck-done-ref { font-size: 15px; color: var(--muted, #4A4238); margin: 6px 0 14px; }
 .ck-done-msg { font-size: 14px; line-height: 1.6; color: var(--muted, #4A4238); margin: 0 auto 24px; max-width: 460px; }
 .ck-err { color: #9a3a3a; font-size: 13px; margin: 10px 0 0; }
+
+/* ── Checkout: processing modal ── */
+.ck-proc-back { position: fixed; inset: 0; background: rgba(49,49,49,.5); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
+.ck-proc { background: var(--warm-white); border: 1px solid var(--border); max-width: 460px; width: 100%; padding: 32px 34px; }
+.ck-proc-h { font-family: var(--serif); font-weight: 300; font-size: 28px; margin: 0 0 6px; }
+.ck-proc-sub { font-size: 13px; color: var(--muted); margin: 0 0 22px; }
+.ck-proc-steps { display: flex; flex-direction: column; }
+.ck-proc-step { display: flex; align-items: center; gap: 14px; padding: 15px 0; border-top: 1px solid var(--border); color: var(--muted); font-size: 15px; }
+.ck-proc-step:last-child { border-bottom: 1px solid var(--border); }
+.ck-proc-mark { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.ck-proc-step.is-done { color: var(--charcoal); }
+.ck-proc-step.is-done .ck-proc-mark { background: var(--gold); border-color: var(--gold); color: #fff; }
+.ck-proc-step.is-active { color: var(--charcoal); }
+.ck-proc-step.is-active .ck-proc-mark { border-color: var(--gold); border-top-color: transparent; animation: ck-spin .8s linear infinite; }
+@keyframes ck-spin { to { transform: rotate(360deg); } }
+
+/* ── Checkout: rich confirmation ── */
+.ck-cf { max-width: 760px; margin: 8px auto; }
+.ck-cf-tick { width: 54px; height: 54px; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 24px; margin-bottom: 20px; }
+.ck-cf-sub { font-size: 15px; color: var(--muted); margin: 8px 0 6px; }
+.ck-cf-ref { font-size: 14px; } .ck-cf-ref b { font-weight: 600; letter-spacing: .04em; }
+.ck-cf-actions { display: flex; gap: 24px; margin: 24px 0 30px; flex-wrap: wrap; }
+.ck-cf-action { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold-dark); background: none; border: none; border-bottom: 1px solid transparent; padding: 0 0 2px; cursor: pointer; }
+.ck-cf-action:hover { border-bottom-color: var(--gold); }
+.ck-cf-action-off { opacity: .5; cursor: default; }
+.ck-cf-panel { background: var(--warm-white); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 30px; }
+.ck-cf-panel p { font-size: 14px; line-height: 1.7; color: var(--muted); } .ck-cf-panel p + p { margin-top: 8px; }
+.ck-cf-sec { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 0 0 14px; }
+.ck-cf-card { background: var(--warm-white); border: 1px solid var(--border); margin-bottom: 12px; }
+.ck-cf-card-head { padding: 18px 22px; }
+.ck-cf-line { border-top: 1px solid var(--border); padding: 15px 22px; display: flex; justify-content: space-between; gap: 16px; }
+.ck-cf-line-name { font-size: 14px; margin: 3px 0; }
+.ck-cf-line-status { font-size: 12px; color: var(--gold-dark); }
+.ck-cf-line-r { font-family: var(--serif); font-size: 18px; white-space: nowrap; }
+.ck-cf-sum { background: var(--warm-white); border: 1px solid var(--border); padding: 18px 22px; margin-bottom: 30px; }
+.ck-cf-sum-row { display: flex; justify-content: space-between; align-items: baseline; }
+.ck-cf-sum-total { font-size: 16px; } .ck-cf-sum-total b { font-family: var(--serif); font-weight: 500; font-size: 22px; }
+.ck-cf-sum-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
