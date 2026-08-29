@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs } from '@/lib/acceptance';
+import { checkStay, stayRulesFrom } from '@/lib/stayRules';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ORDER WRITE PATH  (request-to-book, held pending calendar + payment)
@@ -86,12 +87,35 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
   const venueByName = new Map((venueRows ?? []).map((v) => [v.venue_name as string, v.id as number]));
   const venueIds = Array.from(venueByName.values());
 
-  const [{ data: subs }, { data: policies }] = await Promise.all([
+  const [{ data: subs }, { data: policies }, { data: settings }, { data: venueMinimums }] = await Promise.all([
     db.from('venue_subscriptions').select('venue_id, commission_rate').in('venue_id', venueIds),
     db.from('cancellation_policies').select('id, venue_id').in('venue_id', venueIds).eq('is_default', true).eq('is_active', true),
+    db.from('venue_booking_settings')
+      .select('venue_id, minimum_stay_default, minimum_stay_weekends, maximum_stay, max_advance_days, advance_notice_hours')
+      .in('venue_id', venueIds),
+    db.from('venues').select('id, minimum_stay_nights').in('id', venueIds),
   ]);
   const commissionByVenue = new Map((subs ?? []).map((s) => [s.venue_id as number, Number(s.commission_rate ?? 20)]));
   const policyByVenue = new Map((policies ?? []).map((p) => [p.venue_id as number, p.id as number]));
+  const settingsByVenue = new Map((settings ?? []).map((r) => [r.venue_id as number, r]));
+  const minimumByVenue = new Map((venueMinimums ?? []).map((r) => [r.id as number, r.minimum_stay_nights as number | null]));
+
+  /* Dates the venue will not accept, checked before anything is written.
+   *
+   * The picker already refuses these, but a cart lives in localStorage and a
+   * server action is a public endpoint, so the browser's word is not evidence.
+   * Refused up front rather than mid-loop: a rejected booking should leave no
+   * half-written order behind. */
+  for (const [, slice] of venues) {
+    const vid = slice.venueName ? venueByName.get(slice.venueName) : undefined;
+    if (!vid || !slice.from) continue;
+    const rules = stayRulesFrom(settingsByVenue.get(vid), minimumByVenue.get(vid) ?? null);
+    const isStay = (slice.items ?? []).some((i) => i.kind === 'room' || i.kind === 'buyout');
+    const verdict = checkStay(rules, slice.from, slice.to ?? null, isStay);
+    if (!verdict.ok) {
+      return { ok: false, error: `${slice.venueName}: ${verdict.error}` };
+    }
+  }
 
   // ── create the order ──
   const currency = venues[0][1].currency || 'AUD';

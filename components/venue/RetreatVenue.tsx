@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
@@ -108,7 +109,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         </div>
       </ImageCarousel>
 
-      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} allowBuyout venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} dateMode="range" summary={v.venue_short_description ?? v.listing_description ?? null}>
+      <BookingCart rooms={v.rooms} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} allowBuyout venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} stayRules={stayRulesFrom(v.booking_settings, v.minimum_stay_nights)} dateMode="range" summary={v.venue_short_description ?? v.listing_description ?? null}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       {/* ── overview ───────────────────────────────────────────────── */}

@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -81,7 +81,12 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('venue_acceptance_documents')
         .select('document_id,slug,name,summary,document_type,display_order,show_in_good_to_know,version_label,effective_from')
         .eq('venue_id', id)
-        .order('display_order', { nullsFirst: false })
+        .order('display_order', { nullsFirst: false }),
+      // What the venue will accept as dates. Read here rather than in the
+      // component so the picker and submitBooking work from the same record.
+      supabase.from('venue_booking_settings')
+        .select('minimum_stay_default,minimum_stay_weekends,maximum_stay,max_advance_days,advance_notice_hours')
+        .eq('venue_id', id).maybeSingle()
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -156,6 +161,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     opening_hours: openingHours.data ?? [],
     policies: policies.data ?? [],
     legal_documents: legalDocuments.data ?? [],
+    booking_settings: bookingSettings.data ?? null,
     distances: distances.data ?? [],
     excursions: excursions.data ?? [],
     faqs: faqs.data ?? [],

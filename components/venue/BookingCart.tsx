@@ -3,6 +3,7 @@
 import { createContext, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { trackCartEvent } from '@/lib/track';
+import { NO_RULES, checkStay, earliestArrival, latestArrival, earliestDeparture, latestDeparture, minNightsFor, type StayRules } from '@/lib/stayRules';
 
 /* The booking drawer.
  *
@@ -69,10 +70,10 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 
 export function BookingCart({
   rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
-  allowBuyout = false, minStayNights = null, dateMode = 'range', requiresTime = false, summary = null, confirmation = null, cancellation = null, children,
+  allowBuyout = false, minStayNights = null, stayRules = NO_RULES, dateMode = 'range', requiresTime = false, summary = null, confirmation = null, cancellation = null, children,
 }: {
   rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
-  venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null;
+  venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null; stayRules?: StayRules;
   dateMode?: 'single' | 'range'; requiresTime?: boolean;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
   children: ReactNode;
@@ -90,7 +91,35 @@ export function BookingCart({
 
   // In single-date mode the booking is one day: departure tracks arrival, so
   // nights stays 0 and per-session pricing (nights || 1) is used.
-  const setArrival = (v: string) => { setFrom(v); if (dateMode === 'single') setTo(v); };
+  const isStay = rooms.length > 0;
+
+  /* Choosing an arrival moves the departure to keep the stay legal, rather
+     than leaving a guest to discover the problem at checkout. Only ever
+     forward: pulling a departure back would silently shorten a stay somebody
+     deliberately chose. */
+  const setArrival = (v: string) => {
+    setFrom(v);
+    if (dateMode === 'single') { setTo(v); return; }
+    if (!isStay) return;
+    const floor = earliestDeparture(stayRules, v);
+    const ceiling = latestDeparture(stayRules, v);
+    setTo((prev) => {
+      if (!prev || (floor && prev < floor)) return floor ?? prev;
+      if (ceiling && prev > ceiling) return ceiling;
+      return prev;
+    });
+  };
+
+  /* The same rules the server will apply, run here so the picker refuses
+     first. This is a courtesy: submitBooking checks again. */
+  const stayIssue = useMemo(() => {
+    const r = checkStay(stayRules, from, to, isStay);
+    return r.ok ? null : r.error;
+  }, [stayRules, from, to, isStay]);
+
+  const minNightsHere = minNightsFor(stayRules, from);
+  const arrivalMin = earliestArrival(stayRules);
+  const arrivalMax = latestArrival(stayRules);
 
   const nights = useMemo(() => {
     if (!from || !to || to <= from) return 0;
@@ -305,7 +334,7 @@ export function BookingCart({
             <div className="bc-dates">
               {dateMode === 'single' ? (
                 <>
-                  <label className="bb-field"><span>Date</span><input type="date" value={from} onChange={(e) => setArrival(e.target.value)} /></label>
+                  <label className="bb-field"><span>Date</span><input type="date" value={from} min={arrivalMin} max={arrivalMax ?? undefined} onChange={(e) => setArrival(e.target.value)} /></label>
                   {requiresTime && (
                     <label className="bb-field"><span>Time</span>
                       <select value={timeOfDay} onChange={(e) => setTimeOfDay(e.target.value)}>
@@ -317,12 +346,24 @@ export function BookingCart({
                 </>
               ) : (
                 <>
-                  <label className="bb-field"><span>Arrival</span><input type="date" value={from} onChange={(e) => setArrival(e.target.value)} /></label>
-                  <label className="bb-field"><span>Departure</span><input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+                  <label className="bb-field"><span>Arrival</span><input type="date" value={from} min={arrivalMin} max={arrivalMax ?? undefined} onChange={(e) => setArrival(e.target.value)} /></label>
+                  <label className="bb-field"><span>Departure</span><input type="date" value={to} min={(isStay && earliestDeparture(stayRules, from)) || from || arrivalMin} max={(isStay && latestDeparture(stayRules, from)) || undefined} onChange={(e) => setTo(e.target.value)} /></label>
                   <label className="bb-field"><span>Guests</span><input type="number" min={1} value={guests} onChange={(e) => setGuests(e.target.value)} /></label>
                 </>
               )}
             </div>
+
+            {stayIssue
+              ? <p className="bc-stay-issue">{stayIssue}</p>
+              : (minNightsHere || stayRules.maxNights || arrivalMax) && (
+                  <p className="bc-stay-note">
+                    {[
+                      minNightsHere ? `Minimum ${minNightsHere} night${minNightsHere === 1 ? '' : 's'}` : null,
+                      stayRules.maxNights ? `maximum ${stayRules.maxNights} night${stayRules.maxNights === 1 ? '' : 's'}` : null,
+                      arrivalMax ? `bookable to ${new Date(arrivalMax).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}` : null,
+                    ].filter(Boolean).join(' \u00b7 ')}
+                  </p>
+                )}
 
             {allowBuyout && buyoutPlan && (
               <div className="bc-buyout">
@@ -372,7 +413,7 @@ export function BookingCart({
             <div className="bc-actions">
               <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
               <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
-              <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0}>Review booking</button>
+              <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0 || !!stayIssue} title={stayIssue ?? undefined}>Review booking</button>
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
           </div>
