@@ -96,6 +96,16 @@ export function BookingCart({
     if (!from || !to || to <= from) return 0;
     return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000);
   }, [from, to]);
+
+  /* How the span reads on screen. Pricing still keys off `nights`; this is copy
+     only. A stay is counted in nights. A date range with no accommodation is
+     counted in days, and a same-day range is one day, not "Add dates". */
+  const durationLabel = useMemo(() => {
+    if (!from || !to) return null;
+    if (rooms.length > 0) return nights ? `${nights} night${nights === 1 ? '' : 's'}` : '1 day';
+    const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000) + 1;
+    return days > 0 ? `${days} day${days === 1 ? '' : 's'}` : null;
+  }, [from, to, nights, rooms.length]);
   const guestN = Math.max(1, Number(guests) || 1);
 
 
@@ -162,13 +172,13 @@ export function BookingCart({
     type Line = { key: string; label: string; detail: string; amount: number | null; kind: Kind; id: number; qty: number; max: number; image: string | null; eyebrow: string; qtyLabel: string; unit: number | null };
     const out: Line[] = [];
     if (buyout && buyoutPlan) {
-      out.push({ key: 'buyout', label: 'Whole venue — exclusive use', detail: nights ? `${nights} night${nights === 1 ? '' : 's'} · all rooms` : 'Add dates', amount: buyoutTotal, kind: 'room', id: -1, qty: 1, max: 1, image: venueImage, eyebrow: 'Whole venue', qtyLabel: '', unit: buyoutTotal });
+      out.push({ key: 'buyout', label: 'Whole venue — exclusive use', detail: durationLabel ? `${durationLabel} · all rooms` : 'Add dates', amount: buyoutTotal, kind: 'room', id: -1, qty: 1, max: 1, image: venueImage, eyebrow: 'Whole venue', qtyLabel: '', unit: buyoutTotal });
     } else {
     for (const r of rooms) {
       const q = roomQty[r.id] ?? 0; if (!q) continue;
       const rp = roomPlan(r.id);
       const unit = rp && rp.base_price != null && nights ? byBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1) : null;
-      out.push({ key: `room-${r.id}`, label: r.name, detail: [nights ? `${nights} night${nights === 1 ? '' : 's'}` : 'Add dates', r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · '), amount: unit != null ? unit * q : null, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9, image: r.gallery_images?.[0] ?? venueImage, eyebrow: 'Accommodation', qtyLabel: 'Rooms', unit });
+      out.push({ key: `room-${r.id}`, label: r.name, detail: [durationLabel ?? 'Add dates', r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · '), amount: unit != null ? unit * q : null, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9, image: r.gallery_images?.[0] ?? venueImage, eyebrow: 'Accommodation', qtyLabel: 'Rooms', unit });
     }
     }
     for (const s of services) {
@@ -182,7 +192,7 @@ export function BookingCart({
       out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount: unit != null ? unit * q : null, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20, image: e.gallery_images?.[0] ?? venueImage, eyebrow: 'Room extra', qtyLabel: 'Qty', unit });
     }
     return out;
-  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
+  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -237,7 +247,7 @@ export function BookingCart({
       if (!cart.venues) cart.venues = {};
       if (count > 0) {
         cart.venues[key] = {
-          venueName, location, currency, venueImage, from, to, guests, buyout, cancellation, freeCancelDays, timeOfDay: (dateMode === 'single' && requiresTime) ? timeOfDay : null, dateMode, backHref: key,
+          venueName, venueId, location, currency, venueImage, from, to, guests, buyout, cancellation, freeCancelDays, timeOfDay: (dateMode === 'single' && requiresTime) ? timeOfDay : null, dateMode, durationLabel, backHref: key,
           items: lines.map((l) => ({ key: l.key, kind: l.kind, id: l.id, label: l.label, detail: l.detail, qty: l.qty, max: l.max, amount: l.amount, unit: l.unit, image: l.image, eyebrow: l.eyebrow, qtyLabel: l.qtyLabel })),
           total,
         };
@@ -247,7 +257,7 @@ export function BookingCart({
       cart.savedAt = Date.now();
       localStorage.setItem('tgs_cart', JSON.stringify(cart));
     } catch { /* storage unavailable — the sidebar still works */ }
-  }, [hydrated, lines, from, to, guests, buyout, venueName, location, currency, venueImage, cancellation, freeCancelDays, timeOfDay, dateMode, requiresTime, total, count]);
+  }, [hydrated, lines, from, to, guests, buyout, venueName, venueId, location, currency, venueImage, cancellation, freeCancelDays, timeOfDay, dateMode, durationLabel, requiresTime, total, count]);
 
   const features: { icon: React.ReactNode; label: React.ReactNode }[] = [];
   if (minStayNights) features.push({ icon: <IcClock />, label: <>Minimum stay: <b>{minStayNights} night{minStayNights === 1 ? '' : 's'}</b></> });

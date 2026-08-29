@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -78,6 +78,10 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('cancellation_policies')
         .select('id, wording, deposit_is_refundable, cancellation_rules(days_before_arrival, refund_percent, sequence, description)')
         .eq('venue_id', id).eq('is_active', true).eq('is_default', true).maybeSingle(),
+      supabase.from('venue_acceptance_documents')
+        .select('document_id,slug,name,summary,document_type,display_order,show_in_good_to_know,version_label,effective_from')
+        .eq('venue_id', id)
+        .order('display_order', { nullsFirst: false })
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -151,6 +155,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     practitioners: practitioners.data ?? [],
     opening_hours: openingHours.data ?? [],
     policies: policies.data ?? [],
+    legal_documents: legalDocuments.data ?? [],
     distances: distances.data ?? [],
     excursions: excursions.data ?? [],
     faqs: faqs.data ?? [],

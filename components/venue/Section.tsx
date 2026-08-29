@@ -268,6 +268,33 @@ export function PractitionersPanel({ v }: { v: Record<string, any> }) {
   );
 }
 
+/* The venue's own documents, linked rather than reproduced.
+ *
+ * The stay is a contract with the venue, so a guest should be able to read the
+ * venue's terms before they book, not only at checkout. Rendered from the venue
+ * register, so nothing appears until a document is published. */
+export function VenueDocuments({ v }: { v: Record<string, any> }) {
+  const docs = (v.legal_documents ?? []).filter((d: any) => d.show_in_good_to_know);
+  if (!docs.length) return null;
+  return (
+    <div className="venue-docs">
+      <h3>Documents for this venue</h3>
+      <p className="venue-docs-note">
+        These are the venue&rsquo;s own terms. They govern your stay, and you&rsquo;ll
+        be asked to accept them when you book.
+      </p>
+      <ul className="venue-docs-list">
+        {docs.map((d: any) => (
+          <li key={d.document_id ?? d.slug}>
+            <a href={`/legal/venue/${v.id}/${d.slug}`}>{d.name}</a>
+            {d.version_label && <span className="venue-docs-v">{d.version_label}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /* Policies — arrival, etiquette, health and safety, payment. Prose
  * blocks, each in the venue's own words. */
 export function PoliciesPanel({ v }: { v: Record<string, any> }) {
@@ -280,6 +307,7 @@ export function PoliciesPanel({ v }: { v: Record<string, any> }) {
             <p>{po.body}</p>
           </div>
         ))}
+        <VenueDocuments v={v} />
       </div>
     </Section>
   );

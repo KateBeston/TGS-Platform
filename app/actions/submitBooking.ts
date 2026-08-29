@@ -1,7 +1,9 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs } from '@/lib/acceptance';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ORDER WRITE PATH  (request-to-book, held pending calendar + payment)
@@ -153,5 +155,67 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
   }
 
   await db.from('orders').update({ subtotal: orderSubtotal, total: orderSubtotal }).eq('id', order.id);
+
+  /* Record what was accepted, against this order.
+   *
+   * Re-read from the same views the checkout page displayed rather than
+   * trusting a list from the client, so the record is of documents that were
+   * actually in force at this moment. Each row snapshots the version label,
+   * effective date, body length and body hash, so the exact wording can be
+   * proven later even if the document is superseded.
+   *
+   * Deliberately last, and deliberately non-fatal: a booking that exists with
+   * no acceptance row is recoverable, a lost booking is not. */
+  try {
+    const bookedVenueIds = Array.from(new Set(venueIds.filter((n): n is number => typeof n === 'number')));
+    const [tgsDocs, venueDocs] = await Promise.all([
+      fetchTgsAcceptanceDocs(db as never),
+      fetchVenueAcceptanceDocs(db as never, bookedVenueIds),
+    ]);
+
+    if (tgsDocs.length || venueDocs.length) {
+      const h = await headers();
+      const ip = (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || null;
+      const ua = h.get('user-agent') ?? null;
+      const base = {
+        order_id: order.id,
+        signatory_name: name,
+        signatory_email: linkEmail,
+        party_type: 'Wellness Guest',
+        source: 'Checkout',
+        ip_address: ip,
+        user_agent: ua,
+      };
+      const rows = [
+        ...tgsDocs.map((d) => ({
+          ...base, version_id: d.version_id, venue_id: null,
+          version_label_at_acceptance: d.version_label,
+          effective_from_at_acceptance: d.effective_from,
+          body_sha256: d.body_sha256, body_length: d.body_length,
+          notes: `Order ${reference}`,
+        })),
+      ];
+      if (rows.length) await db.from('legal_acceptances').insert(rows);
+
+      /* Venue documents live in their own register, so they are recorded
+         against venue_legal_acceptances, because legal_acceptances.version_id
+         points at the TGS register and cannot carry a venue document. */
+      if (venueDocs.length) {
+        await db.from('venue_legal_acceptances').insert(
+          venueDocs.map((d) => ({
+            order_id: order.id, venue_id: d.venue_id,
+            venue_legal_document_version_id: d.version_id,
+            signatory_name: name, signatory_email: linkEmail,
+            source: 'Checkout', ip_address: ip, user_agent: ua,
+            version_label_at_acceptance: d.version_label,
+            effective_from_at_acceptance: d.effective_from,
+            body_sha256: d.body_sha256, body_length: d.body_length,
+            notes: `Order ${reference}`,
+          })),
+        );
+      }
+    }
+  } catch { /* never fail a booking over the audit trail */ }
+
   return { ok: true, orderReference: reference };
 }

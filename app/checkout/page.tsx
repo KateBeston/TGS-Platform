@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent } from '@/lib/track';
+import { createClient } from '@/lib/supabase/client';
+import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
-type VenueSlice = { venueName: string; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
+type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 type Contact = { first: string; last: string; email: string; phone: string };
 
@@ -30,11 +32,34 @@ export default function CheckoutPage() {
   const [err, setErr] = useState('');
   const [step, setStep] = useState(0);
   const [snap, setSnap] = useState<Cart | null>(null);
+  const [tgsDocs, setTgsDocs] = useState<AcceptanceDoc[]>([]);
+  const [venueDocs, setVenueDocs] = useState<VenueAcceptanceDoc[]>([]);
 
   useEffect(() => {
     try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); const c = localStorage.getItem('tgs_contact'); if (c) setContact(JSON.parse(c)); } catch { /* ignore */ }
     setLoaded(true);
   }, []);
+
+  /* What the guest is asked to accept. Read from the register rather than
+     hardcoded, so it is exactly what submitBooking will record. */
+  useEffect(() => {
+    if (!cart) return;
+    const ids = Object.values(cart.venues ?? {})
+      .map((v) => v.venueId)
+      .filter((n): n is number => typeof n === 'number');
+    let live = true;
+    (async () => {
+      try {
+        const db = createClient();
+        const [tgs, ven] = await Promise.all([
+          fetchTgsAcceptanceDocs(db as never),
+          fetchVenueAcceptanceDocs(db as never, Array.from(new Set(ids))),
+        ]);
+        if (live) { setTgsDocs(tgs); setVenueDocs(ven); }
+      } catch { /* the checkbox still carries the standing terms */ }
+    })();
+    return () => { live = false; };
+  }, [cart]);
 
   if (!loaded) return <div className="cart-wrap" />;
   const entries = cart?.venues ? Object.values(cart.venues).filter((v) => v.items?.length) : [];
@@ -44,6 +69,18 @@ export default function CheckoutPage() {
   const currency = entries[0].currency;
   const grand = entries.reduce((s, v) => s + (v.total || 0), 0);
   const contactDone = !!(contact && contact.first && contact.email);
+
+  /* Each venue is paid in its own currency, so the guest's card is charged in
+     that currency and their issuer applies the conversion. Disclose it whenever
+     anything in the cart is priced outside AUD. */
+  const venueNameById = new Map<number, string>();
+  for (const v of entries) if (typeof v.venueId === 'number') venueNameById.set(v.venueId, v.venueName);
+
+  const currencies = Array.from(new Set(entries.map((v) => (v.currency || 'AUD').toUpperCase())));
+  const foreignCurrency = currencies.some((c) => c !== 'AUD');
+  const currencyList = currencies.length === 1
+    ? currencies[0]
+    : `${currencies.slice(0, -1).join(', ')} and ${currencies[currencies.length - 1]}`;
 
   const saveContact = (c: Contact) => { setContact(c); try { localStorage.setItem('tgs_contact', JSON.stringify(c)); } catch { /* ignore */ } setModal(false); };
 
@@ -88,7 +125,7 @@ export default function CheckoutPage() {
           </div>
 
           <div className="ck-cf-panel">
-            <p>Thank you for booking with The Global Sanctum. We&rsquo;re preparing everything and will be in touch by email at <b>{contact?.email}</b> as each venue confirms.</p>
+            <p>Thank you. Your request has been sent to {cv.length === 1 ? <b>{cv[0].venueName}</b> : <>each venue</>}. The Global Sanctum arranged the introduction; your booking is with the venue and their terms apply to your stay. We&rsquo;ll be in touch by email at <b>{contact?.email}</b> as each venue confirms.</p>
             <p>If you don&rsquo;t see an email shortly, do check your spam or junk folder.</p>
           </div>
 
@@ -175,12 +212,35 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="ck-sec"><h2 className="ck-h2">Protect yourself if you need to cancel</h2><div className="ck-stub">Cancellation protection will appear here. It&rsquo;s an insurance product provided through a licensed partner, so it goes live once that arrangement is in place.</div></section>
 
           <section className="ck-sec">
             <h2 className="ck-h2">How would you like to pay?</h2>
-            <div className="ck-stub">Payment is coming in the next stage — card in test mode first, then reviewed before anything real is charged.</div>
-            <label className="ck-agree"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span>I agree to the <Link href="/legal">Terms &amp; Conditions</Link>, <Link href="/legal">Refund Policy</Link> and <Link href="/legal">Privacy Policy</Link>.</span></label>
+            <div className="ck-stub">Nothing is charged now. Each venue confirms your dates first, and payment is arranged with the venue after that.</div>
+            <ul className="ck-notes">
+              <li>Your booking is with the venue. The Global Sanctum introduces and arranges it, and is not a party to your stay. The venue&rsquo;s own terms and cancellation policy govern the booking and any refund.</li>
+              <li>Payment is made to the venue, so the venue&rsquo;s name may appear on your card or bank statement rather than The Global Sanctum.</li>
+              {foreignCurrency && <li>This booking is priced and charged in {currencyList}. Any amount shown in another currency is indicative only, and your card issuer sets the conversion rate and any foreign transaction fee.</li>}
+            </ul>
+            {(tgsDocs.length > 0 || venueDocs.length > 0) && (
+              <div className="ck-docs">
+                <div className="ck-docs-h">What you&rsquo;re agreeing to</div>
+                <ul className="ck-docs-list">
+                  {tgsDocs.map((d) => (
+                    <li key={`t-${d.document_id}`}>
+                      <Link href={`/legal/${d.slug}`}>{d.name}</Link>
+                      {d.version_label && <span className="ck-docs-v">{d.version_label}</span>}
+                    </li>
+                  ))}
+                  {venueDocs.map((d) => (
+                    <li key={`v-${d.document_id}`}>
+                      <Link href={`/legal/venue/${d.venue_id}/${d.slug}`}>{d.name}</Link>
+                      <span className="ck-docs-v">{venueNameById.get(d.venue_id) ?? 'Venue'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <label className="ck-agree"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span>I agree to the <Link href="/legal/terms-and-conditions">Terms &amp; Conditions</Link>, the <Link href="/legal/booking-terms-and-conditions">Booking Terms</Link>, the <Link href="/legal/refund-cancellation-policy">Refund &amp; Cancellation Policy</Link> and the <Link href="/legal/privacy-policy">Privacy Policy</Link>{(tgsDocs.length > 0 || venueDocs.length > 0) ? ', together with the documents listed above' : ''}, and I understand the venue&rsquo;s own terms apply to my stay.</span></label>
             <button type="button" className="cart-cta cart-cta-primary" disabled={!contactDone || !agreed || submitting} onClick={submit}>{submitting ? 'Sending your request…' : 'Request to book'}</button>
             {err && <p className="ck-err">{err}</p>}
             {!contactDone && <p className="cart-secure">Add your contact details above to request this booking.</p>}
@@ -220,7 +280,7 @@ function ContactModal({ initial, onSave, onClose }: { initial: Contact | null; o
           <div className="ck-two"><label className="ck-field"><span>First name</span><input value={first} onChange={(e) => setFirst(e.target.value)} /></label><label className="ck-field"><span>Last name</span><input value={last} onChange={(e) => setLast(e.target.value)} /></label></div>
           <div className="ck-two"><label className="ck-field"><span>Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. hello@email.com" /></label><label className="ck-field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+61" /></label></div>
           <p className="ck-field-note">All communications about the booking will be sent here.</p>
-          <label className="ck-agree"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /><span>I&rsquo;m authorised to share these details and agree to The Global Sanctum&rsquo;s <Link href="/legal">privacy policy</Link>.</span></label>
+          <label className="ck-agree"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /><span>I&rsquo;m authorised to share these details and agree to The Global Sanctum&rsquo;s <Link href="/legal/privacy-policy">privacy policy</Link>.</span></label>
         </div>
         <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Save &amp; complete later</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave({ first, last, email, phone })}>Done</button></div>
       </div>
