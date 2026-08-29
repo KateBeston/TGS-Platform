@@ -3001,15 +3001,13 @@ img { max-width: 100%; height: auto; display: block; }
 .hero .hero-content { position: relative !important; top: auto !important; bottom: auto !important; transform: none !important; }
 .hero-headline { font-size: clamp(30px, 3.2vw, 48px) !important; line-height: 1.14 !important; max-width: 700px !important; }
 
-/* header — soft greyed, semi-transparent frosted bar over the hero.
-   (No !important on background: the .scrolled state must still win and turn it
-   solid white on scroll.) */
-.nav--over-hero {
-  background: rgba(40, 38, 42, 0.30);
-  backdrop-filter: blur(12px) saturate(115%);
-  -webkit-backdrop-filter: blur(12px) saturate(115%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-}
+/* header over the hero — deliberately nothing.
+   There was a frosted grey bar here (rgba(40,38,42,.30) with a blur and a
+   white hairline). It sat 180 lines below the .nav--over-hero block above, same
+   specificity, so it silently won and drew a 98px band across the top of the
+   home page. Removed rather than edited: at the top of the hero the controls
+   float on the photograph with no chrome at all, and the band appears only past
+   the hero, from the .scrolled rule above. */
 
 /* how it works — dark "Why" section (mockup match: warm-charcoal, 2x2 bordered cards) */
 .hiw-why { background: var(--charcoal); color: rgba(255,255,255,.72); padding: var(--s8) var(--s5); }
