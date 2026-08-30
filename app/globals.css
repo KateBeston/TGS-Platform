@@ -2802,6 +2802,9 @@ img { max-width: 100%; height: auto; display: block; }
 .progressive-segment-label { font-size: 9px; font-weight: 600; letter-spacing: 1.8px; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 5px; white-space: nowrap; }
 .progressive-segment-value { font-size: 13px; color: var(--charcoal); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .progressive-segment-value.placeholder { color: var(--charcoal-50); }
+/* Selections apply immediately, so the bar dims while the results catch up.
+   Without it a fast click feels like nothing happened. */
+.progressive-bar.is-pending { opacity: .6; transition: opacity .18s ease; pointer-events: none; }
 .progressive-search-btn { background: var(--charcoal); color: var(--warm-white); border: none; padding: 0 32px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; flex-shrink: 0; white-space: nowrap; }
 .progressive-search-btn:hover { background: var(--gold-dark); }
 

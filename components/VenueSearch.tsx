@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 
 type Option = { id?: number; name: string; slug?: string; applies_to?: string;
                 in_retreat?: boolean; in_wellness?: boolean; count?: number };
@@ -41,6 +41,7 @@ export default function VenueSearch({
     practice: params.get('practice') ?? '',
   });
   const [open, setOpen] = useState<SegKey | null>(null);
+  const [pending, start] = useTransition();
 
   // Modality is scoped to the marketplace, because a retreat host and a
   // wellness guest are not looking for the same practices.
@@ -65,23 +66,34 @@ export default function VenueSearch({
     return opt && f[key] ? opt.name : null;
   };
 
-  const choose = (key: SegKey, value: string) => {
-    const next = { ...f, [key]: value };
-    // Changing the marketplace invalidates the modality, which is scoped
-    // to it.
-    if (key === 'marketplace') next.practice = '';
-    setF(next);
-    setOpen(null);
-  };
-
-  const search = () => {
+  /* Navigate with a given set of filters.
+   *
+   * replace rather than push: a guest who narrows four times would otherwise
+   * need four presses of back to leave the page, which is a worse annoyance
+   * than back not undoing a single filter. Change to push if you would rather
+   * have the opposite. */
+  const apply = (filters: typeof f) => {
     const q = new URLSearchParams();
-    for (const [k, v] of Object.entries(f)) if (v) q.set(k, v);
+    for (const [k, v] of Object.entries(filters)) if (v) q.set(k, v);
     // Keep the chosen sort order across a new search.
     const sort = params.get('sort');
     if (sort) q.set('sort', sort);
-    router.push(q.toString() ? `/venues?${q}` : '/venues');
+    start(() => router.replace(q.toString() ? `/venues?${q}` : '/venues', { scroll: false }));
   };
+
+  /* Choosing applies straight away. The Search button stays, because a bar with
+     no obvious way to commit reads as unfinished even when it does not need
+     one, and because it is where the eye goes after choosing. */
+  const choose = (key: SegKey, value: string) => {
+    const next = { ...f, [key]: value };
+    // Changing the marketplace invalidates the modality, which is scoped to it.
+    if (key === 'marketplace') next.practice = '';
+    setF(next);
+    setOpen(null);
+    apply(next);
+  };
+
+  const search = () => { setOpen(null); apply(f); };
 
   const active = open ? segments.find((s) => s.key === open)! : null;
 
@@ -91,7 +103,7 @@ export default function VenueSearch({
         <div className="search-bar-wrap">
           <div className="search-bar-inner">
             <div className="progressive-bar-row">
-              <div className="progressive-bar">
+              <div className={`progressive-bar${pending ? ' is-pending' : ''}`}>
                 {segments.map((seg) => {
                   const value = nameFor(seg.key);
                   return (
@@ -107,8 +119,9 @@ export default function VenueSearch({
                     </button>
                   );
                 })}
-                <button type="button" className="progressive-search-btn" onClick={search}>
-                  Search
+                <button type="button" className="progressive-search-btn" onClick={search}
+                        aria-busy={pending}>
+                  {pending ? 'Searching' : 'Search'}
                 </button>
               </div>
             </div>
