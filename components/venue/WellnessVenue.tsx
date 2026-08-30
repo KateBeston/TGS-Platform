@@ -53,15 +53,24 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     .sort((a: number, b: number) => a - b)[0];
 
   const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
+  /* Tab names match the retreat side exactly.
+     They had diverged in five places while naming the same tables: The space
+     against Spaces, Stay against Accommodation, Facilities against Amenities,
+     Services against Experiences, Visiting against Location. A guest moving
+     between the two marketplaces was learning the navigation twice.
+
+     Order still differs, deliberately. A wellness venue leads with what it
+     offers; a retreat venue leads with the rooms and the spaces. That is a
+     real difference in what someone came to find, not an inconsistency. */
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    (v.services.length || v.extras?.length) && { id: 'services', label: 'Services' },
+    (v.services.length || v.extras?.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
-    v.spaces.length && { id: 'space', label: 'The space' },
-    v.rooms.length && { id: 'stay', label: 'Stay' },
-    (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'facilities', label: 'Facilities' },
-    { id: 'visiting', label: 'Visiting' },
+    v.spaces.length && { id: 'spaces', label: 'Spaces' },
+    v.rooms.length && { id: 'stay', label: 'Accommodation' },
+    (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
+    { id: 'location', label: 'Location' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },
@@ -174,7 +183,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           answer. Grouped, so somebody after a massage is not reading past
           the thermal circuit to find it. */}
       {(!!v.services.length || !!v.extras?.length) && (
-        <div id="panel-services" className="vpanel" hidden>
+        <div id="panel-experiences" className="vpanel" hidden>
           {!!v.extras?.length && (
             <Section tone="cream" label="Extras" title="Add to your stay">
               <OfferList offers={v.extras.map((e: any) => extraToOffer(e))} />
@@ -208,7 +217,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {!!v.spaces.length && (
-        <div id="panel-space" className="vpanel" hidden>
+        <div id="panel-spaces" className="vpanel" hidden>
           <TabHero image={v.image_url} label="The space"
             title={v.setting_headline ?? 'Inside'} />
           {v.setting_description && (
@@ -271,7 +280,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {(!!v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
-        <div id="panel-facilities" className="vpanel" hidden>
+        <div id="panel-amenities" className="vpanel" hidden>
           {!!v.facilities.length && (
           <Section tone="white" label="Facilities" title="What is here">
             <div className="amenity-columns">
@@ -305,7 +314,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         </div>
       )}
 
-      <div id="panel-visiting" className="vpanel" hidden>
+      <div id="panel-location" className="vpanel" hidden>
         <TabHero image={v.image_url} label="Visiting"
           title={v.location_tagline ?? 'Finding us'} subtitle={place} />
 
