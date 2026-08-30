@@ -10,8 +10,8 @@ import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
-  Accessibility, Climate, Distances, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
-  PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero, VenueLinks,
+  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money, roomSummary } from '@/lib/venue';
 
@@ -423,6 +423,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             beach" are different claims, and running them together is how
             a listing overstates itself. */}
         <Distances v={v} tone="cream" />
+        <Nearby v={v} tone="white" />
 
         {!!v.transfers.length && (
           <Section tone="white" label="Transfers" title="Getting to the door">
@@ -457,7 +458,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
 
         <OpeningHours v={v} tone="white" />
         <Accessibility v={v} tone="cream" />
-        <VenueLinks v={v} tone="white" />
       </div>
 
       {/* ── policies ───────────────────────────────────────────────── */}

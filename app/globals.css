@@ -4402,6 +4402,22 @@ img { max-width: 100%; height: auto; display: block; }
   text-transform: uppercase; color: var(--gold-dark); margin: 0; }
 .stat-note { font-family: var(--sans); font-size: 10.5px; color: var(--muted); margin: 5px 0 0; }
 
+/* What's nearby: grouped columns, distance right-aligned so the numbers form
+   a column the eye can run down. */
+.nearby-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 48px; }
+.nearby-group { break-inside: avoid; }
+.nearby-heading { font-family: var(--sans); font-size: 10px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--gold-dark);
+  margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.nearby-list { list-style: none; margin: 0; padding: 0; }
+.nearby-list li { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; padding: 7px 0; font-size: 13.5px; }
+.nearby-place { color: var(--charcoal); }
+.nearby-dist { font-family: var(--sans); font-size: 11.5px; color: var(--muted);
+  white-space: nowrap; }
+@media (max-width: 900px) { .nearby-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .nearby-grid { grid-template-columns: 1fr; } }
+
 .season-grid { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); }
 .season-grid--1 { grid-template-columns: 1fr; max-width: 320px; }
 .season-grid--2 { grid-template-columns: repeat(2, 1fr); }

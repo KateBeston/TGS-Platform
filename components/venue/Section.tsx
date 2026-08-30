@@ -104,7 +104,10 @@ export function ExperienceBlock({
  * Four across, because that is what the mockup sets and what a row of numbers
  * can hold before it stops being scannable. */
 export function Distances({ v, tone = 'cream' }: { v: Record<string, any>; tone?: 'cream' | 'white' }) {
-  const items = (v.distances ?? []).filter((d: any) => d.show_on_listing !== false);
+  // Travel times only. What's nearby is a separate section with a different
+  // job, and mixing a shopping centre into a grid of airport transfers helps
+  // nobody.
+  const items = (v.distances ?? []).filter((d: any) => (d.listing_section ?? 'Travel') === 'Travel');
   if (!items.length) return null;
   return (
     <Section tone={tone} label="Distances & travel times">
@@ -118,6 +121,59 @@ export function Distances({ v, tone = 'cream' }: { v: Record<string, any>; tone?
             </p>
             <p className="stat-label">{d.label}</p>
             {d.travel_mode && <p className="stat-note">by {d.travel_mode}</p>}
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* What is nearby, grouped.
+ *
+ * The travel grid answers whether a group can get here. This answers what is
+ * around once they have, which is the question a host asks when working out
+ * whether guests can walk to dinner or need a van.
+ *
+ * Grouped by category and ordered by distance within each, because the nearest
+ * is almost always the relevant one. The category is free text so the groups
+ * can grow without a migration.
+ */
+export function Nearby({ v, tone = 'white' }: { v: Record<string, any>; tone?: 'cream' | 'white' }) {
+  const items = (v.distances ?? []).filter((d: any) => d.listing_section === 'Nearby');
+  if (!items.length) return null;
+
+  const groups = new Map<string, any[]>();
+  for (const d of items) {
+    const key = d.category || 'Nearby';
+    groups.set(key, [...(groups.get(key) ?? []), d]);
+  }
+  for (const [, list] of groups) {
+    list.sort((a, b) => (a.travel_value ?? 1e9) - (b.travel_value ?? 1e9));
+  }
+
+  const dist = (d: any) => {
+    if (d.travel_value == null) return null;
+    const n = Number(d.travel_value);
+    const unit = d.travel_unit || 'km';
+    // Under a kilometre reads better in metres.
+    if (unit === 'km' && n < 1) return `${Math.round(n * 1000)} m`;
+    return `${n % 1 === 0 ? n : n.toFixed(1)} ${unit}`;
+  };
+
+  return (
+    <Section tone={tone} label="What's nearby">
+      <div className="nearby-grid">
+        {[...groups.entries()].map(([name, list]) => (
+          <div key={name} className="nearby-group">
+            <h4 className="nearby-heading">{name}</h4>
+            <ul className="nearby-list">
+              {list.map((d: any) => (
+                <li key={d.id}>
+                  <span className="nearby-place">{d.label}</span>
+                  <span className="nearby-dist">{dist(d)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>

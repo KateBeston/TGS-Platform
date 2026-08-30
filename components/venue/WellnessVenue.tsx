@@ -10,8 +10,8 @@ import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
-  Accessibility, Climate, Distances, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
-  PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero, VenueLinks,
+  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money } from '@/lib/venue';
 
@@ -343,6 +343,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <Distances v={v} tone="cream" />
+        <Nearby v={v} tone="white" />
 
         {!!v.transfers.length && (
           <Section tone="white" label="Transfers" title="Getting to the door">
@@ -393,7 +394,6 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
 
         <OpeningHours v={v} tone="white" />
         <Accessibility v={v} tone="cream" />
-        <VenueLinks v={v} tone="white" />
       </div>
 
       {(!!v.policies.length || !!v.faqs.length || v.cultural_protocol_details || hasBring) && (
