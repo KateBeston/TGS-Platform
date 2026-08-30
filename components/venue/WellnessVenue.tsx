@@ -1,5 +1,5 @@
 import VenueTabs from '@/components/VenueTabs';
-import { OfferList } from '@/components/venue/OfferCard';
+import { OfferList, FeaturedOffers } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueMap from './VenueMap';
@@ -184,6 +184,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             subtitle={cheapest
               ? `From ${money(cheapest, v.services[0]?.currency)}`
               : undefined} />
+
+          <FeaturedOffers offers={v.services.map((x: any) => serviceToOffer(x, v.offer_media ?? [], v.service_focus ?? []))} />
 
           {Object.entries(byCategory).map(([cat, items], i) => (
             <Section key={cat} tone={i % 2 ? 'cream' : 'white'} label={cat}>

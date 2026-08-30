@@ -146,6 +146,30 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0 var(--s5);
 }
 
+/* The booking panel is fixed 380px wide against the right edge and is now
+   always on screen. Content has to stop short of it or the panel simply covers
+   the right of every card, which is what it did. Shifting the wrap rather than
+   padding <main> keeps full-bleed heroes full bleed. */
+@media (min-width: 1100px) {
+  body.has-booking-panel .wrap {
+    max-width: min(1180px, calc(100vw - 460px));
+    margin-left: auto;
+    margin-right: 428px;
+  }
+  body.has-booking-panel-wide .wrap {
+    max-width: min(1180px, calc(100vw - 540px));
+    margin-right: 508px;
+  }
+}
+/* Below that there is not room for both, so the panel becomes a sheet at the
+   foot of the screen and the content keeps the full width. */
+@media (max-width: 1099px) {
+  .bc-box, .bc-box-max {
+    top: auto; bottom: 0; right: 0; left: 0; width: auto;
+    max-height: 62vh; border-left: 0; border-right: 0; border-bottom: 0;
+  }
+}
+
 .eyebrow {
   font-size: 11px;
   letter-spacing: .24em;
@@ -4316,14 +4340,26 @@ img { max-width: 100%; height: auto; display: block; }
   text-decoration: none; transition: .3s; }
 .ofc-enquire:hover { background: transparent; color: var(--charcoal); text-decoration: none; }
 
-/* a signature offer takes a wider image and larger type */
-.ofc--feature { min-height: 320px; }
-.ofc--feature .ofc-media { width: 44%; }
-.ofc--feature .ofc-thumb { width: 54px; height: 40px; }
-.ofc--feature .ofc-body { padding: 32px 38px 30px; }
-.ofc--feature .ofc-name { font-size: 29px; }
-.ofc--feature .ofc-desc { font-size: 13.5px; line-height: 1.85; }
-.ofc--feature .ofc-fig { font-size: 32px; }
+/* Inclusions on the face of the card. Two columns so four points read as a
+   block rather than a long thin list pushing the price down the page. */
+.ofc-incl { list-style: none; margin: 14px 0 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; }
+.ofc-incl li { position: relative; padding-left: 14px; font-size: 12px;
+  line-height: 1.65; color: var(--muted); }
+.ofc-incl li:before { content: ''; position: absolute; left: 0; top: 9px;
+  width: 7px; height: 1px; background: var(--gold); }
+.ofc-incl-more { color: var(--gold-dark); font-style: italic; }
+.ofc-incl-more:before { display: none; }
+
+/* Notice, group size, in-room. The questions people ask before adding
+   something, answered without opening the modal. */
+.ofc-quick { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 14px 0 0; }
+.ofc-quick span { font-family: var(--sans); font-size: 11px; color: var(--muted); }
+.ofc-quick b { font-weight: 600; color: var(--gold-dark); letter-spacing: .1em;
+  text-transform: uppercase; font-size: 9px; display: block; margin-bottom: 2px; }
+
+/* Featured is a section of its own now, not a bigger card. */
+.ofc-featured .ofc-list { max-width: 100%; }
 
 /* modal */
 .ofc-modal { position: fixed; inset: 0; z-index: 500; background: rgba(30, 28, 26, .55);

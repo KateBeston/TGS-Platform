@@ -31,7 +31,11 @@ export default function OfferCard({ offer }: { offer: Offer }) {
 
   return (
     <>
-      <article className={`ofc${hasImages ? '' : ' ofc--noimg'}${o.featured ? ' ofc--feature' : ''}`}>
+      {/* Featured no longer resizes the card. One service rendered larger than
+          its neighbours read as a rendering fault rather than as emphasis, and
+          there was nothing on screen saying why. Prominence belongs in a
+          section of its own, not in a card that quietly grows. */}
+      <article className={`ofc${hasImages ? '' : ' ofc--noimg'}`}>
         {hasImages && (
           <div className="ofc-media">
             <div className="ofc-img" style={{ backgroundImage: `url(${o.images[main]})` }} role="img" aria-label={o.name} />
@@ -56,9 +60,32 @@ export default function OfferCard({ offer }: { offer: Offer }) {
           <h3 className="ofc-name">{o.name}</h3>
           {o.meta.length > 0 && <p className="ofc-meta">{o.meta.join(' \u00b7 ')}</p>}
           {o.description && <p className="ofc-desc">{o.description}</p>}
+          {/* The dot points belong here, not only behind More detail. Without
+              them the card is a name, a line and a price, which is why it read
+              as sparse. Capped at four so a long list does not unbalance a
+              column of cards; the rest are in the modal. */}
+          {o.detail && o.detail.included.length > 0 && (
+            <ul className="ofc-incl">
+              {o.detail.included.slice(0, 4).map((x, i) => <li key={i}>{x}</li>)}
+              {o.detail.included.length > 4 && (
+                <li className="ofc-incl-more">and {o.detail.included.length - 4} more</li>
+              )}
+            </ul>
+          )}
+
           {o.tags.length > 0 && (
             <div className="ofc-tags">
               {o.tags.map((t) => <span key={t} className="ofc-tag">{t}</span>)}
+            </div>
+          )}
+
+          {/* A short fact strip. Notice and group size are the two questions
+              people actually ask before adding something. */}
+          {o.detail && o.detail.facts.length > 0 && (
+            <div className="ofc-quick">
+              {o.detail.facts.filter((f) => f.label !== 'Duration').slice(0, 3).map((f, i) => (
+                <span key={i}><b>{f.label}</b>{f.value}</span>
+              ))}
             </div>
           )}
 
@@ -132,7 +159,7 @@ export default function OfferCard({ offer }: { offer: Offer }) {
   );
 }
 
-/** A run of offers, with the featured ones first. */
+/** A run of offers, featured first. Same card either way. */
 export function OfferList({ offers }: { offers: Offer[] }) {
   if (!offers.length) return null;
   const ordered = [...offers].sort((a, b) => Number(b.featured) - Number(a.featured));
@@ -140,5 +167,27 @@ export function OfferList({ offers }: { offers: Offer[] }) {
     <div className="ofc-list">
       {ordered.map((o) => <OfferCard key={`${o.kind}-${o.id}`} offer={o} />)}
     </div>
+  );
+}
+
+/* Prominence, given its own section rather than a card that quietly grows.
+   Renders nothing when nothing is flagged, so a venue that has picked no
+   signature treatment simply does not get the section. */
+export function FeaturedOffers({ offers, label = 'Signature', title = 'What this venue is known for' }:
+  { offers: Offer[]; label?: string; title?: string }) {
+  const featured = offers.filter((o) => o.featured);
+  if (!featured.length) return null;
+  return (
+    <section className="section section--cream ofc-featured">
+      <div className="wrap">
+        <div className="section-header">
+          <div className="section-label">{label}</div>
+          <h2 className="section-title">{title}</h2>
+        </div>
+        <div className="ofc-list">
+          {featured.map((o) => <OfferCard key={`f-${o.kind}-${o.id}`} offer={o} />)}
+        </div>
+      </div>
+    </section>
   );
 }

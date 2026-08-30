@@ -91,6 +91,17 @@ export function BookingCart({
      the one element they had to go looking for. It now sits open from the
      first paint and says it is empty until it is not. */
   const [drawer, setDrawer] = useState<Drawer>('open');
+
+  /* The panel is fixed to the right of the viewport, so the page has to be
+     told to stop underneath it. Without this the content sits at its normal
+     width and the panel covers the right of every card. */
+  useEffect(() => {
+    document.body.classList.add('has-booking-panel');
+    return () => document.body.classList.remove('has-booking-panel');
+  }, []);
+  useEffect(() => {
+    document.body.classList.toggle('has-booking-panel-wide', drawer === 'max');
+  }, [drawer]);
   const [buyout, setBuyout] = useState(false);
   const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;
 
