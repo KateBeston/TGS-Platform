@@ -36,6 +36,15 @@ export type Card = {
   editor_note: string | null;
   /** What the venue is in, not what it is near. */
   tags: string[] | null;
+  /** Wellness: the modality categories it runs, from its published services. */
+  offers: string[] | null;
+  /** Wellness: the named practices it runs. Shown beneath the categories. */
+  practices: string[] | null;
+  /** Retreat: the styles it hosts. A retreat venue is a container, so this is
+   *  what it suits rather than what is in the building. */
+  retreat_styles: string[] | null;
+  /** No longer read by the card; left on the view until it is next rebuilt. */
+  signature_facilities: string[] | null;
   promo_badges: string[] | null;
   price_from: number | null;
   price_currency: string | null;

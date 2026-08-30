@@ -39,6 +39,61 @@ function Rating({ rating, count, size }: {
   );
 }
 
+/* What happens here, as a single quiet line rather than a second row of chips.
+ *
+ * The setting tags answer "what is it like". This answers "what could I do
+ * there", which for a wellness venue is the whole reason to click. Two rows of
+ * chips would compete; a labelled line sits underneath and reads as detail.
+ *
+ * The two marketplaces need different signals. A wellness venue is defined by
+ * the modalities it runs. Most retreat venues can host most formats, so
+ * listing modalities there would say nothing; what separates them is the yoga
+ * shala, the commercial kitchen, the float tank. */
+function Offering({ card }: { card: Card }) {
+  const isWellness = card.marketplace === 'Wellness';
+
+  /* Two different questions, two different answers.
+   *
+   * A wellness venue is judged on what you can book: categories say the area,
+   * practices say the thing. "Sound Bath, Yin Yoga, Lymphatic Drainage" is
+   * what someone searches for; "Body Therapies & Bodywork" is how it is filed.
+   * Both, categories above and practices beneath.
+   *
+   * A retreat venue is a container. What matters is the kind of retreat it
+   * suits, so it carries styles only. Its practice links still exist and still
+   * feed the practice pages and filters; they are simply not the card's job. */
+  if (isWellness) {
+    const categories = (card.offers ?? []) as string[];
+    const practices = (card.practices ?? []) as string[];
+    if (!categories.length && !practices.length) return null;
+    return (
+      <div className="card-offering-group">
+        {categories.length > 0 && (
+          <p className="card-offering">
+            <span>Offers</span>
+            {categories.slice(0, 4).join(' \u00b7 ')}
+          </p>
+        )}
+        {practices.length > 0 && (
+          <p className="card-offering card-offering--sub">
+            {practices.slice(0, 5).join(' \u00b7 ')}
+            {practices.length > 5 && ` and ${practices.length - 5} more`}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  const styles = (card.retreat_styles ?? []) as string[];
+  if (!styles.length) return null;
+  return (
+    <p className="card-offering">
+      <span>Suited to</span>
+      {styles.slice(0, 4).join(' \u00b7 ')}
+    </p>
+  );
+}
+
 function Tags({ tags }: { tags: string[] }) {
   if (!tags.length) return null;
   return (
@@ -101,6 +156,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           )}
           {blurb && <p className="premium-card-excerpt">{blurb}</p>}
           <Tags tags={tags} />
+          <Offering card={card} />
           <div className="premium-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="premium" />
             {card.price_from != null ? (
@@ -128,6 +184,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           <div className="featured-card-location">{placeOf(card)}</div>
           {blurb && <p className="featured-card-excerpt">{blurb}</p>}
           <Tags tags={tags} />
+          <Offering card={card} />
           <div className="featured-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="featured" />
             {card.price_from != null ? (
@@ -155,6 +212,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           <div className="standard-card-location">{placeOf(card)}</div>
           {blurb && <p className="standard-card-excerpt">{blurb}</p>}
           <Tags tags={tags} />
+          <Offering card={card} />
           <div className="standard-card-meta">
             <Rating rating={card.rating} count={card.review_count} size="standard" />
             {card.price_from != null ? (
