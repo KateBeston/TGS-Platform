@@ -122,11 +122,18 @@ export async function submitBooking(
     // Only the line items count here. The cart carries a `buyout` UI flag too,
     // but that is client state; the item is what is actually being booked.
     const hasHire = slices.some((v) => (v.items ?? []).some((i) => i.kind === 'buyout'));
+    // Venues with accommodation in the cart. Whether that is a hire is decided
+    // by venue_category in the resolver, not here.
+    const roomVenueIds = venues
+      .filter(([, v]) => (v.items ?? []).some((i) => i.kind === 'room'))
+      .map(([name]) => venueByName.get(name))
+      .filter((n): n is number => typeof n === 'number');
 
     const { data: required } = await db.rpc('booking_steps', {
       p_venue_ids: venueIds,
       p_service_ids: Array.from(new Set(serviceIds)),
       p_has_hire: hasHire,
+      p_room_venue_ids: Array.from(new Set(roomVenueIds)),
     });
 
     const needed = Array.from(new Set(((required ?? []) as { step: string }[]).map((r) => r.step)));

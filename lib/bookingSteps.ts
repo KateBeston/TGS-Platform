@@ -29,6 +29,7 @@ export function cartShape(cart: { venues?: Record<string, any> } | null) {
   const venues = Object.values(cart?.venues ?? {});
   const venueIds: number[] = [];
   const serviceIds: number[] = [];
+  const roomVenueIds: number[] = [];
   let hasHire = false;
 
   for (const v of venues as any[]) {
@@ -37,25 +38,32 @@ export function cartShape(cart: { venues?: Record<string, any> } | null) {
       // 'exp' is a wellness service; 'buyout' is whole-venue hire.
       if (item.kind === 'exp' && typeof item.id === 'number') serviceIds.push(item.id);
       if (item.kind === 'buyout') hasHire = true;
+      // Which venues have accommodation in the cart. Whether that counts as a
+      // hire is the venue's question, not the item's: four rooms at a retreat
+      // venue is a group arriving to run something, the same four at a
+      // wellness venue is a stay. The resolver decides from venue_category.
+      if (item.kind === 'room' && typeof v.venueId === 'number') roomVenueIds.push(v.venueId);
     }
     if (v.buyout) hasHire = true;
   }
   return {
     venueIds: Array.from(new Set(venueIds)),
     serviceIds: Array.from(new Set(serviceIds)),
+    roomVenueIds: Array.from(new Set(roomVenueIds)),
     hasHire,
   };
 }
 
 /** Ask the database which steps this cart needs, in order. */
 export async function resolveSteps(db: Queryable, cart: any): Promise<BookingStep[]> {
-  const { venueIds, serviceIds, hasHire } = cartShape(cart);
+  const { venueIds, serviceIds, roomVenueIds, hasHire } = cartShape(cart);
   if (!venueIds.length) return [];
   try {
     const { data } = await db.rpc('booking_steps', {
       p_venue_ids: venueIds,
       p_service_ids: serviceIds,
       p_has_hire: hasHire,
+      p_room_venue_ids: roomVenueIds,
     });
     const rows = (data ?? []) as BookingStep[];
     // One entry per step name; a venue can give several reasons for the same step.
