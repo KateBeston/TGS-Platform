@@ -37,10 +37,16 @@ export default function VenueMap({ v }: { v: Record<string, any> }) {
 
   return (
     <div className="vmap">
+      {/* One line above the map, not a stacked block. An address is a single
+          fact; setting it as four lines of large serif gave it the weight of a
+          heading it has not earned. */}
       {lines.length > 0 && (
         <address className="vmap-address">
           {lines.map((l, i) => (
-            <span key={i}>{l}</span>
+            <span key={i}>
+              {l}
+              {i < lines.length - 1 && <i className="vmap-sep" aria-hidden="true" />}
+            </span>
           ))}
         </address>
       )}
