@@ -17,7 +17,7 @@ import { NO_RULES, checkStay, earliestArrival, latestArrival, earliestDeparture,
  * authoritative figure is settled server-side at checkout, a later stage. */
 
 type Any = Record<string, any>;
-type Drawer = 'min' | 'open' | 'max';
+type Drawer = 'open' | 'max';
 type Kind = 'room' | 'exp' | 'extra';
 
 type CartValue = {
@@ -85,7 +85,12 @@ export function BookingCart({
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
-  const [drawer, setDrawer] = useState<Drawer>('min');
+  /* Always present, never tucked away.
+     It used to default to a hidden state with a button bottom-right to summon
+     it, which meant the one element telling a guest what they had chosen was
+     the one element they had to go looking for. It now sits open from the
+     first paint and says it is empty until it is not. */
+  const [drawer, setDrawer] = useState<Drawer>('open');
   const [buyout, setBuyout] = useState(false);
   const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;
 
@@ -152,10 +157,9 @@ export function BookingCart({
     const next = (bag(k)[id] ?? 0) + 1;
     setQtyRaw(k, id, next);
     trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency });
-    setDrawer((d) => (d === 'min' ? 'open' : d));
   };
   const clear = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
-  const selectBuyout = () => { setRoomQty({}); setBuyout(true); setDrawer((d) => (d === 'min' ? 'open' : d)); };
+  const selectBuyout = () => { setRoomQty({}); setBuyout(true); };
 
   const roomPlan = (roomId: number) => ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === roomId);
   const byBasis = (base: number, basis: string | null, persons: number): number => {
@@ -303,20 +307,13 @@ export function BookingCart({
     <CartCtx.Provider value={value}>
       {children}
 
-      {/* Tucked away: a quiet trigger, bottom-right */}
-      <button type="button" className="bc-trigger" onClick={() => setDrawer('open')} aria-label="Open booking" hidden={drawer !== 'min'}>
-        <span className="bc-trigger-label">Your booking</span>
-        <span className="bc-trigger-meta">{count > 0 ? `${count} · ${money(total, currency)}` : 'Start'}</span>
-      </button>
-
-      {/* The floating booking box */}
-      {drawer !== 'min' && (
-        <aside className={`bc-box bc-box-${drawer}`} aria-label="Your booking">
+      {/* The booking panel, always on screen */}
+      <aside className={`bc-box bc-box-${drawer}`} aria-label="Your booking">
           <div className="bc-box-head">
             <span className="bc-box-title">Your booking</span>
             <div className="bc-box-controls">
               <button type="button" onClick={() => setDrawer(drawer === 'max' ? 'open' : 'max')} aria-label={drawer === 'max' ? 'Restore' : 'Expand'}>{drawer === 'max' ? '⤡' : '⤢'}</button>
-              <button type="button" onClick={() => setDrawer('min')} aria-label="Tuck away">–</button>
+
             </div>
           </div>
 
@@ -388,7 +385,7 @@ export function BookingCart({
               </div>
             )}
 
-            {count === 0 && <p className="bb-empty">Nothing added yet. Choose rooms and experiences from the tabs, and they&rsquo;ll collect here.</p>}
+            {count === 0 && <p className="bb-empty">Your booking is empty. Choose rooms and experiences from the tabs and they&rsquo;ll gather here.</p>}
             {count > 0 && groups.map((g) => (
               <div key={g.key} className="bc-grp">
                 <div className="bc-grp-h">{g.label}</div>
@@ -417,8 +414,7 @@ export function BookingCart({
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
           </div>
-        </aside>
-      )}
+      </aside>
     </CartCtx.Provider>
   );
 }
