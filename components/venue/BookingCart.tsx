@@ -17,7 +17,11 @@ import { NO_RULES, checkStay, earliestArrival, latestArrival, earliestDeparture,
  * authoritative figure is settled server-side at checkout, a later stage. */
 
 type Any = Record<string, any>;
-type Drawer = 'open' | 'max';
+/* Open or minimised. There is no second size any more: the panel used to
+   toggle between 380px and 460px through an expand arrow, which changed the
+   width without changing what it held, so the control did nothing a reader
+   could name. It now sits at one width and the arrow minimises it. */
+type Drawer = 'open' | 'min';
 type Kind = 'room' | 'exp' | 'extra';
 
 type CartValue = {
@@ -95,12 +99,11 @@ export function BookingCart({
   /* The panel is fixed to the right of the viewport, so the page has to be
      told to stop underneath it. Without this the content sits at its normal
      width and the panel covers the right of every card. */
+  /* The page only makes room while the panel is open. Minimised, the class
+     comes off and the content goes back to full width. */
   useEffect(() => {
-    document.body.classList.add('has-booking-panel');
+    document.body.classList.toggle('has-booking-panel', drawer === 'open');
     return () => document.body.classList.remove('has-booking-panel');
-  }, []);
-  useEffect(() => {
-    document.body.classList.toggle('has-booking-panel-wide', drawer === 'max');
   }, [drawer]);
   const [buyout, setBuyout] = useState(false);
   const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;
@@ -318,13 +321,25 @@ export function BookingCart({
     <CartCtx.Provider value={value}>
       {children}
 
-      {/* The booking panel, always on screen */}
-      <aside className={`bc-box bc-box-${drawer}`} aria-label="Your booking">
+      {/* Minimised: a slim tab against the right edge. Still on screen, so the
+          booking is never lost, but out of the way and the page runs full
+          width behind it. */}
+      {drawer === 'min' && (
+        <button type="button" className="bc-tab" onClick={() => setDrawer('open')}
+          aria-label="Open booking panel">
+          <span className="bc-tab-label">Your booking</span>
+          {count > 0 && <span className="bc-tab-count">{count}</span>}
+        </button>
+      )}
+
+      {/* The booking panel */}
+      <aside className={`bc-box bc-box-${drawer}`} aria-label="Your booking" hidden={drawer === 'min'}>
           <div className="bc-box-head">
             <span className="bc-box-title">Your booking</span>
             <div className="bc-box-controls">
-              <button type="button" onClick={() => setDrawer(drawer === 'max' ? 'open' : 'max')} aria-label={drawer === 'max' ? 'Restore' : 'Expand'}>{drawer === 'max' ? '⤡' : '⤢'}</button>
-
+              {/* Arrow points back into the corner it will collapse toward, so
+                  the direction says what will happen. */}
+              <button type="button" onClick={() => setDrawer('min')} aria-label="Minimise booking panel">⤡</button>
             </div>
           </div>
 

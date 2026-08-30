@@ -163,19 +163,15 @@ img { max-width: 100%; height: auto; display: block; }
    padding <main> keeps full-bleed heroes full bleed. */
 @media (min-width: 1100px) {
   body.has-booking-panel .wrap {
-    max-width: min(1180px, calc(100vw - 460px));
-    margin-left: auto;
-    margin-right: 428px;
-  }
-  body.has-booking-panel-wide .wrap {
     max-width: min(1180px, calc(100vw - 540px));
+    margin-left: auto;
     margin-right: 508px;
   }
 }
 /* Below that there is not room for both, so the panel becomes a sheet at the
    foot of the screen and the content keeps the full width. */
 @media (max-width: 1099px) {
-  .bc-box, .bc-box-max {
+  .bc-box {
     top: auto; bottom: 0; right: 0; left: 0; width: auto;
     max-height: 62vh; border-left: 0; border-right: 0; border-bottom: 0;
   }
@@ -3575,8 +3571,23 @@ img { max-width: 100%; height: auto; display: block; }
 .bc-included{font-size:12px;color:var(--gold-dark);font-style:italic}
 /* tucked-away trigger */
 /* floating booking box */
-.bc-box{position:fixed;top:92px;right:24px;width:380px;max-height:calc(100vh - 116px);max-height:calc(100dvh - 116px);z-index:80;background:var(--warm-white);border:1px solid var(--border);box-shadow:0 14px 48px rgba(49,49,49,.18);display:flex;flex-direction:column;overflow:hidden;animation:bc-in .28s cubic-bezier(.4,0,.2,1)}
-.bc-box-max{width:460px}
+/* Minimised: a slim tab against the right edge. Vertical so it takes almost no
+   width, which is the point — the page runs full width behind it. */
+.bc-tab { position: fixed; top: 50%; right: 0; transform: translateY(-50%); z-index: 80;
+  display: flex; align-items: center; gap: 10px; padding: 18px 10px;
+  background: var(--charcoal); color: var(--warm-white);
+  border: 1px solid var(--charcoal); border-right: 0; cursor: pointer;
+  writing-mode: vertical-rl; font-family: var(--sans); font-size: 10px;
+  letter-spacing: .2em; text-transform: uppercase; transition: padding .25s ease; }
+.bc-tab:hover { padding-right: 14px; }
+.bc-tab-label { white-space: nowrap; }
+.bc-tab-count { display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; background: var(--gold); color: var(--warm-white);
+  font-size: 10px; letter-spacing: 0; writing-mode: horizontal-tb; }
+@media (max-width: 1099px) { .bc-tab { top: auto; bottom: 0; right: 0;
+  writing-mode: horizontal-tb; border-right: 1px solid var(--charcoal); border-bottom: 0; } }
+
+.bc-box{position:fixed;top:92px;right:24px;width:460px;max-height:calc(100vh - 116px);max-height:calc(100dvh - 116px);z-index:80;background:var(--warm-white);border:1px solid var(--border);box-shadow:0 14px 48px rgba(49,49,49,.18);display:flex;flex-direction:column;overflow:hidden;animation:bc-in .28s cubic-bezier(.4,0,.2,1)}
 @keyframes bc-in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
 .bc-box-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
 .bc-box-title{font-family:var(--serif);font-size:19px;color:var(--charcoal)}
@@ -3609,7 +3620,7 @@ img { max-width: 100%; height: auto; display: block; }
 .bc-total{display:flex;justify-content:space-between;font-family:var(--serif);font-size:19px;color:var(--charcoal);margin-bottom:12px}
 .bc-actions{display:flex;flex-direction:column;gap:9px}
 @media (max-width:640px){
-  .bc-box,.bc-box-max{left:12px;right:12px;width:auto;top:auto;bottom:12px;max-height:calc(100dvh - 120px)}
+  .bc-box{left:12px;right:12px;width:auto;top:auto;bottom:12px;max-height:calc(100dvh - 120px)}
   }
 
 /* Room price line + card action for bookable items */
