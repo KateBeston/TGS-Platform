@@ -3611,6 +3611,11 @@ img { max-width: 100%; height: auto; display: block; }
   writing-mode: horizontal-tb; border-right: 1px solid var(--charcoal); border-bottom: 0; } }
 
 .bc-box{position:fixed;top:92px;right:24px;width:460px;max-height:calc(100vh - 116px);max-height:calc(100dvh - 116px);z-index:80;background:var(--warm-white);border:1px solid var(--border);box-shadow:0 14px 48px rgba(49,49,49,.18);display:flex;flex-direction:column;overflow:hidden;animation:bc-in .28s cubic-bezier(.4,0,.2,1)}
+/* display:flex on .bc-box beats the browser's [hidden]{display:none}, because
+   a class outranks an attribute selector. Without this the panel stayed on
+   screen however the attribute was set, which is why minimising did nothing.
+   Same reason .vpanel[hidden] and .legal-panel[hidden] exist. */
+.bc-box[hidden]{display:none}
 @keyframes bc-in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
 .bc-box-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
 .bc-box-title{font-family:var(--serif);font-size:19px;color:var(--charcoal)}
