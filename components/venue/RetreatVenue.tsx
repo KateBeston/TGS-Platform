@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { OfferList } from '@/components/venue/OfferCard';
+import { serviceToOffer, extraToOffer, excursionToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap from './VenueMap';
@@ -365,63 +367,19 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
 
           {!!v.extras?.length && (
             <Section tone="cream" label="Extras" title="Add to your stay">
-              <div className="item-grid">
-                {v.extras.map((e: any) => (
-                  <article key={e.id} className="item priced">
-                    <div>
-                      <h3>{e.name}</h3>
-                      <div className="item-meta">{[e.extra_category, e.price_basis].filter(Boolean).join(' \u00b7 ')}</div>
-                      {e.description && <p>{e.description}</p>}
-                    </div>
-                    <div className="priced-amount">{e.price != null ? money(e.price, e.currency) : 'On request'}</div>
-                    <div className="item-action"><AddToCart kind="extra" id={e.id} max={e.maximum_quantity ?? 20} /></div>
-                  </article>
-                ))}
-              </div>
+              <OfferList offers={v.extras.map((e: any) => extraToOffer(e))} />
             </Section>
           )}
 
           {!!v.services.length && (
             <Section tone="white">
-              <div className="item-grid">
-                {v.services.map((s: any) => (
-                  <article key={s.id} className="item priced">
-                    <div>
-                      <h3>{s.name}</h3>
-                      <div className="item-meta">
-                        {[s.category, duration(s.duration_minutes)].filter(Boolean).join(' · ')}
-                      </div>
-                      {s.description && <p>{s.description}</p>}
-                    </div>
-                    <div className="priced-amount">
-                      {s.price_is_from && <span className="from">from</span>}
-                      {money(s.base_price, s.currency)}
-                    </div>
-                    <div className="item-action"><AddToCart kind="exp" id={s.id} /></div>
-                  </article>
-                ))}
-              </div>
+              <OfferList offers={v.services.map((x: any) => serviceToOffer(x, v.offer_media ?? [], v.service_focus ?? []))} />
             </Section>
           )}
 
           {!!v.excursions.length && (
             <Section tone="cream" label="Beyond the venue" title="Local excursions">
-              <div className="item-grid">
-                {v.excursions.map((e: any) => (
-                  <article key={e.id} className={e.price != null ? 'item priced' : 'item'}>
-                    <div>
-                      <h3>{e.name}</h3>
-                      <div className="item-meta">
-                        {[e.duration_label, e.difficulty].filter(Boolean).join(' · ')}
-                      </div>
-                      {e.description && <p>{e.description}</p>}
-                    </div>
-                    {e.price != null && (
-                      <div className="priced-amount">{money(e.price, e.currency)}</div>
-                    )}
-                  </article>
-                ))}
-              </div>
+              <OfferList offers={v.excursions.map((e: any) => excursionToOffer(e))} />
             </Section>
           )}
         </div>

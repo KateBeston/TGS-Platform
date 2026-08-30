@@ -4253,6 +4253,116 @@ img { max-width: 100%; height: auto; display: block; }
 [dir="rtl"] .lang-opt { text-align: right; }
 
 
+
+/* ── Offer card ───────────────────────────────────────────────────────
+   Treatments, packages, excursions and room extras. One component and one
+   set of rules: they are four tables but the same object to a guest, and
+   four blocks of markup had already drifted apart.
+   Image left, detail centre, price and actions right. */
+.ofc-list { display: flex; flex-direction: column; gap: 20px; }
+.ofc { background: var(--warm-white); border: 1px solid var(--border);
+  display: flex; flex-direction: row; min-height: 236px; }
+.ofc--noimg { min-height: 0; }
+
+.ofc-media { position: relative; overflow: hidden; background: var(--warm-linen);
+  width: 286px; flex: none; }
+.ofc-img { position: absolute; inset: 0; background-size: cover; background-position: center;
+  transition: transform 1.2s cubic-bezier(.2, .7, .3, 1); }
+.ofc:hover .ofc-img { transform: scale(1.045); }
+.ofc-flag { position: absolute; left: 0; top: 14px; z-index: 2; background: var(--gold);
+  color: #fff; font-family: var(--sans); font-size: 8.5px; letter-spacing: .16em;
+  text-transform: uppercase; padding: 5px 11px; }
+.ofc-thumbs { position: absolute; right: 9px; bottom: 9px; display: flex; gap: 5px; z-index: 2; }
+.ofc-thumb { width: 44px; height: 33px; background-size: cover; background-position: center;
+  cursor: pointer; border: 1px solid rgba(253, 252, 249, .85); padding: 0;
+  box-shadow: 0 2px 9px rgba(30, 28, 26, .3); transition: opacity .3s; }
+.ofc-thumb:hover { opacity: .82; }
+
+.ofc-body { display: flex; flex-direction: row; align-items: stretch; flex: 1; min-width: 0; }
+.ofc-text { padding: 26px 30px; flex: 1; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center; }
+.ofc-name { font-family: var(--serif); font-weight: 400; font-size: 24px;
+  margin: 0 0 6px; line-height: 1.22; }
+.ofc-meta { font-family: var(--sans); font-size: 10px; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--gold-dark); margin: 0; }
+.ofc-desc { font-size: 13px; line-height: 1.78; color: var(--muted); margin: 12px 0 0; max-width: 52ch; }
+.ofc-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 14px 0 0; }
+.ofc-tag { font-family: var(--sans); font-size: 9px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--gold-dark); border: 1px solid var(--border);
+  padding: 3px 7px; background: var(--warm-cream); }
+
+/* fixed width, so the buttons line up down the page rather than sitting at a
+   different distance from the edge on every card */
+.ofc-actions { width: 236px; flex: none; border-left: 1px solid var(--border);
+  padding: 26px; display: flex; flex-direction: column; gap: 14px;
+  justify-content: center; text-align: right; }
+.ofc-price { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.ofc-fig { font-family: var(--serif); font-size: 26px; line-height: 1; }
+.ofc-fig small { font-family: var(--sans); font-size: 9px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--gold-dark); display: block; margin-bottom: 3px; }
+.ofc-basis { font-family: var(--sans); font-size: 9.5px; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--muted); }
+.ofc-alt { font-size: 11px; line-height: 1.6; color: var(--muted); margin: 0;
+  padding-top: 9px; border-top: 1px solid var(--border); width: 100%; }
+.ofc-more { background: none; border: 0; padding: 0; cursor: pointer; color: var(--gold-dark);
+  font-family: var(--sans); font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+  align-self: flex-end; }
+.ofc-more:hover { color: var(--charcoal); }
+.ofc-actions .bc-add { width: 100%; }
+.ofc-enquire { display: block; width: 100%; text-align: center;
+  background: var(--charcoal); color: var(--warm-white); border: 1px solid var(--charcoal);
+  padding: 12px 20px; font-family: var(--sans); font-size: 9.5px; font-weight: 500;
+  letter-spacing: .16em; text-transform: uppercase; text-decoration: none; transition: .3s; }
+.ofc-enquire:hover { background: transparent; color: var(--charcoal); text-decoration: none; }
+
+/* a signature offer earns a wider image and larger type */
+.ofc--feature { min-height: 310px; }
+.ofc--feature .ofc-media { width: 40%; }
+.ofc--feature .ofc-thumb { width: 54px; height: 40px; }
+.ofc--feature .ofc-text { padding: 32px 36px; }
+.ofc--feature .ofc-name { font-size: 29px; }
+.ofc--feature .ofc-desc { font-size: 13.5px; line-height: 1.85; }
+.ofc--feature .ofc-fig { font-size: 31px; }
+.ofc--feature .ofc-actions { width: 252px; }
+
+/* modal */
+.ofc-modal { position: fixed; inset: 0; z-index: 500; background: rgba(30, 28, 26, .55);
+  backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.ofc-modal-box { background: var(--warm-white); max-width: 820px; width: 100%;
+  max-height: 86vh; overflow: auto; border: 1px solid var(--border); position: relative; }
+.ofc-modal-hero { height: 200px; background-size: cover; background-position: center; position: relative; }
+.ofc-modal-x { position: absolute; right: 12px; top: 12px; background: rgba(253, 252, 249, .9);
+  border: 0; width: 34px; height: 34px; cursor: pointer; font-size: 17px; line-height: 1; color: var(--charcoal); }
+.ofc-modal-x--plain { background: none; }
+.ofc-modal-in { padding: 30px 40px 38px; }
+.ofc-modal-title { font-family: var(--serif); font-weight: 300; font-size: 31px; margin: 0 0 6px; }
+.ofc-modal-sub { font-family: var(--sans); font-size: 12px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); margin: 0 0 24px; }
+.ofc-modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 42px; }
+.ofc-sec h4 { font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--gold-dark); margin: 0 0 11px; }
+.ofc-sec p, .ofc-sec li { font-size: 13px; line-height: 1.8; color: var(--muted); margin: 0; }
+.ofc-sec ul { margin: 0; padding: 0; list-style: none; }
+.ofc-sec li { position: relative; padding-left: 15px; margin-bottom: 6px; }
+.ofc-sec li:before { content: ''; position: absolute; left: 0; top: 11px;
+  width: 7px; height: 1px; background: var(--gold); }
+.ofc-sec-full { grid-column: 1 / -1; border-top: 1px solid var(--border); padding-top: 22px; }
+.ofc-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.ofc-facts b { display: block; font-family: var(--sans); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 5px; }
+.ofc-facts span { font-size: 13px; color: var(--charcoal); }
+
+@media (max-width: 960px) {
+  .ofc, .ofc--feature { flex-direction: column; min-height: 0; }
+  .ofc-media, .ofc--feature .ofc-media { width: auto; height: 200px; }
+  .ofc-body { flex-direction: column; }
+  .ofc-actions { width: auto; border-left: 0; border-top: 1px solid var(--border); text-align: left; }
+  .ofc-price { flex-direction: row; align-items: baseline; justify-content: space-between; }
+  .ofc-more { align-self: flex-start; }
+  .ofc-modal-grid { grid-template-columns: 1fr; }
+  .ofc-facts { grid-template-columns: 1fr 1fr; }
+}
+
 /* ── Pre-booking steps: health and host ───────────────────────────────
    One set of rules for both screens. They ask different questions of
    different people, but they are the same object in the journey and should

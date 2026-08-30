@@ -1,4 +1,6 @@
 import { duration, money } from '@/lib/venue';
+import { OfferList } from '@/components/venue/OfferCard';
+import { packageToOffer, excursionToOffer } from '@/lib/offers';
 import { AddToCart } from './BookingCart';
 import { RoomDetails } from './RoomDetails';
 import { RoomGallery } from './RoomGallery';
@@ -204,41 +206,39 @@ export function HostBlock({
 /* Packages — set programmes, priced. Its items come through as a JSON
  * array on the view, aggregated so the whole package is one row. */
 export function PackagesPanel({ v }: { v: Record<string, any> }) {
+  /* Packages carry more written detail than anything else on the platform:
+     every row has a tagline, description, duration and price basis. They were
+     rendering in the same compact tile as everything else, which threw most of
+     it away. Same card as treatments and excursions now, so a package reads as
+     the larger thing it is. */
+  const offers = v.packages.map((p: any) => {
+    const fromItems = (p.items ?? []).map((i: any) => i.label).filter(Boolean);
+    return packageToOffer(
+      { ...p, inclusions: [...(Array.isArray(p.inclusions) ? p.inclusions : []), ...fromItems] },
+      v.offer_media ?? [], v.package_focus ?? [],
+    );
+  });
+
   return (
     <>
       <TabHero image={v.image_url} label="Packages" title="Curated packages"
         subtitle="Set programmes, priced and ready to enquire on" />
       <Section tone="white">
-        <div className="item-grid">
-          {v.packages.map((p: any) => {
-            const items = (p.items ?? []).map((i: any) => i.label).filter(Boolean);
-            const incl = Array.isArray(p.inclusions) ? p.inclusions : [];
-            const lines = [...items, ...incl];
-            return (
-              <article key={p.id} className="item priced">
-                <div>
-                  <h3>{p.name}</h3>
-                  <div className="item-meta">
-                    {[p.duration_label || (p.nights ? `${p.nights} night${p.nights === 1 ? '' : 's'}` : null),
-                      duration(p.total_duration_minutes),
-                    ].filter(Boolean).join(' · ')}
-                  </div>
-                  {p.tagline && <p style={{ fontStyle: 'italic' }}>{p.tagline}</p>}
-                  {p.description && <p>{p.description}</p>}
-                  {!!lines.length && <div className="item-note">{lines.join(' · ')}</div>}
-                </div>
-                <div className="priced-amount">
-                  {money(p.price, p.currency)}
-                  {p.saving_amount ? (
-                    <span className="from">save {money(p.saving_amount, p.currency)}</span>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+        <OfferList offers={offers} />
       </Section>
     </>
+  );
+}
+
+/* Excursions: bookable things nearby, run by the venue or by a local operator.
+   The same card again; a guided walk and a massage are the same object to
+   somebody deciding whether to add one. */
+export function ExcursionsPanel({ v }: { v: Record<string, any> }) {
+  if (!v.excursions?.length) return null;
+  return (
+    <Section tone="cream" label="Nearby" title="Out from the venue">
+      <OfferList offers={v.excursions.map((e: any) => excursionToOffer(e))} />
+    </Section>
   );
 }
 

@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings] =
+         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -86,7 +86,19 @@ export async function loadVenue(marketplace: string, slug: string) {
       // component so the picker and submitBooking work from the same record.
       supabase.from('venue_booking_settings')
         .select('minimum_stay_default,minimum_stay_weekends,maximum_stay,max_advance_days,advance_notice_hours')
-        .eq('venue_id', id).maybeSingle()
+        .eq('venue_id', id).maybeSingle(),
+      // Galleries for services and packages, through the same media pipeline
+      // that already serves rooms and spaces.
+      supabase.from('venue_media')
+        .select('id,url,alt_text,service_id,package_id,is_primary,display_order')
+        .eq('venue_id', id).eq('media_type', 'image')
+        .or('service_id.not.is.null,package_id.not.is.null')
+        .order('is_primary', { ascending: false })
+        .order('display_order', { nullsFirst: false }),
+      supabase.from('service_outcomes')
+        .select('service_id,is_primary,outcomes(id,name,slug,care_level)'),
+      supabase.from('package_outcomes')
+        .select('package_id,is_primary,outcomes(id,name,slug,care_level)')
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -162,6 +174,9 @@ export async function loadVenue(marketplace: string, slug: string) {
     policies: policies.data ?? [],
     legal_documents: legalDocuments.data ?? [],
     booking_settings: bookingSettings.data ?? null,
+    offer_media: offerMedia.data ?? [],
+    service_focus: serviceFocus.data ?? [],
+    package_focus: packageFocus.data ?? [],
     distances: distances.data ?? [],
     excursions: excursions.data ?? [],
     faqs: faqs.data ?? [],
