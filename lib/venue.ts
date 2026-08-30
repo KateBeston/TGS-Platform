@@ -87,11 +87,13 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('venue_booking_settings')
         .select('minimum_stay_default,minimum_stay_weekends,maximum_stay,max_advance_days,advance_notice_hours')
         .eq('venue_id', id).maybeSingle(),
-      // Galleries for services and packages, through the same media pipeline
-      // that already serves rooms and spaces.
-      supabase.from('venue_media')
+      // Galleries for services and packages.
+      // published_venue_media, not venue_media: the table is behind RLS with a
+      // policy for authenticated only, so reading it as the public site
+      // returned an empty array with no error and every card lost its picture.
+      supabase.from('published_venue_media')
         .select('id,url,alt_text,service_id,package_id,is_primary,display_order')
-        .eq('venue_id', id).eq('media_type', 'image')
+        .eq('venue_id', id)
         .or('service_id.not.is.null,package_id.not.is.null')
         .order('is_primary', { ascending: false })
         .order('display_order', { nullsFirst: false }),

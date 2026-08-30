@@ -48,35 +48,36 @@ export default function OfferCard({ offer }: { offer: Offer }) {
           </div>
         )}
 
+        {/* One body column, not two. Name, meta, description and tags run down
+            it; the price sits at the foot under a rule with the actions
+            beneath. Splitting the price into its own bordered rail was a
+            different design and made the card read as two objects. */}
         <div className="ofc-body">
-          <div className="ofc-text">
-            <h3 className="ofc-name">{o.name}</h3>
-            {o.meta.length > 0 && <p className="ofc-meta">{o.meta.join(' · ')}</p>}
-            {o.description && <p className="ofc-desc">{o.description}</p>}
-            {o.tags.length > 0 && (
-              <div className="ofc-tags">
-                {o.tags.map((t) => <span key={t} className="ofc-tag">{t}</span>)}
-              </div>
-            )}
-          </div>
-
-          <div className="ofc-actions">
-            <div className="ofc-price">
-              <span className="ofc-fig">
-                {o.priceFrom && <small>From</small>}
-                {money(o.price, o.currency) ?? 'On request'}
-              </span>
-              {o.priceBasis && <span className="ofc-basis">{o.priceBasis}</span>}
+          <h3 className="ofc-name">{o.name}</h3>
+          {o.meta.length > 0 && <p className="ofc-meta">{o.meta.join(' \u00b7 ')}</p>}
+          {o.description && <p className="ofc-desc">{o.description}</p>}
+          {o.tags.length > 0 && (
+            <div className="ofc-tags">
+              {o.tags.map((t) => <span key={t} className="ofc-tag">{t}</span>)}
             </div>
-            {o.priceAlt.length > 0 && (
-              <p className="ofc-alt">{o.priceAlt.map((a, i) => <span key={i}>{a}<br /></span>)}</p>
+          )}
+
+          <div className="ofc-price">
+            <span className="ofc-fig">
+              {o.priceFrom && <small>From</small>}
+              {money(o.price, o.currency) ?? 'On request'}
+            </span>
+            {o.priceBasis && <span className="ofc-basis">{o.priceBasis}</span>}
+          </div>
+          {o.priceAlt.length > 0 && <p className="ofc-alt">{o.priceAlt.join(' \u00b7 ')}</p>}
+
+          <div className="ofc-foot">
+            {o.detail && (
+              <button type="button" className="ofc-more" onClick={() => setOpen(true)}>Detail</button>
             )}
             {o.bookable
               ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
               : <a className="ofc-enquire" href="#enquire">Enquire</a>}
-            {o.detail && (
-              <button type="button" className="ofc-more" onClick={() => setOpen(true)}>More detail</button>
-            )}
           </div>
         </div>
       </article>
