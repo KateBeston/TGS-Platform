@@ -67,7 +67,7 @@ export default function HostStepPage() {
 
       const { venueIds } = cartShape(cart);
       const [{ data: rows }, { data: vs }] = await Promise.all([
-        db.from('venue_booking_settings')
+        db.from('published_venue_booking_settings')
           .select('venue_id,whats_included,whats_excluded,host_responsibilities,requires_public_liability,public_liability_minimum,requires_professional_indemnity,insurance_note,deposit_percent,deposit_amount,balance_due,security_bond,checkin_time,checkout_time,max_group_size,turnaround_days')
           .in('venue_id', venueIds.length ? venueIds : [-1]),
         db.from('venues').select('id,venue_name').in('id', venueIds.length ? venueIds : [-1]),

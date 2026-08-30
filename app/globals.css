@@ -4337,6 +4337,54 @@ img { max-width: 100%; height: auto; display: block; }
 
 
 
+/* ── Distances and climate, from tgs_retreat_venue_detail_v2 ──────────
+   Travel times as figures rather than a list of rows: the numbers are what
+   someone scans when working out whether a group can get there. Seasons as
+   cards with the temperature range carrying the weight, because that is the
+   thing people compare. */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border); }
+.stat-grid--4 { grid-template-columns: repeat(4, 1fr); }
+.stat-item { background: var(--warm-white); padding: 30px 20px; text-align: center; }
+.section--cream .stat-item { background: var(--warm-cream); }
+.stat-value { font-family: var(--serif); font-weight: 300; font-size: 40px;
+  line-height: 1; color: var(--charcoal); margin: 0 0 10px; }
+.stat-unit { font-family: var(--serif); font-size: 20px; margin-left: 2px; color: var(--muted); }
+.stat-unit--alone { font-size: 22px; margin-left: 0; }
+.stat-label { font-family: var(--sans); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--gold-dark); margin: 0; }
+.stat-note { font-family: var(--sans); font-size: 10.5px; color: var(--muted); margin: 5px 0 0; }
+
+.season-grid { display: grid; gap: 20px; grid-template-columns: repeat(4, 1fr); }
+.season-grid--1 { grid-template-columns: 1fr; max-width: 320px; }
+.season-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.season-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.season-card { background: var(--warm-white); border: 1px solid var(--border);
+  padding: 30px 24px; text-align: center; position: relative; }
+.section--white .season-card { background: var(--warm-cream); }
+.season-card--peak { border-color: var(--gold); }
+.season-peak { position: absolute; top: 0; left: 0; background: var(--gold); color: #fff;
+  font-family: var(--sans); font-size: 8.5px; letter-spacing: .16em;
+  text-transform: uppercase; padding: 4px 10px; }
+.season-name { font-family: var(--sans); font-size: 10px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--gold-dark); margin: 0 0 8px; }
+.season-months { font-family: var(--serif); font-size: 14px; color: var(--muted); margin: 0 0 16px; }
+.season-temp { font-family: var(--serif); font-weight: 300; font-size: 28px;
+  color: var(--charcoal); margin: 0 0 16px; line-height: 1; }
+.season-desc { font-family: var(--serif); font-size: 14px; line-height: 1.6;
+  color: var(--muted); margin: 0; }
+.season-rain { font-family: var(--sans); font-size: 10.5px; color: var(--muted);
+  margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--border); }
+
+@media (max-width: 900px) {
+  .stat-grid, .stat-grid--4 { grid-template-columns: repeat(2, 1fr); }
+  .season-grid, .season-grid--3, .season-grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .stat-grid, .stat-grid--4 { grid-template-columns: 1fr; }
+  .season-grid, .season-grid--2, .season-grid--3, .season-grid--4 { grid-template-columns: 1fr; }
+}
+
 /* ── Offer card ───────────────────────────────────────────────────────
    Treatments, packages, excursions and room extras. One component, matching
    tgs-services-one-card: image left, one body column right. Name, meta,

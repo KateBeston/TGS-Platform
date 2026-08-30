@@ -94,6 +94,73 @@ export function ExperienceBlock({
   );
 }
 
+/* Distances and travel times, as a stat grid.
+ *
+ * From tgs_retreat_venue_detail_v2: a big serif figure with a small unit
+ * beside it, the place underneath. A list of rows answered the same question
+ * but read as a timetable; the figures are what someone scans for when they
+ * are working out whether a group can get there.
+ *
+ * Four across, because that is what the mockup sets and what a row of numbers
+ * can hold before it stops being scannable. */
+export function Distances({ v, tone = 'cream' }: { v: Record<string, any>; tone?: 'cream' | 'white' }) {
+  const items = (v.distances ?? []).filter((d: any) => d.show_on_listing !== false);
+  if (!items.length) return null;
+  return (
+    <Section tone={tone} label="Distances & travel times">
+      <div className="stat-grid stat-grid--4">
+        {items.slice(0, 8).map((d: any) => (
+          <div key={d.id} className="stat-item">
+            <p className="stat-value">
+              {d.travel_value != null ? (
+                <>{d.travel_value}<span className="stat-unit">{d.travel_unit || 'min'}</span></>
+              ) : <span className="stat-unit stat-unit--alone">Nearby</span>}
+            </p>
+            <p className="stat-label">{d.label}</p>
+            {d.travel_mode && <p className="stat-note">by {d.travel_mode}</p>}
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* Climate and best time to visit, as season cards.
+ *
+ * Season, months, the temperature range large, then what the season is like.
+ * The range is the number people compare, so it carries the weight. */
+export function Climate({ v, tone = 'white' }: { v: Record<string, any>; tone?: 'cream' | 'white' }) {
+  const seasons = v.seasons ?? [];
+  if (!seasons.length && !v.climate_note && !v.climate_intro) return null;
+  return (
+    <Section tone={tone} label="Climate & best time to visit">
+      {(v.climate_intro || v.climate_note) && (
+        <div className="prose-narrow" style={{ marginBottom: 32 }}>
+          <p>{v.climate_intro || v.climate_note}</p>
+        </div>
+      )}
+      {seasons.length > 0 && (
+        <div className={`season-grid season-grid--${Math.min(seasons.length, 4)}`}>
+          {seasons.map((s: any) => (
+            <div key={s.id} className={`season-card${s.is_peak ? ' season-card--peak' : ''}`}>
+              {s.is_peak && <span className="season-peak">Peak</span>}
+              <p className="season-name">{s.season_name}</p>
+              {s.months && <p className="season-months">{s.months}</p>}
+              {s.temp_low != null && s.temp_high != null && (
+                <p className="season-temp">{s.temp_low}–{s.temp_high}°{s.temp_unit || 'C'}</p>
+              )}
+              {(s.description || s.best_for) && (
+                <p className="season-desc">{s.description || s.best_for}</p>
+              )}
+              {s.rainfall_note && <p className="season-rain">{s.rainfall_note}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 /* Accessibility.
  *
  * The step-free facts as pills, then the path notes and any access

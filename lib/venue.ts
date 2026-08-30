@@ -55,13 +55,16 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('published_venue_policies').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('published_venue_profile').select('*').eq('venue_id', id).maybeSingle(),
-      supabase.from('venue_distances').select('*').eq('venue_id', id).eq('show_on_listing', true)
+      // published_venue_*, not the tables: both carry RLS with a policy for
+      // authenticated only, so reading them as the public site returned an
+      // empty array with no error and these sections never appeared at all.
+      supabase.from('published_venue_distances').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_excursions').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_faqs').select('*').eq('venue_id', id).eq('is_published', true)
         .order('display_order', { nullsFirst: false }),
-      supabase.from('venue_seasons').select('*').eq('venue_id', id)
+      supabase.from('published_venue_seasons').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_transfer_options').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
@@ -84,7 +87,7 @@ export async function loadVenue(marketplace: string, slug: string) {
         .order('display_order', { nullsFirst: false }),
       // What the venue will accept as dates. Read here rather than in the
       // component so the picker and submitBooking work from the same record.
-      supabase.from('venue_booking_settings')
+      supabase.from('published_venue_booking_settings')
         .select('minimum_stay_default,minimum_stay_weekends,maximum_stay,max_advance_days,advance_notice_hours')
         .eq('venue_id', id).maybeSingle(),
       // Galleries for services and packages.

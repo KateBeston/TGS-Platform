@@ -10,7 +10,7 @@ import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
-  Accessibility, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Distances, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero, VenueLinks,
 } from './Section';
 import { duration, money, roomSummary } from '@/lib/venue';
@@ -422,39 +422,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         {/* Said separately. "Beachfront" and "twenty minutes from a
             beach" are different claims, and running them together is how
             a listing overstates itself. */}
-        {/* Distances: the harvested travel times where present, otherwise
-            the setting-based reachable list. */}
-        {v.distances.length ? (
-          <Section tone="cream" label="Getting there" title="Distances and travel times">
-            <div className="distance-list">
-              {v.distances.map((d: any) => (
-                <div key={d.id} className="distance-row">
-                  <span className="distance-name">{d.label}</span>
-                  <span className="distance-time">
-                    {d.travel_value != null
-                      ? `${d.travel_value} ${d.travel_unit || 'min'}${d.travel_mode ? ` by ${d.travel_mode}` : ''}`
-                      : 'Nearby'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
-        ) : !!reachable.length && (
-          <Section tone="cream" label="Getting there" title="Distances and travel times">
-            <div className="distance-list">
-              {reachable.map((s: any) => (
-                <div key={s.setting_id} className="distance-row">
-                  <span className="distance-name">{s.detail ?? s.name}</span>
-                  <span className="distance-time">
-                    {s.travel_minutes
-                      ? `${s.travel_minutes} minutes${s.travel_mode ? ` by ${s.travel_mode.toLowerCase()}` : ''}`
-                      : 'Nearby'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
+        <Distances v={v} tone="cream" />
 
         {!!v.transfers.length && (
           <Section tone="white" label="Transfers" title="Getting to the door">
@@ -484,41 +452,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           </Section>
         )}
 
-        {/* Climate: the season table where present, otherwise the prose. */}
-        {v.seasons.length ? (
-          <Section tone="cream" label="Climate" title="When to visit">
-            {v.climate_note && (
-              <div className="prose-narrow" style={{ marginBottom: 20 }}><p>{v.climate_note}</p></div>
-            )}
-            <div className="distance-list">
-              {v.seasons.map((s: any) => (
-                <div key={s.id} className="distance-row">
-                  <span className="distance-name">
-                    {s.season_name}{s.months ? ` · ${s.months}` : ''}{s.is_peak ? ' · Peak' : ''}
-                  </span>
-                  <span className="distance-time">
-                    {[s.temp_low != null && s.temp_high != null
-                        ? `${s.temp_low}–${s.temp_high}°${s.temp_unit || 'C'}` : null,
-                      s.best_for].filter(Boolean).join(' · ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
-        ) : (v.climate_intro || v.best_months || v.climate_note) && (
-          <Section tone="cream" label="Climate" title="What to expect">
-            <div className="prose-narrow">
-              {v.climate_intro && <p>{v.climate_intro}</p>}
-              {v.climate_note && <p>{v.climate_note}</p>}
-              {v.best_months && (
-                <p className="muted-small">
-                  Best months to visit: {Array.isArray(v.best_months)
-                    ? v.best_months.join(', ') : v.best_months}
-                </p>
-              )}
-            </div>
-          </Section>
-        )}
+        {/* Climate and best time to visit, as season cards. */}
+        <Climate v={v} tone="white" />
 
         <OpeningHours v={v} tone="white" />
         <Accessibility v={v} tone="cream" />
