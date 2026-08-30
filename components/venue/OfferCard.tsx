@@ -24,6 +24,7 @@ const money = (n: number | null, c: string | null) =>
 
 export default function OfferCard({ offer }: { offer: Offer }) {
   const [main, setMain] = useState(0);
+  const [modalMain, setModalMain] = useState(0);
   const [open, setOpen] = useState(false);
   const o = offer;
   const hasImages = o.images.length > 0;
@@ -99,9 +100,18 @@ export default function OfferCard({ offer }: { offer: Offer }) {
           {o.priceAlt.length > 0 && <p className="ofc-alt">{o.priceAlt.join(' \u00b7 ')}</p>}
 
           <div className="ofc-foot">
+            {/* "Detail" said nothing about what was behind it. This names the
+                reward for clicking, which is the whole job of the control. */}
             {o.detail && (
-              <button type="button" className="ofc-more" onClick={() => setOpen(true)}>Detail</button>
+              <button type="button" className="ofc-more" onClick={() => setOpen(true)}>
+                See full detail
+              </button>
             )}
+            {/* Policies sits on the card permanently rather than inside the
+                modal: someone checking cancellation before they commit should
+                not have to open something else first. */}
+            <a className="ofc-policies" href="#policies">Policies</a>
+            <span className="ofc-foot-spacer" />
             {o.bookable
               ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
               : <a className="ofc-enquire" href="#enquire">Enquire</a>}
@@ -113,9 +123,25 @@ export default function OfferCard({ offer }: { offer: Offer }) {
         <div className="ofc-modal" role="dialog" aria-modal="true" aria-label={o.name}
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
           <div className="ofc-modal-box">
+            {/* The modal showed one fixed image while the card had a working
+                gallery, which made opening it feel like a step backwards. Same
+                images, same swap, larger. */}
             {hasImages && (
-              <div className="ofc-modal-hero" style={{ backgroundImage: `url(${o.images[0]})` }}>
-                <button type="button" className="ofc-modal-x" onClick={() => setOpen(false)} aria-label="Close">&times;</button>
+              <div className="ofc-modal-gallery">
+                <div className="ofc-modal-hero" style={{ backgroundImage: `url(${o.images[modalMain]})` }}>
+                  <button type="button" className="ofc-modal-x" onClick={() => setOpen(false)} aria-label="Close">&times;</button>
+                </div>
+                {o.images.length > 1 && (
+                  <div className="ofc-modal-thumbs">
+                    {o.images.map((src, i) => (
+                      <button key={src + i} type="button"
+                        className={`ofc-modal-thumb${i === modalMain ? ' on' : ''}`}
+                        style={{ backgroundImage: `url(${src})` }}
+                        aria-label={`Photo ${i + 1} of ${o.images.length}`}
+                        onClick={() => setModalMain(i)} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             <div className="ofc-modal-in">
@@ -150,6 +176,24 @@ export default function OfferCard({ offer }: { offer: Offer }) {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Adding has to be possible from here. Someone who opened this
+                  to decide should not have to close it to act. */}
+              <div className="ofc-modal-foot">
+                <div className="ofc-modal-price">
+                  <span className="ofc-fig">
+                    {o.priceFrom && <small>From</small>}
+                    {money(o.price, o.currency) ?? 'On request'}
+                  </span>
+                  {o.priceBasis && <span className="ofc-basis">{o.priceBasis}</span>}
+                </div>
+                <div className="ofc-modal-acts">
+                  <a className="ofc-policies" href="#policies" onClick={() => setOpen(false)}>Policies</a>
+                  {o.bookable
+                    ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
+                    : <a className="ofc-enquire" href="#enquire" onClick={() => setOpen(false)}>Enquire</a>}
+                </div>
               </div>
             </div>
           </div>
