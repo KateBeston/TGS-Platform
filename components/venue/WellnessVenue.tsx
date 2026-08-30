@@ -70,7 +70,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
     v.rooms.length && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
-    { id: 'location', label: 'Location' },
+    { id: 'location', label: 'Location & access' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },

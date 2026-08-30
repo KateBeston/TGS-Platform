@@ -101,7 +101,7 @@ export default function VenueEnquiry({
           <input id="e-email" type="email" value={f.email}
             onChange={(e) => set('email', e.target.value)} />
         </div>
-        <div className="f">
+        <div className="f f--wide">
           <label htmlFor="e-phone">Phone</label>
           <PhoneField countries={countries} value={f.phone}
             onChange={(e164) => set('phone', e164)} defaultIso="AU" />
@@ -118,8 +118,17 @@ export default function VenueEnquiry({
         </div>
         <div className="f">
           <label htmlFor="e-guests">How many people</label>
-          <input id="e-guests" type="number" min={1} value={f.guests}
-            onChange={(e) => set('guests', e.target.value)} />
+          {/* A count, not a typed number. Typing into a number field invites
+              a blank, a zero, or a stray keystroke; two buttons cannot. */}
+          <div className="e-count">
+            <button type="button" aria-label="Fewer people"
+              onClick={() => set('guests', String(Math.max(1, (Number(f.guests) || 1) - 1)))}
+              disabled={(Number(f.guests) || 1) <= 1}>&minus;</button>
+            <input id="e-guests" type="number" min={1} inputMode="numeric" value={f.guests || 1}
+              onChange={(e) => set('guests', e.target.value.replace(/\D/g, ''))} />
+            <button type="button" aria-label="More people"
+              onClick={() => set('guests', String((Number(f.guests) || 1) + 1))}>+</button>
+          </div>
         </div>
       </div>
 
@@ -145,10 +154,21 @@ export default function VenueEnquiry({
         {busy ? 'Sending' : 'Send the enquiry'}
       </button>
 
+      {/* Pointed at the documents themselves rather than anchors on the index,
+          and worded for who is reading. A retreat host hiring a venue is
+          taking on responsibility for their own participants, which is a
+          different document from the guest health disclaimer. */}
       <p className="enquiry-fine">
-        By enquiring you agree to our <a href="/legal#terms">terms</a> and{' '}
-        <a href="/legal#privacy">privacy policy</a>. Health and wellness
-        services carry <a href="/legal#health">their own considerations</a>.
+        By enquiring you agree to our <a href="/legal/terms-and-conditions">Terms &amp; Conditions</a>{' '}
+        and <a href="/legal/privacy-policy">Privacy Policy</a>.{' '}
+        {marketplace === 'Wellness' ? (
+          <>Wellness treatments carry conditions of their own, set out in the{' '}
+            <a href="/legal/health-wellness-disclaimer">Health &amp; Wellness Disclaimer</a>.</>
+        ) : (
+          <>If you go on to hire this venue, you are responsible for the participants you
+            bring. What that means is set out in the{' '}
+            <a href="/legal/retreat-host-agreement">Retreat Host Agreement</a>.</>
+        )}
       </p>
     </div>
   );

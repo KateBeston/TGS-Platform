@@ -24,7 +24,18 @@ export default function PhoneField({
   name?: string;                                   // hidden input name for form POST
   defaultIso?: string;
 }) {
-  const withCodes = countries.filter((c) => c.dialling_code);
+  /* Most-used codes first, then everything else alphabetically.
+     A guest in Australia should not scroll past Afghanistan, Albania and
+     Algeria to reach +61. The list is still complete; only the order changes. */
+  const PRIORITY = ['AU', 'NZ', 'GB', 'US', 'CA', 'SG', 'ID', 'TH', 'IN', 'AE', 'DE', 'FR', 'ES', 'IT', 'JP'];
+  const all = countries.filter((c) => c.dialling_code);
+  const top = PRIORITY
+    .map((iso) => all.find((c) => c.iso_code === iso))
+    .filter((c): c is Country => !!c);
+  const rest = all
+    .filter((c) => !PRIORITY.includes(c.iso_code))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const withCodes = [...top, ...rest];
   const initial = value ? parsePhoneNumberFromString(value) : undefined;
   const [iso, setIso] = useState<string>(initial?.country ?? defaultIso);
   const [display, setDisplay] = useState<string>(initial ? initial.formatNational() : (value ?? ''));
@@ -62,7 +73,11 @@ export default function PhoneField({
       <div className="phone-row">
         <select className="phone-dial" value={iso} onChange={(e) => handleCountry(e.target.value)} aria-label="Country dialling code">
           <option value="">＋ —</option>
-          {withCodes.map((c) => (
+          {top.map((c) => (
+            <option key={c.id} value={c.iso_code}>{flag(c.iso_code)} {c.dialling_code} {c.name}</option>
+          ))}
+          <option disabled>──────────</option>
+          {rest.map((c) => (
             <option key={c.id} value={c.iso_code}>{flag(c.iso_code)} {c.dialling_code} {c.name}</option>
           ))}
         </select>

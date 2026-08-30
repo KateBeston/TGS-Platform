@@ -1238,7 +1238,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .section--white .enquiry { background: var(--warm-cream); }
 .enquiry h3 {
-  font-family: var(--serif); font-weight: 400; font-size: 27px; margin: 0 0 8px;
+  font-family: var(--serif); font-weight: 300; font-size: 24px; margin: 0 0 8px;
 }
 .enquiry-sub { color: var(--charcoal-70); margin-bottom: var(--s5); }
 
@@ -1266,7 +1266,30 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .enquiry-problem { color: var(--bad); font-size: 14px; margin: 0 0 var(--s3); }
-.enquiry-fine { margin: var(--s4) 0 0; font-size: 12.5px; color: var(--muted); }
+.enquiry-fine { margin: var(--s4) 0 0; font-size: 12.5px; line-height: 1.75; color: var(--muted); }
+/* The fine print carries three links and none of them looked like links: no
+   underline, no colour, only a hover change nobody finds by accident. */
+.enquiry-fine a { color: var(--gold-dark); text-decoration: underline;
+  text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.enquiry-fine a:hover { color: var(--charcoal); }
+
+/* The phone field needs the full row. The dial select carries a flag, a code
+   and a country name, which does not fit a 200px grid column beside the
+   number, so it was being cut off. */
+.enquiry-grid .f--wide { grid-column: 1 / -1; }
+
+/* A count, matching the stepper in the booking panel. */
+.e-count { display: flex; align-items: stretch; border: 1px solid var(--border-input);
+  background: var(--warm-white); width: max-content; }
+.e-count button { width: 42px; border: 0; background: none; cursor: pointer;
+  color: var(--charcoal); font-size: 16px; line-height: 1; }
+.e-count button:hover:not(:disabled) { background: var(--warm-cream); }
+.e-count button:disabled { opacity: .35; cursor: not-allowed; }
+.enquiry .e-count input { width: 62px; text-align: center; border: 0;
+  border-left: 1px solid var(--border-input); border-right: 1px solid var(--border-input);
+  padding: 12px 0; -moz-appearance: textfield; }
+.enquiry .e-count input::-webkit-outer-spin-button,
+.enquiry .e-count input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .enquiry-done { text-align: center; }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4013,7 +4036,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* country-aware phone field */
 .phone-row{display:flex;gap:8px}
-.phone-dial{flex:0 0 auto;max-width:150px}
+.phone-dial{flex:0 0 auto;max-width:none;width:min(260px,45%)}
 .phone-num{flex:1 1 auto}
 .phone-invalid{font-size:11.5px;line-height:1.4;color:#a3382f;margin:6px 0 0}
 

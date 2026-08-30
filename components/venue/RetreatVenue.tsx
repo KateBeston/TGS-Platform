@@ -84,7 +84,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     (v.services.length || v.excursions.length || v.extras?.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
-    { id: 'location', label: 'Location' },
+    { id: 'location', label: 'Location & access' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
     v.reviews.length && { id: 'reviews', label: 'Reviews' },
     { id: 'enquire', label: 'Enquire' },
