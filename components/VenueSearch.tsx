@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 
 type Option = { id?: number; name: string; slug?: string; applies_to?: string;
                 in_retreat?: boolean; in_wellness?: boolean; count?: number };
@@ -42,6 +42,28 @@ export default function VenueSearch({
   });
   const [open, setOpen] = useState<SegKey | null>(null);
   const [pending, start] = useTransition();
+
+  /* Follow the URL, always.
+   *
+   * The state was seeded from the query string once, on mount. Arriving from
+   * the Wellness Venues link in the drawer is a client-side navigation, so the
+   * component never remounts: the results re-rendered on the server and the
+   * bar kept saying Retreat Venue. Any route into the page that is not a click
+   * on the bar itself had the same problem, including the back button.
+   *
+   * The query string is the single source of truth now and the bar follows it.
+   * Keyed on the string rather than the params object, which is a new
+   * reference on every render. */
+  const qs = params.toString();
+  useEffect(() => {
+    setF({
+      country: params.get('country') ?? '',
+      marketplace: params.get('marketplace') ?? '',
+      setting: params.get('setting') ?? '',
+      practice: params.get('practice') ?? '',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qs]);
 
   // Modality is scoped to the marketplace, because a retreat host and a
   // wellness guest are not looking for the same practices.
