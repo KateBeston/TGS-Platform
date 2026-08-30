@@ -103,7 +103,13 @@ export function BookingCart({
      comes off and the content goes back to full width. */
   useEffect(() => {
     document.body.classList.toggle('has-booking-panel', drawer === 'open');
-    return () => document.body.classList.remove('has-booking-panel');
+    // The minimised tab is narrow but still sits over the page. Reserve its
+    // width too, so a line of text never runs underneath it.
+    document.body.classList.toggle('has-booking-tab', drawer === 'min');
+    return () => {
+      document.body.classList.remove('has-booking-panel');
+      document.body.classList.remove('has-booking-tab');
+    };
   }, [drawer]);
   const [buyout, setBuyout] = useState(false);
   const buyoutPlan = allowBuyout ? ratePlans.find((rp) => rp.applies_to === 'Whole Venue') : undefined;

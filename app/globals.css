@@ -163,10 +163,23 @@ img { max-width: 100%; height: auto; display: block; }
    padding <main> keeps full-bleed heroes full bleed. */
 @media (min-width: 1100px) {
   body.has-booking-panel .wrap {
+    /* 460 panel + 24 right gutter + 24 breathing room. calc uses 100vw, which
+       includes the scrollbar, so the reserve is a few pixels generous rather
+       than a few pixels short. */
     max-width: min(1180px, calc(100vw - 540px));
     margin-left: auto;
     margin-right: 508px;
   }
+  /* Minimised, only the tab needs clearing. */
+  body.has-booking-tab .wrap {
+    max-width: min(1180px, calc(100vw - 120px));
+    margin-left: auto;
+    margin-right: 56px;
+  }
+  /* The tab hero sits outside .wrap so its image stays full bleed. Its text
+     does not, and would otherwise be read through the panel. */
+  body.has-booking-panel .tab-hero-content { margin-right: 484px; }
+  body.has-booking-tab .tab-hero-content { margin-right: 48px; }
 }
 /* Below that there is not room for both, so the panel becomes a sheet at the
    foot of the screen and the content keeps the full width. */
