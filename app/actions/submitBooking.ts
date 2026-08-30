@@ -40,7 +40,11 @@ function orderRef(): string {
   return `TGS-${s}${r}`;
 }
 
-export async function submitBooking(cart: Cart, contact: Contact): Promise<SubmitResult> {
+export async function submitBooking(
+  cart: Cart,
+  contact: Contact,
+  acknowledged: string[] = [],
+): Promise<SubmitResult> {
   // ── validate the request ──
   const name = (contact?.name ?? '').trim();
   const email = (contact?.email ?? '').trim().toLowerCase();
@@ -99,6 +103,43 @@ export async function submitBooking(cart: Cart, contact: Contact): Promise<Submi
   const policyByVenue = new Map((policies ?? []).map((p) => [p.venue_id as number, p.id as number]));
   const settingsByVenue = new Map((settings ?? []).map((r) => [r.venue_id as number, r]));
   const minimumByVenue = new Map((venueMinimums ?? []).map((r) => [r.id as number, r.minimum_stay_nights as number | null]));
+
+  /* Pre-booking steps, re-resolved server-side.
+   *
+   * The screens set a flag in localStorage, which is a convenience for the
+   * guest and no kind of evidence. Anyone can edit it, and a direct POST skips
+   * the screens entirely. So the steps are resolved again here, against the
+   * same database function the screens used, and a booking whose steps are
+   * outstanding is refused. This is the gate; the redirect on the checkout
+   * page is only so the journey makes sense. */
+  {
+    // `venues` is entries, not values: [key, slice] pairs.
+    const slices = venues.map(([, v]) => v);
+    const serviceIds = slices
+      .flatMap((v) => v.items ?? [])
+      .filter((i) => i.kind === 'exp' && typeof i.id === 'number')
+      .map((i) => i.id as number);
+    // Only the line items count here. The cart carries a `buyout` UI flag too,
+    // but that is client state; the item is what is actually being booked.
+    const hasHire = slices.some((v) => (v.items ?? []).some((i) => i.kind === 'buyout'));
+
+    const { data: required } = await db.rpc('booking_steps', {
+      p_venue_ids: venueIds,
+      p_service_ids: Array.from(new Set(serviceIds)),
+      p_has_hire: hasHire,
+    });
+
+    const needed = Array.from(new Set(((required ?? []) as { step: string }[]).map((r) => r.step)));
+    const missing = needed.filter((n) => !(acknowledged ?? []).includes(n));
+    if (missing.length) {
+      return {
+        ok: false,
+        error: missing.includes('host')
+          ? 'Please review the hire responsibilities before booking.'
+          : 'Please review the health and safety notes before booking.',
+      };
+    }
+  }
 
   /* Dates the venue will not accept, checked before anything is written.
    *

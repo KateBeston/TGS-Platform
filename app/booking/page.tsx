@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { resolveSteps, readAcks, nextDestination } from '@/lib/bookingSteps';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trackCartEvent } from '@/lib/track';
@@ -79,6 +81,15 @@ export default function CartPage() {
     );
   }
 
+  /* Where Continue goes. The steps are resolved from the database rather than
+     guessed here, so this and the checkout guard cannot disagree. */
+  const goNext = async () => {
+    let cart: any = null;
+    try { cart = JSON.parse(localStorage.getItem('tgs_cart') ?? 'null'); } catch { /* ignore */ }
+    const steps = await resolveSteps(createClient() as never, cart);
+    router.push(nextDestination(steps, readAcks()));
+  };
+
   const grand = entries.reduce((s, [, v]) => s + (v.total || 0), 0);
   const currency = entries[0][1].currency;
   const itemCount = entries.reduce((s, [, v]) => s + v.items.reduce((n, it) => n + it.qty, 0), 0);
@@ -144,7 +155,7 @@ export default function CartPage() {
             <div className="cart-fees">Includes taxes &amp; fees</div>
             <hr className="cart-rule" />
             {entries.map(([key, v]) => <div key={key} className="cart-line"><span>{v.venueName}</span><span>{money(v.total, v.currency)}</span></div>)}
-            <button type="button" className="cart-cta cart-cta-primary" disabled={anyPast} onClick={() => { trackCartEvent({ eventType: 'checkout_start', metadata: { venues: entries.length, items: itemCount, total: grand } }); router.push('/checkout'); }}>Checkout now</button>
+            <button type="button" className="cart-cta cart-cta-primary" disabled={anyPast} onClick={() => { trackCartEvent({ eventType: 'checkout_start', metadata: { venues: entries.length, items: itemCount, total: grand } }); goNext(); }}>Continue</button>
             <Link className="cart-cta cart-cta-ghost" href="/venues">Continue browsing</Link>
             {anyPast && <p className="cart-warn">Reschedule or remove the past-due venues before checkout.</p>}
             <div className="cart-secure">Secure payments · encrypted</div>

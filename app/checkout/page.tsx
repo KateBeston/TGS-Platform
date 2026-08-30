@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent } from '@/lib/track';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
+import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
 type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
@@ -23,6 +25,7 @@ function cancellationLabel(freeCancelDays: number | null, from: string): string 
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<Cart | null>(null);
+  const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [contact, setContact] = useState<Contact | null>(null);
   const [modal, setModal] = useState(false);
@@ -39,6 +42,23 @@ export default function CheckoutPage() {
     try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); const c = localStorage.getItem('tgs_contact'); if (c) setContact(JSON.parse(c)); } catch { /* ignore */ }
     setLoaded(true);
   }, []);
+
+  /* Nobody reaches checkout with a step outstanding.
+     Typing /checkout skips the screens but not this: the steps are re-resolved
+     here and the guest is sent back to the first one they have not done. The
+     real gate is server-side in submitBooking; this is so the journey makes
+     sense rather than so it is secure. */
+  useEffect(() => {
+    if (!cart) return;
+    let live = true;
+    (async () => {
+      const steps = await resolveSteps(createClient() as never, cart);
+      if (!live || !steps.length) return;
+      const dest = nextDestination(steps, readAcks());
+      if (dest !== '/checkout') router.replace(dest);
+    })();
+    return () => { live = false; };
+  }, [cart, router]);
 
   /* What the guest is asked to accept. Read from the register rather than
      hardcoded, so it is exactly what submitBooking will record. */
@@ -90,13 +110,13 @@ export default function CheckoutPage() {
     setSubmitting(true); setErr(''); setStep(0);
     const t1 = setTimeout(() => setStep(1), 550);
     const t2 = setTimeout(() => setStep(2), 1150);
-    const res = await submitBooking(snapshot as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone });
+    const res = await submitBooking(snapshot as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone }, Object.keys(readAcks()).filter((k) => readAcks()[k]));
     clearTimeout(t1); clearTimeout(t2);
     if (res.ok) {
       setStep(3);
       trackCartEvent({ eventType: 'book', metadata: { orderReference: res.orderReference } });
       setSnap(snapshot);
-      try { localStorage.removeItem('tgs_cart'); } catch { /* ignore */ }
+      try { localStorage.removeItem('tgs_cart'); clearAcks(); } catch { /* ignore */ }
       await new Promise((r) => setTimeout(r, 650));
       setSubmitting(false);
       setDone(res.orderReference);
