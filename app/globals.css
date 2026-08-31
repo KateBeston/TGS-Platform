@@ -157,38 +157,6 @@ img { max-width: 100%; height: auto; display: block; }
   padding: 0 var(--s5);
 }
 
-/* The booking panel is fixed 380px wide against the right edge and is now
-   always on screen. Content has to stop short of it or the panel simply covers
-   the right of every card, which is what it did. Shifting the wrap rather than
-   padding <main> keeps full-bleed heroes full bleed. */
-@media (min-width: 1100px) {
-  body.has-booking-panel .wrap {
-    /* 460 panel + 24 right gutter + 24 breathing room. calc uses 100vw, which
-       includes the scrollbar, so the reserve is a few pixels generous rather
-       than a few pixels short. */
-    max-width: min(1180px, calc(100vw - 540px));
-    margin-left: auto;
-    margin-right: 508px;
-  }
-  /* Minimised, only the tab needs clearing. */
-  body.has-booking-tab .wrap {
-    max-width: min(1180px, calc(100vw - 120px));
-    margin-left: auto;
-    margin-right: 56px;
-  }
-  /* The tab hero sits outside .wrap so its image stays full bleed. Its text
-     does not, and would otherwise be read through the panel. */
-  body.has-booking-panel .tab-hero-content { margin-right: 484px; }
-  body.has-booking-tab .tab-hero-content { margin-right: 48px; }
-}
-/* Below that there is not room for both, so the panel becomes a sheet at the
-   foot of the screen and the content keeps the full width. */
-@media (max-width: 1099px) {
-  .bc-box {
-    top: auto; bottom: 0; right: 0; left: 0; width: auto;
-    max-height: 62vh; border-left: 0; border-right: 0; border-bottom: 0;
-  }
-}
 
 .eyebrow {
   font-size: 11px;
@@ -1067,6 +1035,14 @@ img { max-width: 100%; height: auto; display: block; }
 .section-subtitle {
   font-family: var(--sans); font-size: 15px; font-weight: 300;
   font-style: italic; color: var(--charcoal-70);
+}
+/* The address is the subheading to "Address and map", not a caption, so it is
+   set in serif at heading scale with the parts separated by gold hairlines
+   rather than commas. */
+.section-subtitle--address {
+  font-family: var(--serif); font-size: 24px; font-style: normal;
+  font-weight: 300; line-height: 1.45; color: var(--charcoal);
+  max-width: 46ch; margin: 10px auto 0;
 }
 
 .prose-narrow { max-width: 720px; margin: 0 auto; }
@@ -3476,14 +3452,12 @@ img { max-width: 100%; height: auto; display: block; }
    this stylesheet does not define, so it was falling back to Georgia and
    reading heavier still. */
 .vmap { max-width: 860px; }
-.vmap-address { font-style: normal; font-family: var(--serif); font-weight: 300;
-  font-size: 15px; line-height: 1.6; color: var(--muted);
-  display: flex; flex-wrap: wrap; align-items: baseline;
-  margin: 0 0 18px; }
+/* The address is the section subtitle now, so it is styled there. Only the
+   coordinates line remains here. */
+.vmap-coords { font-family: var(--sans); font-size: 10.5px; letter-spacing: .14em;
+  color: var(--muted); text-align: center; margin: 0 0 28px; }
 .vmap-address span { display: inline-flex; align-items: baseline; }
 /* A hairline rather than a bullet: quieter, and it sits on the baseline. */
-.vmap-sep { display: inline-block; width: 14px; height: 1px;
-  background: var(--gold); opacity: .5; margin: 0 12px; }
 
 /* The embed is Google's and cannot be restyled, so it is treated instead:
    desaturated and warmed so it sits with the palette rather than shouting
@@ -3491,11 +3465,11 @@ img { max-width: 100%; height: auto; display: block; }
    stays legible, which the terms require. */
 .vmap-frame { position: relative; width: 100%; aspect-ratio: 16/9;
   border: 1px solid var(--border); background: var(--warm-cream); overflow: hidden; }
+/* No filter. Tinting Google's tiles never looked right at any strength; a
+   properly styled map needs the JavaScript API or Mapbox, which is a separate
+   piece of work. Plain until then. */
 .vmap-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%;
-  border: 0; display: block;
-  filter: grayscale(1) contrast(.92) brightness(1.04) sepia(.14);
-  transition: filter .6s ease; }
-.vmap-frame:hover iframe { filter: grayscale(.55) contrast(.95) brightness(1.02) sepia(.06); }
+  border: 0; display: block; }
 
 .vmap-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 14px; }
 .vmap-link { font-family: var(--sans); font-size: 10.5px; letter-spacing: .16em;
@@ -4404,6 +4378,16 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* What's nearby: grouped columns, distance right-aligned so the numbers form
    a column the eye can run down. */
+/* What to bring, and what is worth knowing. Two columns under the seasons,
+   set as prose rather than cards so they read as advice, not data. */
+.local-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--border); }
+.local-note h4 { font-family: var(--sans); font-size: 10px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--gold-dark); margin: 0 0 12px; }
+.local-note p { font-family: var(--serif); font-size: 15px; line-height: 1.8;
+  color: var(--muted); margin: 0; }
+@media (max-width: 720px) { .local-notes { grid-template-columns: 1fr; gap: 28px; } }
+
 .nearby-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px 48px; }
 .nearby-group { break-inside: avoid; }
 .nearby-heading { font-family: var(--sans); font-size: 10px; font-weight: 600;

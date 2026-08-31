@@ -6,6 +6,18 @@
  * address), with a keyless Google embed that needs no API key. When the
  * coordinates are only approximate, we say so, so the text address always wins.
  */
+/* The address, as one line. Exported so the location section can pass it as
+   its subtitle: it belongs under "Address and map" as that heading's
+   subheading, not as the first thing in the body sixty pixels below it. */
+export function venueAddressLine(v: Record<string, any>): string {
+  return [
+    v.street_address,
+    [v.locality, v.city].filter(Boolean).join(', '),
+    [v.state, v.postcode].filter(Boolean).join(' ').trim(),
+    v.country,
+  ].map((x) => (x ?? '').toString().trim()).filter(Boolean).join('  \u00b7  ');
+}
+
 export default function VenueMap({ v }: { v: Record<string, any> }) {
   const lat = v.latitude != null ? Number(v.latitude) : null;
   const lng = v.longitude != null ? Number(v.longitude) : null;
@@ -37,18 +49,17 @@ export default function VenueMap({ v }: { v: Record<string, any> }) {
 
   return (
     <div className="vmap">
-      {/* One line above the map, not a stacked block. An address is a single
-          fact; setting it as four lines of large serif gave it the weight of a
-          heading it has not earned. */}
-      {lines.length > 0 && (
-        <address className="vmap-address">
-          {lines.map((l, i) => (
-            <span key={i}>
-              {l}
-              {i < lines.length - 1 && <i className="vmap-sep" aria-hidden="true" />}
-            </span>
-          ))}
-        </address>
+      {/* One centred line under the section title, reading as its subheading.
+          Serif and larger than body text, but lighter, so it sits with the
+          title rather than competing with it. */}
+
+      {/* Coordinates, for anyone driving in or briefing a transfer. Six decimal
+          places is roughly a tenth of a metre, which is more than enough and
+          stops a long float reading as noise. */}
+      {hasCoords && (
+        <p className="vmap-coords">
+          <span>{lat!.toFixed(6)}, {lng!.toFixed(6)}</span>
+        </p>
       )}
 
       {embed && (

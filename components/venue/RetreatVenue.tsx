@@ -3,7 +3,7 @@ import { OfferList } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer, excursionToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
-import VenueMap from './VenueMap';
+import VenueMap, { venueAddressLine } from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
 import { FavouriteButton } from '@/components/SavedVenues';
 import { ImageCarousel } from './ImageCarousel';
@@ -397,7 +397,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         <TabHero image={v.image_url} label="Location"
           title={v.location_tagline ?? 'Where it is'} subtitle={place} />
 
-        <Section tone="cream" label="Where it is" title="Address and map">
+        <Section tone="cream" label="Where it is" title="Address and map"
+          subtitle={venueAddressLine(v)} subtitleAs="address">
           <VenueMap v={v} />
         </Section>
 

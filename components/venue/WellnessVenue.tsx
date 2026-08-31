@@ -2,7 +2,7 @@ import VenueTabs from '@/components/VenueTabs';
 import { OfferList, FeaturedOffers } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
-import VenueMap from './VenueMap';
+import VenueMap, { venueAddressLine } from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
 import { FavouriteButton } from '@/components/SavedVenues';
 import { ImageCarousel } from './ImageCarousel';
@@ -318,7 +318,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         <TabHero image={v.image_url} label="Visiting"
           title={v.location_tagline ?? 'Finding us'} subtitle={place} />
 
-        <Section tone="cream" label="Where it is" title="Address and map">
+        <Section tone="cream" label="Where it is" title="Address and map"
+          subtitle={venueAddressLine(v)} subtitleAs="address">
           <VenueMap v={v} />
         </Section>
 

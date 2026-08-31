@@ -6,10 +6,13 @@ import { RoomDetails } from './RoomDetails';
 import { RoomGallery } from './RoomGallery';
 
 export function Section({
-  tone = 'white', label, title, subtitle, children, id,
+  tone = 'white', label, title, subtitle, subtitleAs, children, id,
 }: {
   tone?: 'white' | 'cream' | 'charcoal';
   label?: string; title?: string; subtitle?: string;
+  /* 'address' sets the subtitle in serif at heading scale, for the location
+     section where the address is the subheading rather than a caption. */
+  subtitleAs?: 'address';
   children: React.ReactNode;
   id?: string;
 }) {
@@ -21,7 +24,7 @@ export function Section({
           <div className="section-header">
             {label && <div className="section-label">{label}</div>}
             {title && <h2 className="section-title">{title}</h2>}
-            {subtitle && <p className="section-subtitle">{subtitle}</p>}
+            {subtitle && <p className={`section-subtitle${subtitleAs ? ` section-subtitle--${subtitleAs}` : ''}`}>{subtitle}</p>}
           </div>
         )}
         {children}
@@ -117,10 +120,20 @@ export function Distances({ v, tone = 'cream' }: { v: Record<string, any>; tone?
             <p className="stat-value">
               {d.travel_value != null ? (
                 <>{d.travel_value}<span className="stat-unit">{d.travel_unit || 'min'}</span></>
+              ) : d.distance_km != null ? (
+                <>{d.distance_km}<span className="stat-unit">km</span></>
               ) : <span className="stat-unit stat-unit--alone">Nearby</span>}
             </p>
             <p className="stat-label">{d.label}</p>
-            {d.travel_mode && <p className="stat-note">by {d.travel_mode}</p>}
+            {/* Time and distance are different facts and a host wants both:
+                the time tells them the day, the distance tells them whether a
+                coach makes sense. */}
+            {(d.distance_km != null || d.travel_mode) && (
+              <p className="stat-note">
+                {[d.travel_value != null && d.distance_km != null ? `${d.distance_km} km` : null,
+                  d.travel_mode ? `by ${d.travel_mode}` : null].filter(Boolean).join(' \u00b7 ')}
+              </p>
+            )}
           </div>
         ))}
       </div>
@@ -148,16 +161,19 @@ export function Nearby({ v, tone = 'white' }: { v: Record<string, any>; tone?: '
     groups.set(key, [...(groups.get(key) ?? []), d]);
   }
   for (const [, list] of groups) {
-    list.sort((a, b) => (a.travel_value ?? 1e9) - (b.travel_value ?? 1e9));
+    list.sort((a, b) => (a.distance_km ?? a.travel_value ?? 1e9) - (b.distance_km ?? b.travel_value ?? 1e9));
   }
 
-  const dist = (d: any) => {
-    if (d.travel_value == null) return null;
-    const n = Number(d.travel_value);
-    const unit = d.travel_unit || 'km';
-    // Under a kilometre reads better in metres.
-    if (unit === 'km' && n < 1) return `${Math.round(n * 1000)} m`;
-    return `${n % 1 === 0 ? n : n.toFixed(1)} ${unit}`;
+  /* Distance then time, both where recorded. Under a kilometre reads better
+     in metres. */
+  const measure = (d: any) => {
+    const parts: string[] = [];
+    if (d.distance_km != null) {
+      const km = Number(d.distance_km);
+      parts.push(km < 1 ? `${Math.round(km * 1000)} m` : `${km % 1 === 0 ? km : km.toFixed(1)} km`);
+    }
+    if (d.travel_value != null) parts.push(`${d.travel_value} ${d.travel_unit || 'min'}`);
+    return parts.join(' \u00b7 ');
   };
 
   return (
@@ -170,7 +186,7 @@ export function Nearby({ v, tone = 'white' }: { v: Record<string, any>; tone?: '
               {list.map((d: any) => (
                 <li key={d.id}>
                   <span className="nearby-place">{d.label}</span>
-                  <span className="nearby-dist">{dist(d)}</span>
+                  <span className="nearby-dist">{measure(d)}</span>
                 </li>
               ))}
             </ul>
@@ -211,6 +227,26 @@ export function Climate({ v, tone = 'white' }: { v: Record<string, any>; tone?: 
               {s.rainfall_note && <p className="season-rain">{s.rainfall_note}</p>}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* What to bring and what to know. Sits with climate because that is
+          what governs it: a Blue Mountains winter and a Byron summer ask for
+          different bags. */}
+      {(v.packing_note || v.travel_advice) && (
+        <div className="local-notes">
+          {v.packing_note && (
+            <div className="local-note">
+              <h4>What to bring</h4>
+              <p>{v.packing_note}</p>
+            </div>
+          )}
+          {v.travel_advice && (
+            <div className="local-note">
+              <h4>Worth knowing</h4>
+              <p>{v.travel_advice}</p>
+            </div>
+          )}
         </div>
       )}
     </Section>
