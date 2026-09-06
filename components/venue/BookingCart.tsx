@@ -266,17 +266,26 @@ export function BookingCart({
       /* Priced on the space itself, not through a rate plan: venue_spaces
          carries hire_price and price_basis, and rate_plans has no 'Space'
          option at all. A space marked is_included comes with the venue hire,
-         so it is listed at nothing rather than left off. */
-      const unit = sp.is_included ? 0
+         so it is listed at no charge rather than left off — a host forwarding
+         the booking to their group needs it listed.
+         The basis matters: 'Per retreat' is a single charge however many days
+         the space is held, so multiplying by the quantity would overcharge. */
+      const basis = (sp.price_basis || 'Per day').toLowerCase();
+      const flat = basis === 'per retreat' || basis === 'per session';
+      const unit = sp.is_included || basis === 'included' ? 0
         : sp.hire_price != null ? Number(sp.hire_price) : null;
       out.push({
         key: `space-${sp.id}`, label: sp.name,
-        detail: [sp.is_included ? 'Included in your hire' : `${q} day${q === 1 ? '' : 's'}`,
+        detail: [sp.is_included || basis === 'included' ? 'Included in your hire'
+                   : flat ? sp.price_basis
+                   : basis === 'per hour' ? `${q} hour${q === 1 ? '' : 's'}`
+                   : basis === 'per half day' ? `${q} half day${q === 1 ? '' : 's'}`
+                   : `${q} day${q === 1 ? '' : 's'}`,
                  sp.space_type,
                  sp.capacity ? `holds ${sp.capacity}` : null].filter(Boolean).join(' · '),
-        amount: unit != null ? unit * q : null,
+        amount: unit != null ? (flat ? unit : unit * q) : null,
         kind: 'space', id: sp.id, qty: q, max: Math.max(nights || 1, 14),
-        image: sp.image_url ?? venueImage, eyebrow: 'Space hire', qtyLabel: 'Days', unit,
+        image: sp.image_url ?? venueImage, eyebrow: 'Space hire', qtyLabel: flat ? '' : basis === 'per hour' ? 'Hours' : 'Days', unit,
       });
     }
     for (const s of services) {
