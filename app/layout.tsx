@@ -63,6 +63,17 @@ export default async function RootLayout({
   return (
     <html lang={locale.code === 'en' ? 'en-AU' : locale.code} dir={locale.dir}>
       <head>
+        {/* The two fonts above the fold, fetched in parallel with the CSS
+            rather than after it.
+            Without this the browser only discovers the font URL once it has
+            parsed globals.css, so the download starts late and the fallback is
+            on screen long enough to see. Only these two: preloading a font
+            that is not needed immediately delays the ones that are. */}
+        <link rel="preload" href="/fonts/cormorant-300.woff2" as="font"
+              type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/montserrat-400.woff2" as="font"
+              type="font/woff2" crossOrigin="anonymous" />
+
         {/* Before anything else. Denied by default, so a visitor who
             never answers is treated as having declined rather than as
             having agreed by silence. */}
