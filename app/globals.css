@@ -15,75 +15,46 @@
    month.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ── Fallback metrics, so the swap is not a lurch ────────────────────────
-   Cormorant's x-height is 386 per 1000em; Georgia's is about 491. At the same
-   font-size Georgia therefore renders roughly a quarter larger, which is why
-   the hero line looked heavy and then shrank when the real font arrived.
-
-   size-adjust brings the stand-in down to Cormorant's proportions, so the
-   swap changes the letterforms and almost nothing else. Measured from the
-   font files rather than guessed.
-
-   Montserrat at 525 against Arial at about 519 is close enough to leave. */
-
-@font-face {
-  font-family: 'Cormorant Fallback';
-  src: local('Georgia'), local('Times New Roman'), local('serif');
-  size-adjust: 78.6%;
-  ascent-override: 117%;
-  descent-override: 37%;
-  line-gap-override: 0%;
-}
-
-@font-face {
-  font-family: 'Montserrat Fallback';
-  src: local('Arial'), local('Helvetica Neue'), local('sans-serif');
-  size-adjust: 101%;
-  ascent-override: 96%;
-  descent-override: 25%;
-  line-gap-override: 0%;
-}
-
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 300;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/cormorant-300.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 400;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/cormorant-400.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: italic;
   font-weight: 400;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/cormorant-400i.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 300;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/montserrat-300.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 400;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/montserrat-400.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 500;
-  font-display: optional;
+  font-display: swap;
   src: url('/fonts/montserrat-500.woff2') format('woff2');
 }
 
@@ -106,9 +77,9 @@
   --on-gold:var(--charcoal);
   --ok:#4A6B4A; --warn:#8A6A2F; --bad:#8A3A2F;
 
-  --serif:'Cormorant Garamond','Cormorant Fallback',Georgia,'Times New Roman',serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
   --script:'Pinyon Script',cursive;
-  --sans:'Montserrat','Montserrat Fallback',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --sans:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px;
   --s6:32px; --s7:48px; --s8:64px;
