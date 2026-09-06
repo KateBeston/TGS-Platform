@@ -48,42 +48,42 @@
   font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 300;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/cormorant-300.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/cormorant-400.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: italic;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/cormorant-400i.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 300;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/montserrat-300.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/montserrat-400.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/montserrat-500.woff2') format('woff2');
 }
 
@@ -2511,6 +2511,11 @@ img { max-width: 100%; height: auto; display: block; }
   border: 1px solid var(--border); padding: 8px 14px;
 }
 .concierge-chips a:hover { border-color: var(--gold); color: var(--gold-dark); text-decoration: none; }
+/* The two cards' actions align even when one has a longer line above it, so
+   "Start a retreat enquiry" and "Start a wellness enquiry" read as a pair
+   rather than as two things at different heights. */
+.concierge-card { display: flex; flex-direction: column; }
+.concierge-chips { margin-top: auto; }
 .concierge-cta {
   display: inline-block; font-family: var(--sans); font-size: 11px; font-weight: 500;
   letter-spacing: .2em; text-transform: uppercase;
@@ -3800,8 +3805,11 @@ img { max-width: 100%; height: auto; display: block; }
 .nav-avatar{width:30px;height:30px;border-radius: var(--radius);background:var(--gold);color:var(--warm-white);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--sans)}
 .nav-account-name{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .nav-logout-form{margin:0}
-.nav-logout{border:none;background:none;color:var(--muted);font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;padding:0}
-.nav-logout:hover{color:var(--gold-dark)}
+/* The same gold as the name above it. It was --muted, which is legible on
+   warm white and disappears entirely over a hero image, which is exactly
+   where the header sits on the home page. */
+.nav-logout{border:none;background:none;color:var(--gold);font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;padding:0;opacity:.85}
+.nav-logout:hover{opacity:1;color:var(--gold)}
 .nav-auth-btns{display:flex;gap:10px}
 .nav-authbtn{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);padding:9px 18px;border:1px solid var(--gold);background:transparent;cursor:pointer;white-space:nowrap;transition:all .3s}
 .nav-authbtn:hover{background:var(--gold);color:var(--warm-white);border-color:var(--gold)}
@@ -4978,3 +4986,20 @@ img { max-width: 100%; height: auto; display: block; }
 .enq-note{font-size:10.5px;color:var(--ink-quiet);line-height:1.6;
   margin:12px 0 0;text-align:center}
 .enq-done{font-size:13.5px;line-height:1.7;margin:0 0 18px}
+
+/* Explore all destinations. The section had fourteen tiles and no way out. */
+.trending-all-wrap{display:flex;justify-content:center;margin-top:var(--s6)}
+.trending-all{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);
+  font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--charcoal);border-bottom:1px solid var(--gold);padding-bottom:4px;
+  text-decoration:none;transition:color .25s ease}
+.trending-all:hover{color:var(--ink-gold);text-decoration:none}
+
+/* The Wellness Edit on the home page: four across, no lead article.
+   The lead-plus-three arrangement belongs on the Wellness Edit page itself;
+   here it gave a taste of the writing the same weight as the sections that
+   sell something. */
+.edit-grid-home{grid-template-columns:repeat(4,1fr)}
+.edit-grid-home .edit-card-excerpt{-webkit-line-clamp:2}
+@media (max-width:1100px){ .edit-grid-home{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:640px){ .edit-grid-home{grid-template-columns:1fr} }

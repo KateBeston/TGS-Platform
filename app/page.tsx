@@ -157,11 +157,15 @@ const CONCIERGE = [
     line: "Share your vision and we\u2019ll match you to venues, dates and the support to pull it together.",
     role: 'Retreat Host',
     cta: 'Start a retreat enquiry',
+    /* Each of these is tapped to start an enquiry, so each has to be a
+       request a venue could actually answer. "My group needs complete
+       privacy" is a feeling rather than a requirement — exclusive use is the
+       thing that delivers it, and it is bookable. */
     chips: [
       "I\u2019m hosting a leadership retreat",
-      "I need a venue with a shala for 20",
-      "I\u2019m looking for a facilitator-friendly space",
-      "My group needs complete privacy",
+      "I need a shala that holds 20",
+      "I want exclusive use of the whole venue",
+      "I need twin rooms for 16 people",
     ],
   },
   {
@@ -170,10 +174,10 @@ const CONCIERGE = [
     role: 'Wellness Guest',
     cta: 'Start a wellness enquiry',
     chips: [
-      "I want a luxury wellness weekend",
-      "I\u2019m looking for thermal springs",
-      "I need a solo restorative escape",
-      "I want sound healing and breathwork",
+      "I\u2019m looking for thermal bathing",
+      "I want a sound healing session",
+      "I need a day of treatments for two",
+      "I want somewhere quiet for a solo stay",
     ],
   },
 ];
@@ -394,6 +398,14 @@ export default async function Home() {
               </Link>
             ))}
           </div>
+          {/* The section had no way out of it. Fourteen tiles and no link to
+              the rest, so somebody whose country is not shown had nowhere to
+              go. */}
+          <div className="trending-all-wrap">
+            <Link href="/venues" className="trending-all">
+              Explore all destinations <span>&rarr;</span>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -492,46 +504,31 @@ export default async function Home() {
               </p>
             </div>
 
-            <Link href={`/the-wellness-edit/${posts[0].slug}`} className="edit-lead">
-              {heroUrl(posts[0], 1400, 900) && (
-                <div className="edit-lead-image">
-                  <img src={heroUrl(posts[0], 1400, 900)!}
-                    alt={posts[0].heroImage?.alt ?? ''} />
-                </div>
-              )}
-              <div className="edit-lead-body">
-                {posts[0].category && <div className="edit-card-cat">{posts[0].category}</div>}
-                <h3 className="edit-lead-title">{posts[0].title}</h3>
-                {posts[0].excerpt && <p className="edit-lead-excerpt">{posts[0].excerpt}</p>}
-                <div className="edit-meta">
-                  {fmtDate(posts[0].publishedAt) && <span>{fmtDate(posts[0].publishedAt)}</span>}
-                </div>
-                <span className="edit-lead-cta">Read the article &rarr;</span>
-              </div>
-            </Link>
-
-            {posts.length > 1 && (
-              <div className="edit-grid">
-                {posts.slice(1, 4).map((a) => (
-                  <Link key={a.slug} href={`/the-wellness-edit/${a.slug}`} className="edit-card">
-                    {heroUrl(a, 720, 480) && (
-                      <div className="edit-card-image">
-                        <img src={heroUrl(a, 720, 480)!}
-                          alt={a.heroImage?.alt ?? ''} loading="lazy" />
-                      </div>
-                    )}
-                    <div className="edit-card-body">
-                      {a.category && <div className="edit-card-cat">{a.category}</div>}
-                      <h3 className="edit-card-title">{a.title}</h3>
-                      {a.excerpt && <p className="edit-card-excerpt">{a.excerpt}</p>}
-                      <div className="edit-meta">
-                        {fmtDate(a.publishedAt) && <span>{fmtDate(a.publishedAt)}</span>}
-                      </div>
+            {/* Four across rather than a lead article and a grid beneath it.
+                That larger arrangement is the Wellness Edit page's own layout,
+                and repeating it here gave a section that is a taste of the
+                writing the same weight as the sections that sell something. */}
+            <div className="edit-grid edit-grid-home">
+              {posts.slice(0, 4).map((a) => (
+                <Link key={a.slug} href={`/the-wellness-edit/${a.slug}`} className="edit-card">
+                  {heroUrl(a, 720, 480) && (
+                    <div className="edit-card-image">
+                      <img src={heroUrl(a, 720, 480)!}
+                        alt={a.heroImage?.alt ?? ''} loading="lazy" />
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+                  )}
+                  <div className="edit-card-body">
+                    {a.category && <div className="edit-card-cat">{a.category}</div>}
+                    <h3 className="edit-card-title">{a.title}</h3>
+                    {a.excerpt && <p className="edit-card-excerpt">{a.excerpt}</p>}
+                    <div className="edit-meta">
+                      {fmtDate(a.publishedAt) && <span>{fmtDate(a.publishedAt)}</span>}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
 
             <div className="home-edit-foot">
               <Link className="intro-link" href="/the-wellness-edit">
