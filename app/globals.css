@@ -2601,16 +2601,36 @@ img { max-width: 100%; height: auto; display: block; }
 
 .carousel { position: relative; }
 .carousel-viewport { overflow: hidden; }
-.carousel-track {
-  display: flex;
-  /* Long and gentle rather than a snap. The outgoing slide leaves left,
-     the incoming arrives from the right, and the ease-out-quart curve
-     reads as movement rather than as a jump. */
-  transition: transform 1.1s cubic-bezier(.25, 1, .5, 1);
-}
-.carousel-slide {
-  flex: 0 0 100%; min-width: 100%;
+
+/* A crossfade rather than a slide.
+   The cards dissolve where they stand: nothing travels across the eye, so the
+   row reads as a held moment rather than a filmstrip being pulled past. The
+   stack is a grid with everything in the same cell, which means the tallest
+   slide sets the height and nothing jumps when the content changes. */
+.carousel-stack { display: grid; }
+.carousel-fade .carousel-slide {
+  grid-area: 1 / 1;
   display: grid; gap: 32px;
+  opacity: 0; visibility: hidden;
+  /* Out slightly faster than in, with a beat of overlap, so the incoming
+     cards are already arriving as the outgoing ones leave. Equal timings
+     leave a moment where neither is quite there and it reads as a blink. */
+  transition: opacity .9s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear .9s,
+              transform 1.4s cubic-bezier(.25, 1, .5, 1);
+  /* A whisper of scale so the change has weight without moving anything. */
+  transform: scale(1.012);
+}
+.carousel-fade .carousel-slide.is-on {
+  opacity: 1; visibility: visible; transform: scale(1);
+  transition: opacity 1.1s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear 0s,
+              transform 1.6s cubic-bezier(.25, 1, .5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-fade .carousel-slide,
+  .carousel-fade .carousel-slide.is-on { transition: opacity .2s linear; transform: none; }
 }
 
 .carousel-controls {
@@ -2626,13 +2646,32 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .carousel-arrow:hover { border-color: var(--gold); background: var(--warm-cream); }
 
-.carousel-dots { display: flex; gap: 8px; }
-.carousel-dot {
-  width: 8px; height: 8px; padding: 0; border-radius: var(--radius); cursor: pointer;
-  border: 1px solid var(--charcoal-30); background: transparent;
-  transition: background .3s, border-color .3s;
+/* Runners rather than dots.
+   A dot says which one you are on. A runner says that and how long is left,
+   which is the difference between a marker and an invitation to wait. */
+.carousel-runners { display: flex; gap: 10px; align-items: center; }
+.carousel-runner {
+  position: relative; width: 56px; height: 14px; padding: 0;
+  border: 0; background: transparent; cursor: pointer;
+  display: flex; align-items: center;
 }
-.carousel-dot.is-on { background: var(--charcoal); border-color: var(--charcoal); }
+/* The track is drawn on the element rather than as a border, so the fill can
+   sit flush against it with nothing between. */
+.carousel-runner::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: var(--charcoal-15);
+}
+.carousel-runner-fill {
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: var(--charcoal);
+  transform-origin: left center; transform: scaleX(0);
+  /* No transition: the fill is driven frame by frame from the same clock
+     that advances the slide, so a transition here would fight it and lag. */
+}
+.carousel-runner.is-on .carousel-runner-fill { background: var(--gold); }
+.carousel-runner:hover::before { background: var(--charcoal-30); }
+
+@media (max-width: 700px) { .carousel-runner { width: 38px; } }
 
 /* Scoped to the home page's premium carousel. These names collide with
    the /venues listing cards (.premium-card etc.); unscoped they were

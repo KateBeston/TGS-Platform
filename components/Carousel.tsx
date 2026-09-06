@@ -25,7 +25,10 @@ export default function Carousel({
   const [perView, setPerView] = useState(perSlide);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
+  const [progress, setProgress] = useState(0);
   const track = useRef<HTMLDivElement>(null);
+  const startedAt = useRef<number>(Date.now());
+  const frame = useRef<number>(0);
 
   // One at a time on a phone, two on a tablet. A three-across slide on a
   // narrow screen is three cards nobody can read.
@@ -64,27 +67,53 @@ export default function Carousel({
   // effect is keyed on `at`, so any manual arrow or dot resets the dwell
   // rather than jumping straight after. Hover or keyboard focus pauses it
   // so nobody loses the card they are reading.
+  /* One clock drives both the advance and the runner filling beneath it, so
+     the bar cannot drift from the change it is describing. A setTimeout for
+     the advance and a separate animation for the bar would eventually
+     disagree, and the disagreement is exactly what you notice. */
   useEffect(() => {
     if (!autoplay || reduced || paused || count <= 1) return;
-    const id = window.setTimeout(() => setSlide((s) => (s + 1) % count), interval);
-    return () => window.clearTimeout(id);
+    startedAt.current = Date.now();
+    const tick = () => {
+      const p = Math.min((Date.now() - startedAt.current) / interval, 1);
+      setProgress(p);
+      if (p >= 1) {
+        setSlide((s) => (s + 1) % count);
+        startedAt.current = Date.now();
+        setProgress(0);
+      }
+      frame.current = requestAnimationFrame(tick);
+    };
+    frame.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame.current);
   }, [autoplay, reduced, paused, count, at, interval]);
 
   if (!items.length) return null;
 
-  const go = (n: number) => setSlide(((n % count) + count) % count);
+  const go = (n: number) => {
+    setSlide(((n % count) + count) % count);
+    setProgress(0);
+    startedAt.current = Date.now();
+  };
 
   return (
     <div className="carousel"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)} onBlurCapture={() => setPaused(false)}>
-      <div className="carousel-viewport">
-        <div ref={track} className="carousel-track"
-          style={{ transform: `translateX(-${at * 100}%)` }}>
+      {/* A crossfade rather than a slide. The cards dissolve where they
+          stand, so nothing travels across the eye and the row reads as a
+          held moment rather than a filmstrip being pulled past.
+          Every slide stays in the DOM, so a crawler reads all of them. */}
+      <div className="carousel-viewport carousel-fade">
+        <div ref={track} className="carousel-stack">
           {slides.map((group, i) => (
-            <div key={i} className="carousel-slide"
+            <div key={i}
+              className={`carousel-slide${i === at ? ' is-on' : ''}`}
               style={{ gridTemplateColumns: `repeat(${perView}, 1fr)` }}
-              aria-hidden={i !== at}>
+              aria-hidden={i !== at}
+              /* Out of the tab order when hidden, so nobody tabs into a card
+                 they cannot see. */
+              inert={i !== at}>
               {group}
             </div>
           ))}
@@ -96,13 +125,21 @@ export default function Carousel({
           <button type="button" className="carousel-arrow"
             aria-label={`Previous ${label}`} onClick={() => go(at - 1)}>&larr;</button>
 
-          <div className="carousel-dots">
+          {/* Runners rather than dots. A dot says which one you are on; a
+              runner says that and how long is left, which is the difference
+              between a marker and an invitation to wait. */}
+          <div className="carousel-runners">
             {slides.map((_, i) => (
               <button key={i} type="button"
-                className={`carousel-dot ${i === at ? 'is-on' : ''}`}
+                className={`carousel-runner${i === at ? ' is-on' : ''}`}
                 aria-label={`Slide ${i + 1} of ${count}`}
                 aria-current={i === at}
-                onClick={() => go(i)} />
+                onClick={() => go(i)}>
+                <span className="carousel-runner-fill"
+                  style={{ transform: `scaleX(${
+                    i < at ? 1 : i === at ? (reduced || paused ? 1 : progress) : 0
+                  })` }} />
+              </button>
             ))}
           </div>
 
