@@ -99,7 +99,7 @@ export default function CartPage() {
     <div className="cart-wrap">
       <div className="cart-head">
         <div><h1 className="cart-h1">Your booking</h1><div className="cart-sub">{itemCount} item{itemCount === 1 ? '' : 's'} across {entries.length} venue{entries.length === 1 ? '' : 's'} · held for you</div></div>
-        <div className="cart-head-actions"><button onClick={clearAll}>Clear all</button></div>
+        <div className="cart-head-actions"><button onClick={clearAll}>Start again</button></div>
       </div>
 
       <div className="cart-cols">
@@ -111,8 +111,24 @@ export default function CartPage() {
               <div key={key} className={`cv${past ? ' cv-past' : ''}`}>
                 <div className="cv-head">
                   <div className="cv-thumb" style={v.venueImage ? { backgroundImage: `url(${v.venueImage})` } : undefined} />
-                  <div className="cv-head-main"><div className="cv-name">{v.venueName}</div><div className="cv-meta">{meta}</div></div>
+                  <div className="cv-head-main">
+                    <div className="cv-name">{v.venueName}</div>
+                    <div className="cv-meta">{meta}</div>
+                  </div>
+                  {/* Dates belong here, not only behind a reschedule prompt for
+                      dates that have already passed. Somebody who added rooms
+                      before choosing dates had no way to set them from this
+                      page, and the line read "Add dates" with nothing to press. */}
+                  <button type="button" className="cv-dates-btn" onClick={() => setResched(key)}>
+                    {v.from && v.to ? 'Change dates' : 'Add dates'}
+                  </button>
                 </div>
+                {(!v.from || !v.to) && (
+                  <div className="cv-nodate-banner">
+                    Add your dates and the nightly prices will calculate. Until then the
+                    rooms below show as an estimate.
+                  </div>
+                )}
                 {past && <div className="cv-past-banner">These dates have passed. Reschedule to keep this venue, or remove it.</div>}
                 <div className="cv-nest">
                   {v.items.map((it) => (
@@ -186,16 +202,20 @@ function RescheduleModal({ venueName, from, to, onSave, onClose }: { venueName: 
   return (
     <div className="ck-modal-back" onClick={onClose}>
       <div className="ck-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="ck-modal-head"><span className="ck-modal-title">New dates</span><button type="button" className="ck-modal-x" onClick={onClose} aria-label="Close">×</button></div>
+        <div className="ck-modal-head"><span className="ck-modal-title">{from && to ? 'Change dates' : 'Add your dates'}</span><button type="button" className="ck-modal-x" onClick={onClose} aria-label="Close">×</button></div>
         <div className="ck-modal-body">
-          <p className="ck-field-note">{venueName} — choose new dates to keep this venue in your booking.</p>
+          <p className="ck-field-note">
+            {from && to
+              ? `${venueName} — choose new dates to keep this venue in your booking.`
+              : `${venueName} — set your dates and the nightly prices will calculate.`}
+          </p>
           <div className="ck-two">
             <label className="ck-field"><span>Arrival</span><input type="date" min={todayStr} value={f} onChange={(e) => setF(e.target.value)} /></label>
             <label className="ck-field"><span>Departure</span><input type="date" min={f || todayStr} value={t} onChange={(e) => setT(e.target.value)} /></label>
           </div>
           <p className="ck-field-note">Live availability is checked once the availability calendar is on; for now you can set any future dates.</p>
         </div>
-        <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Cancel</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave(f, t)}>Update dates</button></div>
+        <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Cancel</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave(f, t)}>{from && to ? 'Update dates' : 'Set dates'}</button></div>
       </div>
     </div>
   );
