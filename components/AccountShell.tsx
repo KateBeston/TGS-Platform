@@ -19,6 +19,18 @@ export type MyBooking = {
   total: number | null; currency: string | null; created_at: string; item_count: number;
 };
 
+/* A line on a booking. The itemisation a host checks against their own numbers
+   and forwards to their group. */
+export type BookingItem = {
+  booking_id: number; item_id: number; item_type: string;
+  label: string | null; item_label_detail: string | null;
+  quantity: number | null; person_count: number | null; nights: number | null;
+  date_from: string | null; date_to: string | null;
+  unit_price: number | null; line_total: number | null; currency: string | null;
+  is_included: boolean; item_status: string | null; notes: string | null;
+  group_rank: number;
+};
+
 export type Activity = {
   activity_kind: 'attending' | 'hosting'; record_kind: 'enquiry' | 'booking';
   id: number; venue_name: string | null; date_from: string | null; date_to: string | null; status: string | null;
@@ -33,8 +45,8 @@ type Profile = {
 type Country = { id: number; name: string; iso_code: string; dialling_code: string };
 
 export default function AccountShell({
-  email, profile, isOwner, isHost, savedNode, activity, bookings, hostData, countries, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
+  email, profile, isOwner, isHost, savedNode, activity, bookings, bookingItems = [], hostData, countries, initialTab,
+}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; bookingItems?: BookingItem[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
   const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
   const [tab, setTab] = useState<Tab>(safeInitial);
   const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
@@ -58,7 +70,7 @@ export default function AccountShell({
       </nav>
 
       {tab === 'Profile' && <ProfilePanel profile={profile} email={email} countries={countries} />}
-      {tab === 'Bookings' && <BookingsPanel activity={activity} bookings={bookings} />}
+      {tab === 'Bookings' && <BookingsPanel activity={activity} bookings={bookings} items={bookingItems} />}
       {tab === 'Saved venues' && <SavedPanel savedNode={savedNode} />}
       {tab === 'Preferences' && <PreferencesPanel profile={profile} isHost={isHost} hostData={hostData} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
@@ -110,7 +122,10 @@ function fmtDates(a: string | null, b: string | null) {
   return b && b !== a ? `${d(a)} – ${d(b)}` : d(a);
 }
 
-function BookingsPanel({ activity, bookings }: { activity: Activity[]; bookings: MyBooking[] }) {
+function BookingsPanel({ activity, bookings, items }: { activity: Activity[]; bookings: MyBooking[]; items: BookingItem[] }) {
+  /* Which booking is expanded. Collapsed by default: a host with four
+     bookings wants the list first, and the detail on the one they came for. */
+  const [open, setOpen] = useState<number | null>(null);
   const enquiries = activity.filter((a) => a.record_kind === 'enquiry');
   const money = (v: number | null, c: string | null) =>
     v == null ? null : new Intl.NumberFormat('en-AU', { style: 'currency', currency: c || 'AUD', maximumFractionDigits: 0 }).format(v);
@@ -139,6 +154,22 @@ function BookingsPanel({ activity, bookings }: { activity: Activity[]; bookings:
                 <span className="acct-bk-ref">{b.order_reference ? `Ref ${b.order_reference}` : `Booking #${b.booking_id}`} &middot; {b.item_count} item{b.item_count === 1 ? '' : 's'} &middot; booked {stamp(b.created_at)}</span>
                 <span className="acct-bk-total">{b.total != null && b.total > 0 ? money(b.total, b.currency) : 'To be quoted'}</span>
               </div>
+
+              <div className="acct-bk-actions">
+                <button type="button" className="acct-bk-link"
+                  onClick={() => setOpen(open === b.booking_id ? null : b.booking_id)}>
+                  {open === b.booking_id ? 'Hide detail' : 'View itemised detail'}
+                </button>
+                <button type="button" className="acct-bk-link"
+                  onClick={() => downloadBooking(b, items.filter((i) => i.booking_id === b.booking_id))}>
+                  Download PDF
+                </button>
+              </div>
+
+              {open === b.booking_id && (
+                <BookingItems items={items.filter((i) => i.booking_id === b.booking_id)}
+                  currency={b.currency} total={b.total} />
+              )}
             </li>
           ))}
         </ul>
@@ -287,4 +318,100 @@ function VenuePanel({ isOwner }: { isOwner: boolean }) {
       </div>
     </section>
   );
+}
+
+/* The itemisation.
+ *
+ * Grouped the way the cart was built — rooms, then spaces, then the rest —
+ * because that is the order a host thinks in and the order they will check.
+ * A line marked included shows at no charge rather than being left out: a
+ * shala that comes with the hire is part of what was agreed, and a host
+ * forwarding this to their group needs it listed.
+ */
+const GROUP_LABEL: Record<string, string> = {
+  'Whole Venue': 'Whole venue', Room: 'Accommodation', Space: 'Spaces',
+  Meal: 'Dining', Service: 'Experiences', Excursion: 'Excursions',
+  Package: 'Packages', Extra: 'Extras', 'Add-on': 'Add-ons', Fee: 'Fees',
+};
+
+function BookingItems({ items, currency, total }:
+  { items: BookingItem[]; currency: string | null; total: number | null }) {
+  if (!items.length) {
+    return (
+      <p className="acct-bk-empty-items">
+        The detail for this booking has not been itemised yet. It will appear here
+        once the venue confirms.
+      </p>
+    );
+  }
+
+  const cash = (v: number | null) =>
+    v == null ? '—'
+      : new Intl.NumberFormat('en-AU', { style: 'currency', currency: currency || 'AUD' }).format(v);
+
+  const groups: { label: string; rows: BookingItem[] }[] = [];
+  for (const it of items) {
+    const label = GROUP_LABEL[it.item_type] ?? it.item_type;
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.rows.push(it);
+    else groups.push({ label, rows: [it] });
+  }
+
+  return (
+    <div className="acct-bk-items">
+      {groups.map((g) => (
+        <div key={g.label} className="acct-bk-group">
+          <div className="acct-bk-group-h">{g.label}</div>
+          {g.rows.map((it) => (
+            <div key={it.item_id} className="acct-bk-item">
+              <div className="acct-bk-item-main">
+                <span className="acct-bk-item-name">{it.label ?? it.item_type}</span>
+                <span className="acct-bk-item-detail">
+                  {[
+                    it.item_label_detail,
+                    it.quantity && it.quantity > 1 ? `× ${it.quantity}` : null,
+                    it.nights ? `${it.nights} night${it.nights === 1 ? '' : 's'}` : null,
+                    it.person_count ? `${it.person_count} ${it.person_count === 1 ? 'person' : 'people'}` : null,
+                  ].filter(Boolean).join(' · ')}
+                </span>
+              </div>
+              <span className="acct-bk-item-amt">
+                {it.is_included ? 'Included' : cash(it.line_total)}
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <div className="acct-bk-items-total">
+        <span>Total</span>
+        <span>{total != null && total > 0 ? cash(total) : 'To be quoted'}</span>
+      </div>
+    </div>
+  );
+}
+
+/* A booking a host can keep.
+ *
+ * Loaded on demand rather than bundled, because most visits to this tab never
+ * download anything and the PDF library is not small. */
+async function downloadBooking(b: MyBooking, items: BookingItem[]) {
+  const { downloadBookingPdf } = await import('./bookingPdf');
+  downloadBookingPdf({
+    reference: b.order_reference ?? `Booking ${b.booking_id}`,
+    venueName: b.venue_name ?? 'Venue to be confirmed',
+    dateFrom: b.date_from, dateTo: b.date_to,
+    guests: b.guest_count, status: b.status,
+    total: b.total, currency: b.currency ?? 'AUD',
+    bookedOn: b.created_at,
+    items: items.map((i) => ({
+      group: GROUP_LABEL[i.item_type] ?? i.item_type,
+      label: i.label ?? i.item_type,
+      detail: [i.item_label_detail,
+               i.quantity && i.quantity > 1 ? `× ${i.quantity}` : null,
+               i.nights ? `${i.nights} night${i.nights === 1 ? '' : 's'}` : null,
+               i.person_count ? `${i.person_count} people` : null].filter(Boolean).join(' · '),
+      amount: i.is_included ? null : i.line_total,
+      included: i.is_included,
+    })),
+  });
 }

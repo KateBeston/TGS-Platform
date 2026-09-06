@@ -263,11 +263,16 @@ export function BookingCart({
        shala is set up and staffed for you. */
     for (const sp of spaces) {
       const q = spaceQty[sp.id] ?? 0; if (!q) continue;
-      const rp = ratePlans.find((x) => x.applies_to === 'Space' && x.target_id === sp.id);
-      const unit = rp && rp.base_price != null ? Number(rp.base_price) : null;
+      /* Priced on the space itself, not through a rate plan: venue_spaces
+         carries hire_price and price_basis, and rate_plans has no 'Space'
+         option at all. A space marked is_included comes with the venue hire,
+         so it is listed at nothing rather than left off. */
+      const unit = sp.is_included ? 0
+        : sp.hire_price != null ? Number(sp.hire_price) : null;
       out.push({
         key: `space-${sp.id}`, label: sp.name,
-        detail: [`${q} day${q === 1 ? '' : 's'}`, sp.space_type,
+        detail: [sp.is_included ? 'Included in your hire' : `${q} day${q === 1 ? '' : 's'}`,
+                 sp.space_type,
                  sp.capacity ? `holds ${sp.capacity}` : null].filter(Boolean).join(' · '),
         amount: unit != null ? unit * q : null,
         kind: 'space', id: sp.id, qty: q, max: Math.max(nights || 1, 14),

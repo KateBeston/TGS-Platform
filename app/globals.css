@@ -4807,3 +4807,32 @@ img { max-width: 100%; height: auto; display: block; }
 @media (min-width:1240px){
   .bb{grid-template-columns:minmax(0,1fr) 380px;gap:56px}
 }
+
+/* ── Account: itemised bookings ──────────────────────────────────────────
+   A booking card can expand into its line items, grouped the way the cart was
+   built. Collapsed by default: a host wants the list first and the detail on
+   the one they came for. */
+
+.acct-bk-actions{display:flex;gap:var(--s4);margin-top:10px;
+  padding-top:10px;border-top:1px solid var(--border)}
+.acct-bk-link{background:none;border:0;padding:0;font-family:inherit;cursor:pointer;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-gold);
+  border-bottom:1px solid var(--gold);padding-bottom:2px}
+.acct-bk-link:hover{color:var(--charcoal)}
+
+.acct-bk-items{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.acct-bk-empty-items{margin-top:12px;font-size:12px;color:var(--ink-quiet);line-height:1.6}
+.acct-bk-group{margin-bottom:14px}
+.acct-bk-group-h{font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-gold);margin-bottom:7px}
+.acct-bk-item{display:flex;align-items:baseline;gap:var(--s4);padding:7px 0;
+  border-bottom:1px solid var(--border)}
+.acct-bk-item:last-child{border-bottom:none}
+.acct-bk-item-main{flex:1;min-width:0}
+.acct-bk-item-name{display:block;font-size:13px;color:var(--charcoal)}
+.acct-bk-item-detail{display:block;font-size:11px;color:var(--ink-quiet);margin-top:2px}
+.acct-bk-item-amt{font-size:12.5px;white-space:nowrap}
+.acct-bk-items-total{display:flex;justify-content:space-between;align-items:baseline;
+  border-top:1px solid var(--charcoal);margin-top:6px;padding-top:10px;
+  font-size:13px}
+.acct-bk-items-total span:last-child{font-family:var(--serif);font-size:19px}

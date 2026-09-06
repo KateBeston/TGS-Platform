@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import AccountShell from '@/components/AccountShell';
 import VenueGrid from '@/components/VenueGrid';
 import type { Card } from '@/lib/venues';
-import type { Activity } from '@/components/AccountShell';
+import type { Activity, BookingItem } from '@/components/AccountShell';
 import { getHostData, type HostData } from '@/app/actions/host';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
@@ -39,6 +39,18 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     supabase.from('countries').select('id,name,iso_code,dialling_code').order('name'),
   ]);
 
+  /* The line items behind each booking, so the Bookings tab can itemise rather
+     than only summarise. One query for all of them: a host with four bookings
+     should not cost four round trips. */
+  const bookingIds = (bookings ?? []).map((b: { booking_id: number }) => b.booking_id);
+  let items: BookingItem[] = [];
+  if (bookingIds.length) {
+    const { data } = await supabase.from('my_booking_items')
+      .select('*').in('booking_id', bookingIds)
+      .order('booking_id').order('group_rank').order('item_id');
+    items = (data ?? []) as BookingItem[];
+  }
+
   const savedIds = (savedRows ?? []).map((r: { venue_id: number }) => r.venue_id);
   let savedCards: Card[] = [];
   if (savedIds.length) {
@@ -66,6 +78,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       hostData={hostData}
       countries={countries ?? []}
       initialTab={initialTab}
+      bookingItems={items}
     />
   );
 }
