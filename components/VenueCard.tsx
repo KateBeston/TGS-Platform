@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { FavouriteButton } from '@/components/SavedVenues';
+import EnquireButton from '@/components/EnquireButton';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 
 /* Price the way a listing reads it: currency-aware, no cents. */
@@ -123,19 +124,23 @@ function Eyebrow({ card }: { card: Card }) {
 export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 | 4 }) {
   const href = venueHref(card);
 
-  /* The card's own way in.
+  /* Three actions rather than one.
    *
-   * "Check availability" rather than "Book now": a retreat venue needs dates,
-   * a group size and rooms before anything can be booked, and a button that
-   * promises an instant booking and delivers a date picker is worse than one
-   * that says what it does.
+   * Book goes to the venue, where the booking panel is open and the dates,
+   * rooms and spaces are chosen. Enquire opens a short form for somebody who
+   * has a question before they commit — most retreat hosts do. Save is the
+   * button that already existed, moved into the row so the three read as a
+   * set.
    *
-   * Outside the card's Link rather than inside it, because a button nested in
-   * an anchor is invalid and a nested click target behaves unpredictably. */
-  const cta = (
-    <Link href={href} className="card-cta">
-      {card.marketplace === 'Wellness' ? 'Check availability' : 'Check availability'}
-    </Link>
+   * They sit after the link rather than inside it: a button nested in an
+   * anchor is invalid and a nested click target behaves unpredictably. */
+  const actions = (
+    <div className="card-actions">
+      <Link href={href} className="card-book">Book venue</Link>
+      <EnquireButton venueId={card.id} venueName={card.venue_name ?? 'this venue'}
+        marketplace={card.marketplace ?? null} />
+      <FavouriteButton venueId={card.id} variant="card" />
+    </div>
   );
   const blurb = card.listing_description ?? card.venue_short_description;
   const name = card.headline ?? card.venue_name;
@@ -162,7 +167,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
     return (
       <div className="premium-card">
         <Link href={href} className="card-link">
-        {image}
+          {image}
         <div className="premium-card-body">
           <Eyebrow card={card} />
           <div className="premium-card-name">{name}</div>
@@ -186,7 +191,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           </div>
         </div>
         </Link>
-        {cta}
+        <div className="premium-card-actions-slot">{actions}</div>
       </div>
     );
   }
@@ -196,7 +201,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
     return (
       <div className="featured-card">
         <Link href={href} className="card-link">
-        {image}
+          {image}
         <div className="featured-card-body">
           <Eyebrow card={card} />
           <div className="featured-card-name">{name}</div>
@@ -217,7 +222,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           </div>
         </div>
         </Link>
-        {cta}
+        <div className="featured-card-actions-slot">{actions}</div>
       </div>
     );
   }
@@ -227,7 +232,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
     return (
       <div className="standard-card">
         <Link href={href} className="card-link">
-        {image}
+          {image}
         <div className="standard-card-body">
           <Eyebrow card={card} />
           <div className="standard-card-name">{name}</div>
@@ -248,7 +253,7 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           </div>
         </div>
         </Link>
-        {cta}
+        <div className="standard-card-actions-slot">{actions}</div>
       </div>
     );
   }
