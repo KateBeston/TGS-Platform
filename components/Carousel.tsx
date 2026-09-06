@@ -14,14 +14,20 @@ import { useEffect, useRef, useState } from 'react';
 
 /* How long each slide holds, in milliseconds.
  *
- * Changed here and it changes everywhere, because every carousel on the site
- * uses this component. 6000 is a considered default: long enough to read three
- * cards, short enough that somebody waiting does not feel stuck. If it wants
- * to be slower, raise this one number.
+ * 3500 to match the reference Kate timed at three to four seconds. Changed
+ * here and it changes everywhere, because every carousel on the site uses this
+ * component.
+ *
+ * The crossfade in globals.css is tuned to this number rather than set
+ * independently: at 800ms in, the row is at rest for 77% of each cycle, which
+ * is close to the 82% the previous six-second hold gave. Much below about 60%
+ * and something is always moving, which is the difference between elegant and
+ * restless — so if this number drops further, the fade has to come down with
+ * it.
  *
  * A carousel can override it with the interval prop where a section genuinely
  * needs a different pace. */
-const HOLD_MS = 6000;
+const HOLD_MS = 3500;
 
 export default function Carousel({
   children, perSlide = 3, label, autoplay = true, interval = HOLD_MS,
