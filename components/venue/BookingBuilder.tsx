@@ -33,17 +33,22 @@ function Stepper({ value, min, max, onChange }: { value: number; min: number; ma
 }
 
 export default function BookingBuilder({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '',
+  rooms = [], spaces = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '',
+  requiresAccommodation = true,
 }: {
-  rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null; venueName?: string; location?: string;
+  rooms?: Any[]; spaces?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[];
+  currency?: string | null; venueName?: string; location?: string;
+  /* A retreat venue hire needs beds; a day spa does not. */
+  requiresAccommodation?: boolean;
 }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [guests, setGuests] = useState('2');
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
+  const [spaceQty, setSpaceQty] = useState<Record<number, number>>({});
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
-  const clearCart = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); };
+  const clearCart = () => { setRoomQty({}); setSpaceQty({}); setExpQty({}); setExtraQty({}); };
   const downloadQuote = async () => {
     const { downloadQuotePdf } = await import('./quotePdf');
     downloadQuotePdf({
@@ -58,6 +63,16 @@ export default function BookingBuilder({
     return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000);
   }, [from, to]);
   const guestN = Math.max(1, Number(guests) || 1);
+
+  const spacePlan = (spaceId: number) =>
+    ratePlans.find((rp) => rp.applies_to === 'Space' && rp.target_id === spaceId);
+
+  /* How many people the chosen rooms sleep. The whole point of the count
+     beside each line: a host should never have to do this arithmetic. */
+  const bedsChosen = useMemo(
+    () => rooms.reduce((n, r) => n + (roomQty[r.id] ?? 0) * (Number(r.sleeps) || 0), 0),
+    [rooms, roomQty]);
+  const bedsShort = Math.max(0, guestN - bedsChosen);
 
   const roomPlan = (roomId: number) =>
     ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === roomId);
@@ -95,6 +110,16 @@ export default function BookingBuilder({
         : null;
       out.push({ key: `room-${r.id}`, label: `${r.name} × ${q}`, detail: nights ? `${nights} night${nights === 1 ? '' : 's'}` : 'Add dates', amount, qty: q });
     }
+    for (const sp of spaces) {
+      const q = spaceQty[sp.id] ?? 0;
+      if (!q) continue;
+      const rp = spacePlan(sp.id);
+      /* Spaces are hired by the day, so the quantity is days rather than how
+         many of them: there is only ever one shala. */
+      const amount = rp && rp.base_price != null ? Number(rp.base_price) * q : null;
+      out.push({ key: `space-${sp.id}`, label: `${sp.name}`,
+        detail: `${q} day${q === 1 ? '' : 's'}`, amount, qty: q });
+    }
     for (const s of services) {
       const q = expQty[s.id] ?? 0;
       if (!q) continue;
@@ -108,10 +133,17 @@ export default function BookingBuilder({
       out.push({ key: `extra-${e.id}`, label: `${e.name} × ${q}`, detail: e.extra_category || 'Extra', amount, qty: q });
     }
     return out;
-  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, guestN]);
+  }, [rooms, spaces, services, extras, ratePlans, roomQty, spaceQty, expQty, extraQty, nights, guestN]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const anySelected = lines.length > 0;
+  /* What is stopping this booking, said plainly. A disabled button with no
+     reason is the thing people give up on. */
+  const blocker = !from || !to ? 'Add your dates to continue'
+    : requiresAccommodation && rooms.length > 0 && bedsShort > 0
+      ? `${bedsShort} ${bedsShort === 1 ? 'person still needs a bed' : 'people still need beds'}`
+      : !anySelected ? 'Add something to your booking'
+      : null;
   const anyUnpriced = lines.some((l) => l.amount == null);
 
   return (
@@ -125,7 +157,18 @@ export default function BookingBuilder({
 
         {rooms.length > 0 && (
           <section className="bb-section">
-            <h3>Accommodation</h3>
+            <h3>
+              Accommodation{requiresAccommodation && <span className="bb-req" aria-label="required">*</span>}
+              {guestN > 0 && (
+                <span className="bb-section-note">
+                  {bedsChosen} of {guestN} place{guestN === 1 ? '' : 's'}
+                </span>
+              )}
+            </h3>
+            <p className="bb-hint">
+              Add as many of each room as you need. A room sleeping two counts twice
+              toward your group.
+            </p>
             {rooms.map((r) => {
               const rp = roomPlan(r.id);
               const per = rp && rp.base_price != null ? priceByBasis(Number(rp.base_price), rp.pricing_basis, r.sleeps || 1) : null;
@@ -140,8 +183,61 @@ export default function BookingBuilder({
                       {per != null && nights ? `${money(per, currency)} for the stay` : rp ? 'Add dates' : 'Price on request'}
                     </span>
                   </div>
-                  <Stepper value={roomQty[r.id] ?? 0} min={0} max={r.quantity ?? 9}
-                    onChange={(n) => setRoomQty({ ...roomQty, [r.id]: n })} />
+                  <div className="bb-row-side">
+                    <Stepper value={roomQty[r.id] ?? 0} min={0} max={r.quantity ?? 9}
+                      onChange={(n) => setRoomQty({ ...roomQty, [r.id]: n })} />
+                    {/* The count beside the line, so nobody does the arithmetic. */}
+                    <span className="bb-count">
+                      {(roomQty[r.id] ?? 0) > 0 && r.sleeps
+                        ? `sleeps ${(roomQty[r.id] ?? 0) * Number(r.sleeps)}`
+                        : '\u2014'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+            {requiresAccommodation && bedsShort > 0 && bedsChosen > 0 && (
+              <p className="bb-status bb-status-short">
+                <strong>{bedsShort} {bedsShort === 1 ? 'person still needs' : 'people still need'} a bed.</strong>{' '}
+                Add another room, or increase your group size if that is wrong.
+              </p>
+            )}
+          </section>
+        )}
+
+        {spaces.length > 0 && (
+          <section className="bb-section">
+            <h3>
+              Spaces
+              <span className="bb-section-note">Optional</span>
+            </h3>
+            <p className="bb-hint">
+              Hired by the day. Most hosts take the shala for the length of the stay.
+            </p>
+            {spaces.map((sp) => {
+              const rp = spacePlan(sp.id);
+              return (
+                <div key={sp.id} className="bb-row">
+                  <div className="bb-row-main">
+                    <span className="bb-row-name">{sp.name}</span>
+                    <span className="bb-row-detail">
+                      {[sp.space_type,
+                        sp.area ? `${sp.area} ${sp.area_unit || 'sqm'}` : null,
+                        sp.capacity ? `holds ${sp.capacity}` : null].filter(Boolean).join(' \u00b7 ')}
+                    </span>
+                    <span className="bb-row-price">
+                      {rp && rp.base_price != null ? `${money(Number(rp.base_price), currency)} per day` : 'Price on request'}
+                    </span>
+                  </div>
+                  <div className="bb-row-side">
+                    <Stepper value={spaceQty[sp.id] ?? 0} min={0} max={Math.max(nights || 1, 14)}
+                      onChange={(n) => setSpaceQty({ ...spaceQty, [sp.id]: n })} />
+                    <span className="bb-count">
+                      {(spaceQty[sp.id] ?? 0) > 0 ? 'days' : '\u2014'}
+                      {sp.capacity && guestN > Number(sp.capacity) && (spaceQty[sp.id] ?? 0) > 0
+                        ? ' \u00b7 too small' : ''}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -216,7 +312,11 @@ export default function BookingBuilder({
           <div className="bb-actions">
             <button type="button" className="bb-btn bb-btn-quiet" onClick={clearCart}>Clear cart</button>
             <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote}>Download quote</button>
-            <button type="button" className="bb-btn bb-btn-primary" disabled>Book</button>
+            {/* The button says why it cannot be pressed. A greyed-out Book with
+                no reason is what people give up on. */}
+            <button type="button" className="bb-btn bb-btn-primary" disabled={!!blocker}>
+              {blocker ?? 'Add to booking'}
+            </button>
           </div>
         )}
       </aside>

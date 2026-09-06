@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { notify, INTERNAL } from '@/lib/notify';
 
 /* Venue enquiries.
  *
@@ -40,10 +41,15 @@ export async function POST(req: NextRequest) {
                  / 86_400_000)
     : null;
 
+  /* Declared outside the try so the notifications below can merge against the
+     record that was just written. Without an id the portal has nothing to
+     merge and a transactional template would refuse to send. */
+  let enquiryId: number | null = null;
+
   try {
     const supabase = await createClient();
 
-    const { error } = await supabase.from('enquiries').insert({
+    const { data: created, error } = await supabase.from('enquiries').insert({
       enquiry_type: body?.marketplace === 'Wellness' ? 'Wellness Guest' : 'Retreat Host',
       status: 'Draft',
       source: 'Website',
@@ -65,19 +71,25 @@ export async function POST(req: NextRequest) {
       // labelled "anything else".
       has_access_needs: !!String(body?.accessNeeds ?? '').trim(),
       access_needs_note: String(body?.accessNeeds ?? '').trim() || null,
-    });
+    }).select('id').single();
 
     if (error) {
       return NextResponse.json({ error: 'Could not record that. Try again shortly.' },
         { status: 500 });
     }
+    enquiryId = created?.id ?? null;
   } catch {
     return NextResponse.json({ error: 'Could not record that. Try again shortly.' },
       { status: 500 });
   }
 
-  // ActiveCampaign sync and the two notification emails go here once
-  // wired. Deliberately after the write, so neither can lose an enquiry.
+  /* The two notifications the comment was waiting for.
+   *
+   * Both are templates in the portal, so the wording is edited there rather
+   * than here, and both go through the suppression check and the send log.
+   * Fire and forget: the enquiry is already saved. */
+  notify({ slug: 'enquiry-received-general', to: email, subjectId: enquiryId });
+  notify({ slug: 'internal-general-enquiry', to: INTERNAL, subjectId: enquiryId });
 
   return NextResponse.json({ ok: true });
 }

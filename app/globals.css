@@ -3553,7 +3553,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Build-a-booking cart */
 .bb-choices{min-width:0}
-.bb{display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start;max-width:1000px;margin:0 auto}
+.bb{display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start;max-width:1180px;margin:0 auto}
 .bb-dates{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;margin-bottom:32px}
 .bb-field{display:flex;flex-direction:column;gap:6px}
 .bb-field span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
@@ -4779,3 +4779,31 @@ img { max-width: 100%; height: auto; display: block; }
 .acct-bk-bot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border, #E0D8CC); }
 .acct-bk-ref { font-size: 12px; color: var(--muted, #4A4238); letter-spacing: .02em; }
 .acct-bk-total { font-family: var(--serif, Georgia); font-size: 18px; white-space: nowrap; }
+
+/* ── Booking builder: grouped line items ─────────────────────────────────
+   Rooms, spaces, experiences and extras are each a group. Every line carries
+   a count, and where it matters, how many people it covers. Dining bolts on
+   later as another group rather than another pattern. */
+
+.bb-section h3{display:flex;align-items:baseline;gap:8px}
+.bb-req{color:var(--gold);font-size:13px;line-height:1}
+.bb-section-note{margin-left:auto;font-size:10.5px;letter-spacing:0;
+  text-transform:none;color:var(--ink-quiet);font-weight:400}
+.bb-hint{font-size:11px;color:var(--ink-quiet);line-height:1.55;margin:0 0 12px}
+
+/* The stepper and its count sit together, so the number reads as belonging
+   to the line rather than floating beside it. */
+.bb-row-side{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.bb-count{font-size:10.5px;color:var(--ink-quiet);white-space:nowrap}
+
+.bb-status{font-size:11.5px;line-height:1.6;padding:11px 14px;margin:12px 0 0;
+  background:var(--warm-cream);border-left:2px solid var(--gold)}
+.bb-status strong{color:var(--charcoal);font-weight:600}
+.bb-status-short{border-left-color:#B0846A}
+
+/* Semi-wide. The grid above already puts the cart beside the choices; this
+   just gives the choices column enough room that a line item does not wrap
+   between its name and its count. */
+@media (min-width:1240px){
+  .bb{grid-template-columns:minmax(0,1fr) 380px;gap:56px}
+}

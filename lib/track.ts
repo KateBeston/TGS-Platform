@@ -43,7 +43,7 @@ export type CartEventType =
 export type CartEvent = {
   eventType: CartEventType;
   venueId?: number | null;
-  itemType?: 'room' | 'exp' | 'extra' | 'buyout' | null;
+  itemType?: 'room' | 'space' | 'exp' | 'extra' | 'buyout' | null;
   itemId?: number | null;
   quantity?: number | null;
   unitPrice?: number | null;

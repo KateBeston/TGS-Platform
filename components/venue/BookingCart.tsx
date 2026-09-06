@@ -22,7 +22,10 @@ type Any = Record<string, any>;
    width without changing what it held, so the control did nothing a reader
    could name. It now sits at one width and the arrow minimises it. */
 type Drawer = 'open' | 'min';
-type Kind = 'room' | 'exp' | 'extra';
+/* Spaces are a kind of their own. A shala is not a room and not an extra: it
+   is hired by the day, there is only ever one of it, and for a retreat host it
+   is often the deciding line. */
+type Kind = 'room' | 'space' | 'exp' | 'extra';
 
 type CartValue = {
   from: string; to: string; guests: string;
@@ -34,6 +37,10 @@ type CartValue = {
   count: number;
   drawer: Drawer; setDrawer: (d: Drawer) => void;
   buyout: boolean;
+  /* How many the chosen rooms sleep, and how many are still without. Exposed
+     so a card can show it as well as the drawer. */
+  bedsChosen: number;
+  bedsShort: number;
 };
 
 const CartCtx = createContext<CartValue | null>(null);
@@ -73,10 +80,10 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
+  rooms = [], spaces = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
   allowBuyout = false, minStayNights = null, stayRules = NO_RULES, dateMode = 'range', requiresTime = false, summary = null, confirmation = null, cancellation = null, children,
 }: {
-  rooms?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
+  rooms?: Any[]; spaces?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
   venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null; stayRules?: StayRules;
   dateMode?: 'single' | 'range'; requiresTime?: boolean;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
@@ -87,6 +94,7 @@ export function BookingCart({
   const [timeOfDay, setTimeOfDay] = useState('Morning');
   const [guests, setGuests] = useState('2');
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
+  const [spaceQty, setSpaceQty] = useState<Record<number, number>>({});
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
   /* Always present, never tucked away.
@@ -142,6 +150,7 @@ export function BookingCart({
     return r.ok ? null : r.error;
   }, [stayRules, from, to, isStay]);
 
+
   const minNightsHere = minNightsFor(stayRules, from);
   const arrivalMin = earliestArrival(stayRules);
   const arrivalMax = latestArrival(stayRules);
@@ -163,8 +172,22 @@ export function BookingCart({
   const guestN = Math.max(1, Number(guests) || 1);
 
 
-  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'exp' ? expQty : extraQty);
-  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'exp' ? setExpQty : setExtraQty);
+  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'space' ? spaceQty : k === 'exp' ? expQty : extraQty);
+  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'space' ? setSpaceQty : k === 'exp' ? setExpQty : setExtraQty);
+
+  /* How many people the chosen rooms sleep, and how many still have nowhere.
+     The whole point of the count beside each line: a host should never have to
+     work this out themselves. */
+  const bedsChosen = rooms.reduce((n, r) => n + ((roomQty[r.id] ?? 0) * (Number(r.sleeps) || 0)), 0);
+  const bedsShort = isStay && !buyout ? Math.max(0, guestN - bedsChosen) : 0;
+  /* Not enough beds is a blocker of the same kind as a stay-rule failure, so
+     it is said in the same place rather than through a second mechanism. It is
+     only raised once something has been chosen: an empty cart is not an error,
+     it is a starting point. */
+  const bedIssue = bedsShort > 0 && bedsChosen > 0
+    ? `${bedsShort} ${bedsShort === 1 ? 'person still needs a bed' : 'people still need beds'}`
+    : null;
+  const issue = stayIssue ?? bedIssue;
   const qty = (k: Kind, id: number) => bag(k)[id] ?? 0;
   const setQtyRaw = (k: Kind, id: number, n: number) => setBag(k)({ ...bag(k), [id]: Math.max(0, n) });
   const setQty = (k: Kind, id: number, n: number) => {
@@ -178,7 +201,7 @@ export function BookingCart({
     setQtyRaw(k, id, next);
     trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency });
   };
-  const clear = () => { setRoomQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
+  const clear = () => { setRoomQty({}); setSpaceQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
   const selectBuyout = () => { setRoomQty({}); setBuyout(true); };
 
   const roomPlan = (roomId: number) => ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === roomId);
@@ -234,6 +257,23 @@ export function BookingCart({
       out.push({ key: `room-${r.id}`, label: r.name, detail: [durationLabel ?? 'Add dates', r.bed_configuration, r.bathroom_type, r.sleeps ? `sleeps ${r.sleeps}` : null].filter(Boolean).join(' · '), amount: unit != null ? unit * q : null, kind: 'room', id: r.id, qty: q, max: r.quantity ?? 9, image: r.gallery_images?.[0] ?? venueImage, eyebrow: 'Accommodation', qtyLabel: 'Rooms', unit });
     }
     }
+    /* Spaces are hired by the day, so the quantity is days rather than how
+       many: there is only ever one shala. Kept out of the buyout branch on
+       purpose — exclusive use of the venue does not automatically mean the
+       shala is set up and staffed for you. */
+    for (const sp of spaces) {
+      const q = spaceQty[sp.id] ?? 0; if (!q) continue;
+      const rp = ratePlans.find((x) => x.applies_to === 'Space' && x.target_id === sp.id);
+      const unit = rp && rp.base_price != null ? Number(rp.base_price) : null;
+      out.push({
+        key: `space-${sp.id}`, label: sp.name,
+        detail: [`${q} day${q === 1 ? '' : 's'}`, sp.space_type,
+                 sp.capacity ? `holds ${sp.capacity}` : null].filter(Boolean).join(' · '),
+        amount: unit != null ? unit * q : null,
+        kind: 'space', id: sp.id, qty: q, max: Math.max(nights || 1, 14),
+        image: sp.image_url ?? venueImage, eyebrow: 'Space hire', qtyLabel: 'Days', unit,
+      });
+    }
     for (const s of services) {
       const q = expQty[s.id] ?? 0; if (!q) continue;
       const unit = s.base_price != null ? Number(s.base_price) : null;
@@ -245,7 +285,7 @@ export function BookingCart({
       out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount: unit != null ? unit * q : null, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20, image: e.gallery_images?.[0] ?? venueImage, eyebrow: 'Room extra', qtyLabel: 'Qty', unit });
     }
     return out;
-  }, [rooms, services, extras, ratePlans, roomQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
+  }, [rooms, spaces, services, extras, ratePlans, roomQty, spaceQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -260,7 +300,7 @@ export function BookingCart({
     });
   };
 
-  const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout };
+  const value: CartValue = { from, to, guests, setFrom, setTo, setGuests, qty, setQty, add, clear, count, drawer, setDrawer, buyout, bedsChosen, bedsShort };
 
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
@@ -442,7 +482,9 @@ export function BookingCart({
             <div className="bc-actions">
               <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
               <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
-              <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0 || !!stayIssue} title={stayIssue ?? undefined}>Review booking</button>
+              <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0 || !!issue} title={issue ?? undefined}>
+                {issue ?? 'Review booking'}
+              </button>
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
           </div>

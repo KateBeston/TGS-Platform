@@ -1,6 +1,7 @@
 'use server';
 
-import { headers } from 'next/headers';
+import { headers } from 'next/headers'
+import { notify, INTERNAL } from '@/lib/notify';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs } from '@/lib/acceptance';
@@ -288,6 +289,35 @@ export async function submitBooking(
       }
     }
   } catch { /* never fail a booking over the audit trail */ }
+
+  /* Tell the guest, and tell us.
+   *
+   * Both go through the portal, so they are templates that can be edited
+   * rather than copy living in this file, and both land in sent_emails with
+   * the version recorded.
+   *
+   * After the booking is written, never before. If the portal is unreachable
+   * that means an email that did not arrive, not a booking that did not
+   * happen. */
+  const venueList = venues.map(([, v]) => v.venueName).filter(Boolean).join(', ');
+
+  if (linkEmail) {
+    notify({
+      slug: 'booking-request-received',
+      to: linkEmail,
+      subjectId: order.id,
+      extra: { order_reference: reference, venue_list: venueList },
+    });
+  }
+
+  notify({
+    slug: 'internal-booking-request',
+    to: INTERNAL,
+    subjectId: order.id,
+    extra: { order_reference: reference, venue_list: venueList,
+             guest_name: name, guest_email: linkEmail,
+             guest_phone: contact?.phone?.trim() ?? '' },
+  });
 
   return { ok: true, orderReference: reference };
 }
