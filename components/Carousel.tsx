@@ -12,8 +12,19 @@ import { useEffect, useRef, useState } from 'react';
  * depends on somebody pressing an arrow.
  */
 
+/* How long each slide holds, in milliseconds.
+ *
+ * Changed here and it changes everywhere, because every carousel on the site
+ * uses this component. 6000 is a considered default: long enough to read three
+ * cards, short enough that somebody waiting does not feel stuck. If it wants
+ * to be slower, raise this one number.
+ *
+ * A carousel can override it with the interval prop where a section genuinely
+ * needs a different pace. */
+const HOLD_MS = 6000;
+
 export default function Carousel({
-  children, perSlide = 3, label, autoplay = true, interval = 6000,
+  children, perSlide = 3, label, autoplay = true, interval = HOLD_MS,
 }: {
   children: React.ReactNode[];
   perSlide?: number;

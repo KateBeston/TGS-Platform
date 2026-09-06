@@ -2604,10 +2604,12 @@ img { max-width: 100%; height: auto; display: block; }
   .carousel-fade .carousel-slide.is-on { transition: opacity .2s linear; transform: none; }
 }
 
+/* The runners take the full width and the arrows sit either side, so the line
+   spans the row it belongs to rather than huddling in the middle. */
 .carousel-controls {
-  display: flex; align-items: center; justify-content: center;
-  gap: 24px; margin-top: 40px;
+  display: flex; align-items: center; gap: 24px; margin-top: 40px;
 }
+.carousel-controls .carousel-runners { flex: 1; min-width: 0; }
 .carousel-arrow {
   width: 44px; height: 44px; padding: 0; cursor: pointer;
   border: 1px solid var(--charcoal-15); background: transparent;
@@ -2619,18 +2621,27 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Runners rather than dots.
    A dot says which one you are on. A runner says that and how long is left,
-   which is the difference between a marker and an invitation to wait. */
-.carousel-runners { display: flex; gap: 10px; align-items: center; }
+   which is the difference between a marker and an invitation to wait.
+
+   Full width, one segment per slide, sitting under the row as a single fine
+   line broken into parts. Matched to the treatment Kate referenced: the
+   segments share the width equally, so the line reads as one measure being
+   worked through rather than as a row of separate controls. */
+.carousel-runners {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: 14px; width: 100%; align-items: center;
+}
 .carousel-runner {
-  position: relative; width: 56px; height: 14px; padding: 0;
+  position: relative; height: 16px; padding: 0; width: 100%;
   border: 0; background: transparent; cursor: pointer;
   display: flex; align-items: center;
 }
-/* The track is drawn on the element rather than as a border, so the fill can
-   sit flush against it with nothing between. */
+/* The track is drawn on the element rather than as a border, so the fill sits
+   flush against it with nothing between. */
 .carousel-runner::before {
   content: ''; position: absolute; left: 0; right: 0; top: 50%;
   height: 1px; background: var(--charcoal-15);
+  transition: background .3s ease;
 }
 .carousel-runner-fill {
   position: absolute; left: 0; right: 0; top: 50%;
@@ -2642,7 +2653,7 @@ img { max-width: 100%; height: auto; display: block; }
 .carousel-runner.is-on .carousel-runner-fill { background: var(--gold); }
 .carousel-runner:hover::before { background: var(--charcoal-30); }
 
-@media (max-width: 700px) { .carousel-runner { width: 38px; } }
+@media (max-width: 700px) { .carousel-runners { gap: 8px; } }
 
 /* Scoped to the home page's premium carousel. These names collide with
    the /venues listing cards (.premium-card etc.); unscoped they were
