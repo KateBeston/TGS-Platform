@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
+import EnquireButton from '@/components/EnquireButton';
+import { FavouriteButton } from '@/components/SavedVenues';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { articles, heroUrl } from '@/lib/sanity';
 import { createClient } from '@/lib/supabase/server';
@@ -95,24 +97,35 @@ const PRINCIPLES = [
 ];
 
 function VenueSlide({ v }: { v: Card }) {
+  const href = venueHref(v);
   return (
-    <Link href={venueHref(v)} className="premium-card">
-      <div className="premium-card-image">
-        {v.image_url
-          ? <img src={v.image_url} alt="" loading="lazy" />
-          : <span className="placeholder-img">The Global Sanctum</span>}
-        {v.country && <span className="premium-card-tag">{v.country}</span>}
+    /* The card is a div rather than a link, so the three actions can sit
+       inside it. A button nested in an anchor is invalid and a nested click
+       target behaves unpredictably; the body carries the link instead. */
+    <div className="premium-card">
+      <Link href={href} className="card-link">
+        <div className="premium-card-image">
+          {v.image_url
+            ? <img src={v.image_url} alt="" loading="lazy" />
+            : <span className="placeholder-img">The Global Sanctum</span>}
+          {v.country && <span className="premium-card-tag">{v.country}</span>}
+        </div>
+        <div className="premium-card-content">
+          <p className="premium-card-location">{placeOf(v)}</p>
+          <h3 className="premium-card-name">{v.headline ?? v.venue_name}</h3>
+          <p className="premium-card-desc">
+            {v.editor_note ?? v.listing_description ?? v.venue_short_description}
+          </p>
+          <p className="premium-card-type">{v.venue_type}</p>
+        </div>
+      </Link>
+      <div className="card-actions premium-slide-actions">
+        <Link href={href} className="card-book">Book venue</Link>
+        <EnquireButton venueId={v.id} venueName={v.venue_name ?? 'this venue'}
+          marketplace={v.marketplace ?? null} />
+        <FavouriteButton venueId={v.id} variant="card" />
       </div>
-      <div className="premium-card-content">
-        <p className="premium-card-location">{placeOf(v)}</p>
-        <h3 className="premium-card-name">{v.headline ?? v.venue_name}</h3>
-        <p className="premium-card-desc">
-          {v.editor_note ?? v.listing_description ?? v.venue_short_description}
-        </p>
-        <p className="premium-card-type">{v.venue_type}</p>
-        <span className="premium-card-cta">Explore Venue &rarr;</span>
-      </div>
-    </Link>
+    </div>
   );
 }
 
