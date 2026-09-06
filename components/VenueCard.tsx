@@ -122,6 +122,21 @@ function Eyebrow({ card }: { card: Card }) {
 
 export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 | 4 }) {
   const href = venueHref(card);
+
+  /* The card's own way in.
+   *
+   * "Check availability" rather than "Book now": a retreat venue needs dates,
+   * a group size and rooms before anything can be booked, and a button that
+   * promises an instant booking and delivers a date picker is worse than one
+   * that says what it does.
+   *
+   * Outside the card's Link rather than inside it, because a button nested in
+   * an anchor is invalid and a nested click target behaves unpredictably. */
+  const cta = (
+    <Link href={href} className="card-cta">
+      {card.marketplace === 'Wellness' ? 'Check availability' : 'Check availability'}
+    </Link>
+  );
   const blurb = card.listing_description ?? card.venue_short_description;
   const name = card.headline ?? card.venue_name;
   const tags = (card.tags ?? []) as string[];
@@ -145,7 +160,8 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
   // excerpt.
   if (size === 1) {
     return (
-      <Link href={href} className="premium-card">
+      <div className="premium-card">
+        <Link href={href} className="card-link">
         {image}
         <div className="premium-card-body">
           <Eyebrow card={card} />
@@ -169,14 +185,17 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
             ) : null}
           </div>
         </div>
-      </Link>
+        </Link>
+        {cta}
+      </div>
     );
   }
 
   // Featured — the same shape, smaller, without the editor's note.
   if (size === 2) {
     return (
-      <Link href={href} className="featured-card">
+      <div className="featured-card">
+        <Link href={href} className="card-link">
         {image}
         <div className="featured-card-body">
           <Eyebrow card={card} />
@@ -197,14 +216,17 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
             ) : null}
           </div>
         </div>
-      </Link>
+        </Link>
+        {cta}
+      </div>
     );
   }
 
   // Standard — vertical, image on top.
   if (size === 3) {
     return (
-      <Link href={href} className="standard-card">
+      <div className="standard-card">
+        <Link href={href} className="card-link">
         {image}
         <div className="standard-card-body">
           <Eyebrow card={card} />
@@ -225,7 +247,9 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
             ) : null}
           </div>
         </div>
-      </Link>
+        </Link>
+        {cta}
+      </div>
     );
   }
 
