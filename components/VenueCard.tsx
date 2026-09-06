@@ -4,7 +4,9 @@ import EnquireButton from '@/components/EnquireButton';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 
 /* Price the way a listing reads it: currency-aware, no cents. */
-function formatMoney(amount: number, currency: string | null): string {
+/* Exported so the home page formats money the same way rather than keeping a
+   second copy that drifts. */
+export function formatMoney(amount: number, currency: string | null): string {
   const cur = currency || 'AUD';
   try {
     return new Intl.NumberFormat('en-AU', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(amount);

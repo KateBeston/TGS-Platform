@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
 import EnquireButton from '@/components/EnquireButton';
+import { formatMoney } from '@/components/VenueCard';
 import { FavouriteButton } from '@/components/SavedVenues';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { articles, heroUrl } from '@/lib/sanity';
@@ -116,7 +117,28 @@ function VenueSlide({ v }: { v: Card }) {
           <p className="premium-card-desc">
             {v.editor_note ?? v.listing_description ?? v.venue_short_description}
           </p>
-          <p className="premium-card-type">{v.venue_type}</p>
+          {/* Three tags, not the listing page's four, and no practice list
+              beneath them. A card in a carousel is passed at a glance: enough
+              to say what kind of place this is, and not so much that the eye
+              has to work through it before the slide changes. */}
+          {!!(v.tags ?? []).length && (
+            <div className="premium-card-tags">
+              {(v.tags as string[]).slice(0, 3).map((t) => (
+                <span key={t} className="premium-card-chip">{t}</span>
+              ))}
+            </div>
+          )}
+          <div className="premium-card-foot">
+            <span className="premium-card-type">{v.venue_type}</span>
+            {v.price_from != null ? (
+              <span className="premium-card-from">
+                From <strong>{formatMoney(v.price_from, v.price_currency)}</strong>
+                {v.price_unit ? ` / ${v.price_unit}` : ''}
+              </span>
+            ) : v.max_guests ? (
+              <span className="premium-card-from">Sleeps <strong>{v.max_guests}</strong></span>
+            ) : null}
+          </div>
         </div>
       </Link>
       <div className="card-actions premium-slide-actions">

@@ -2410,9 +2410,13 @@ img { max-width: 100%; height: auto; display: block; }
 .explore-mosaic {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
 }
-.explore-carousel-wrap{max-width:1400px;margin:0 auto;padding:0 clamp(20px,3vw,56px)}
+.explore-carousel-wrap{max-width:1760px;margin:0 auto;padding:0 clamp(20px,3vw,56px)}
 .mosaic-tile {
-  position: relative; aspect-ratio: 3 / 4; overflow: hidden; display: block;
+  /* Square rather than 3:4, so the tile can widen with the row without
+     growing downward. At the new width a 3:4 tile would be 772px tall against
+     594 now; square lands at 577, which is 16px SHORTER while being 130px
+     wider. The crop changes, the scroll does not. */
+  position: relative; aspect-ratio: 1 / 1; overflow: hidden; display: block;
 }
 /* Absolutely positioned rather than sized at 100%.
  *
@@ -2579,9 +2583,13 @@ img { max-width: 100%; height: auto; display: block; }
    stack is a grid with everything in the same cell, which means the tallest
    slide sets the height and nothing jumps when the content changes. */
 .carousel-stack { display: grid; }
+/* Closer together, so three cards read as one band of imagery rather than
+   three objects with air between them. That is what makes the runner beneath
+   look like it is measuring a surface: on the reference it spans a single
+   full-bleed image, and the proportion is the whole reason it works. */
 .carousel-fade .carousel-slide {
   grid-area: 1 / 1;
-  display: grid; gap: 32px;
+  display: grid; gap: 14px;
   opacity: 0; visibility: hidden;
   /* Out slightly faster than in, with a beat of overlap, so the incoming
      cards are already arriving as the outgoing ones leave. Equal timings
@@ -2616,14 +2624,19 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex; align-items: center; gap: 24px; margin-top: 40px;
 }
 .carousel-controls .carousel-runners { flex: 1; min-width: 0; }
+/* No box. A bordered square around an arrow is a button asking to be noticed;
+   the arrow alone is a direction, which is all it needs to be. It moves a
+   little on hover instead, so it still answers. */
 .carousel-arrow {
-  width: 44px; height: 44px; padding: 0; cursor: pointer;
-  border: 1px solid var(--charcoal-15); background: transparent;
+  width: 32px; height: 32px; padding: 0; cursor: pointer;
+  border: 0; background: transparent;
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; color: var(--charcoal);
-  transition: border-color .3s, background .3s;
+  font-size: 19px; color: var(--charcoal-50); flex: 0 0 auto;
+  transition: color .3s ease, transform .3s cubic-bezier(.25, 1, .5, 1);
 }
-.carousel-arrow:hover { border-color: var(--gold); background: var(--warm-cream); }
+.carousel-arrow:hover { color: var(--charcoal); }
+.carousel-controls .carousel-arrow:first-child:hover { transform: translateX(-3px); }
+.carousel-controls .carousel-arrow:last-child:hover { transform: translateX(3px); }
 
 /* Runners rather than dots.
    A dot says which one you are on. A runner says that and how long is left,
@@ -5030,3 +5043,43 @@ img { max-width: 100%; height: auto; display: block; }
 .edit-grid-home .edit-card-excerpt{-webkit-line-clamp:2}
 @media (max-width:1100px){ .edit-grid-home{grid-template-columns:repeat(2,1fr)} }
 @media (max-width:640px){ .edit-grid-home{grid-template-columns:1fr} }
+
+/* ── Carousels, near full bleed ──────────────────────────────────────────
+   The venue card's image height is fixed at 320px, so widening the container
+   and closing the gaps makes each card 579px instead of 445px and costs
+   nothing in height. That is the whole trick: the row grows sideways into a
+   band, and the runner beneath finally spans something that reads as one
+   surface.
+
+   Held short of the true edge. Full bleed with no margin at all puts a card
+   corner against the browser chrome, and on a wide monitor the row stops
+   looking composed and starts looking like it overflowed. */
+.premium-inner, .featured-inner { max-width: 1760px; }
+
+@media (max-width: 1100px) {
+  .carousel-fade .carousel-slide { gap: 20px; }
+}
+/* 12px rather than 0. The JS switches to one card below 700px, but at exactly
+   700 it still shows two — and a zero gap there puts two cards flush against
+   each other on a small screen. 12px is harmless when only one card shows and
+   saves the edge case. */
+@media (max-width: 700px) {
+  .carousel-fade .carousel-slide { gap: 12px; }
+}
+
+/* Home carousel cards: a little more than before, less than the listing page.
+   Three tags rather than four and no practice list beneath them, because a
+   card in a carousel is passed at a glance. */
+.premium .premium-card-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+.premium .premium-card-chip{
+  font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--charcoal-70);
+  border:1px solid var(--charcoal-15);padding:5px 10px;white-space:nowrap}
+.premium .premium-card-foot{
+  display:flex;align-items:baseline;gap:var(--s4);
+  margin-top:auto;padding-top:16px;border-top:1px solid var(--charcoal-08)}
+.premium .premium-card-foot .premium-card-type{
+  margin:0;padding:0;border:0;flex:1;min-width:0}
+.premium .premium-card-from{
+  font-family:var(--sans);font-size:11.5px;color:var(--charcoal-70);white-space:nowrap}
+.premium .premium-card-from strong{color:var(--charcoal);font-weight:500}
