@@ -3231,9 +3231,6 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 720px) { .why-grid { grid-template-columns: 1fr; } }
 
 /* venues — tier section labels (mockup match) */
-.tier-section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; gap: 16px; }
-.tier-section-label { font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .25em; text-transform: uppercase; color: var(--gold-dark); }
-.tier-section-count { font-family: var(--sans); font-size: 11px; font-weight: 400; color: rgba(49,49,49,.5); }
 
 /* ── advanced search modal + venue-type chooser (ported from tgs_venues_v2) ── */
 :root { --charcoal-30: rgba(49,49,49,.3); --charcoal-50: rgba(49,49,49,.80); }

@@ -395,14 +395,15 @@ export default async function Home() {
             <div className="premium-header">
               <div>
                 <div className="intro-eyebrow">Intentionally Curated</div>
-                <h2 className="intro-title">Our <em>Premium</em> Collection</h2>
+                <h2 className="intro-title">The <em>Signature</em> Collection</h2>
                 <p className="premium-subtitle">
-                  The most exceptional wellness and retreat venues, offering
-                  unparalleled experiences in extraordinary settings.
+                  The venues we would put our name to. Places chosen for what they
+                  hold rather than what they cost, and for the care taken in
+                  every part of them.
                 </p>
               </div>
               <Link className="premium-link" href="/venues">
-                Explore Premium Venues &rarr;
+                Explore the Collection &rarr;
               </Link>
             </div>
             <Carousel label="premium venues">
@@ -451,8 +452,8 @@ export default async function Home() {
           <div className="featured-inner">
             <div className="featured-header">
               <div>
-                <div className="intro-eyebrow">Featured Sanctuaries</div>
-                <h2 className="intro-title">Our Collection of <em>Featured</em> Venues</h2>
+                <div className="intro-eyebrow">Chosen This Season</div>
+                <h2 className="intro-title">Featured <em>Sanctuaries</em></h2>
                 <p className="featured-subtitle">
                   From Japanese onsen to Greek island retreats. Mountain sanctuaries to
                   coastal hideaways. Spaces where the environment does half the healing.
