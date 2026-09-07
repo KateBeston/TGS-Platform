@@ -2430,9 +2430,21 @@ img { max-width: 100%; height: auto; display: block; }
   transition: transform .7s cubic-bezier(.4, 0, .2, 1);
 }
 .mosaic-tile:hover img { transform: scale(1.05); }
-.mosaic-content{position:absolute;left:26px;right:26px;bottom:24px;z-index:2}
+/* The block was anchored to the bottom, so a two-line tagline pushed its
+   heading up and a one-line tagline left it lower. Reading across the row, the
+   names sat at three different heights.
+
+   Now the block is a column pinned to the bottom, and the tagline reserves the
+   height of two lines whether it uses them or not. Every heading lands on the
+   same line, and the tagline grows into space that was already allowed for. */
+.mosaic-content{position:absolute;left:26px;right:26px;bottom:24px;z-index:2;
+  display:flex;flex-direction:column}
 .mosaic-name{font-family:var(--serif);font-size:30px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:#fff;line-height:1.15;margin:0 0 12px}
-.mosaic-tag{font-family:var(--sans);font-size:14px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.85);margin:0 0 20px;max-width:34ch}
+.mosaic-tag{font-family:var(--sans);font-size:14px;font-weight:300;line-height:1.6;color:rgba(255,255,255,.85);margin:0 0 20px;max-width:34ch;
+  /* Two lines at 14px and 1.6 line-height. Reserved rather than clamped, so a
+     short tagline holds the space instead of collapsing it. */
+  min-height:calc(14px * 1.6 * 2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mosaic-cta{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
 .mosaic-ar{transition:transform .3s}
 .mosaic-tile:hover .mosaic-ar{transform:translateX(5px)}
@@ -2594,28 +2606,40 @@ img { max-width: 100%; height: auto; display: block; }
   /* Out slightly faster than in, with a beat of overlap, so the incoming
      cards are already arriving as the outgoing ones leave. Equal timings
      leave a moment where neither is quite there and it reads as a blink. */
-  transition: opacity .42s cubic-bezier(.4, 0, .2, 1),
-              visibility 0s linear .42s,
-              transform .8s cubic-bezier(.25, 1, .5, 1);
-  /* A whisper of scale so the change has weight without moving anything. */
-  transform: scale(1.012);
+  transition: opacity 1.35s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear 1.35s;
 }
 .carousel-fade .carousel-slide.is-on {
-  opacity: 1; visibility: visible; transform: scale(1);
+  opacity: 1; visibility: visible;
+  /* No transform at all, not even scale(1). An identity transform still
+     promotes the element to its own composited layer, and text on a
+     composited layer is rasterised separately from the page — which is
+     precisely the "font flash" every time a slide appears. */
   /* Half a second, from Kate's timing of the reference. Tied to HOLD_MS in
-     Carousel.tsx: at a 3.5s hold this leaves the row at rest for 86% of each
-     cycle, which is calmer than the 82% the old six-second hold gave despite
-     changing nearly twice as often.
+     Carousel.tsx: at a 3.5s hold this rests for 86% of each cycle.
      The outgoing fade is a little faster at .42s so the two overlap; equal
-     timings leave a moment where neither slide is quite there. */
-  transition: opacity .5s cubic-bezier(.4, 0, .2, 1),
-              visibility 0s linear 0s,
-              transform .9s cubic-bezier(.25, 1, .5, 1);
+     timings leave a moment where neither slide is quite there.
+
+     NO TRANSFORM. A transform on an element containing text makes the browser
+     rasterise that text onto a composited layer at the scaled size and then
+     re-rasterise it when it settles — which reads exactly as a font weight
+     change every time a slide appears. The scale was worth one percent of
+     visual weight and cost that; opacity alone composites cleanly. */
+  /* 1.6s. Slow enough that three cards' worth of change can be taken in
+     rather than registered as a switch. The outgoing fade is a touch faster at
+     1.35s so the two overlap; equal timings leave a moment where neither slide
+     is quite there, and that gap is what reads as a blink.
+
+     The curve matters as much as the length: ease-in-out spends most of its
+     time near full and near empty and moves quickly through the middle, which
+     is where a crossfade looks muddy. */
+  transition: opacity 1.6s cubic-bezier(.4, 0, .2, 1),
+              visibility 0s linear 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel-fade .carousel-slide,
-  .carousel-fade .carousel-slide.is-on { transition: opacity .2s linear; transform: none; }
+  .carousel-fade .carousel-slide.is-on { transition: opacity .2s linear; }
 }
 
 /* The runners take the full width and the arrows sit either side, so the line
@@ -2682,7 +2706,37 @@ img { max-width: 100%; height: auto; display: block; }
 /* The slide is a div now so the actions can live in it; the link inside must
    still stack image over copy. */
 .premium .premium-card .card-link { display: flex; flex-direction: column; flex: 1; }
-.premium-slide-actions { padding: 16px 4px 0; margin-top: auto; }
+.venue-card { display: flex; flex-direction: column; }
+.venue-card .card-link { display: flex; flex-direction: column; flex: 1; }
+/* Three actions, sized to their words and pushed right.
+   A row of full-width buttons is a form. Three small actions in the corner is
+   a card that happens to be actionable, which is what this is. */
+.venue-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  margin-top:auto;padding:16px 22px 0}
+.venue-card .venue-actions{padding:14px 18px 0}
+
+.va-explore, .va-book{
+  font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;text-decoration:none;padding:9px 15px;white-space:nowrap;
+  transition:background .25s ease,color .25s ease,border-color .25s ease}
+.va-explore{border:1px solid var(--charcoal-15);color:var(--charcoal-70);background:transparent}
+.va-explore:hover{border-color:var(--charcoal);color:var(--charcoal);text-decoration:none}
+.va-book{background:var(--charcoal);color:var(--warm-white);border:1px solid var(--charcoal)}
+.va-book:hover{background:#000;border-color:#000;color:var(--warm-white);text-decoration:none}
+
+/* The heart holds a square so the row reads as three even weights. */
+.venue-actions .fav-btn{
+  width:34px;height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--charcoal-15);background:transparent;color:var(--charcoal-50);
+  position:static;transition:border-color .25s ease,color .25s ease}
+.venue-actions .fav-btn:hover{border-color:var(--gold);color:var(--gold)}
+.venue-actions .fav-btn.fav-on{color:var(--gold);border-color:var(--gold)}
+.venue-actions .fav-btn svg{width:15px;height:15px}
+
+@media (max-width:520px){
+  .venue-actions{padding-left:18px;padding-right:18px}
+  .va-explore, .va-book{padding:9px 12px;letter-spacing:.14em}
+}
 .premium .premium-card:hover { text-decoration: none; }
 .premium .premium-card-image {
   position: relative; height: 320px; overflow: hidden; margin-bottom: 24px;
@@ -2700,9 +2754,10 @@ img { max-width: 100%; height: auto; display: block; }
   letter-spacing: 1.8px; text-transform: uppercase;
 }
 .premium .premium-card-content { display: flex; flex-direction: column; gap: 12px; flex: 1;
-  /* The image is full bleed by design; the copy under it was not inset at all,
-     so it sat hard against the card edge. */
-  padding: 0 4px; }
+  /* Room either side. The image stays full bleed, the copy is inset — which is
+     the arrangement that makes the image read as the card and the text as
+     something written beneath it. 4px was not enough to feel deliberate. */
+  padding: 0 22px; }
 .premium .premium-card-location {
   font-family: var(--sans); font-size: 9px; font-weight: 600;
   letter-spacing: .22em; text-transform: uppercase;

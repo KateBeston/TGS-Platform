@@ -14,20 +14,18 @@ import { useEffect, useRef, useState } from 'react';
 
 /* How long each slide holds, in milliseconds.
  *
- * 3500 to match the reference Kate timed at three to four seconds. Changed
- * here and it changes everywhere, because every carousel on the site uses this
- * component.
+ * 7000. The reference Kate timed at three to four seconds, and that is right
+ * for what it does: it crossfades ONE photograph, so the eye tracks one thing.
+ * This crossfades three photographs, three headings, three descriptions and
+ * eight or so tags at once — roughly six times the information in the same
+ * moment. At 3500 it read as rushed, which is the honest response to being
+ * shown that much that quickly.
  *
- * The crossfade in globals.css is tuned to this number rather than set
- * independently: at 800ms in, the row is at rest for 77% of each cycle, which
- * is close to the 82% the previous six-second hold gave. Much below about 60%
- * and something is always moving, which is the difference between elegant and
- * restless — so if this number drops further, the fade has to come down with
- * it.
- *
- * A carousel can override it with the interval prop where a section genuinely
- * needs a different pace. */
-const HOLD_MS = 3500;
+ * Changed here and it changes everywhere. The fade in globals.css is tuned to
+ * this number: at 1600ms the row rests for 77% of each cycle, which is the
+ * proportion that felt calm at the old six-second pace. Move this and the fade
+ * has to move with it. */
+const HOLD_MS = 7000;
 
 export default function Carousel({
   children, perSlide = 3, label, autoplay = true, interval = HOLD_MS,

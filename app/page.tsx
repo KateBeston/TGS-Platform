@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Carousel from '@/components/Carousel';
 import HomeSearch from '@/components/HomeSearch';
-import EnquireButton from '@/components/EnquireButton';
 import { formatMoney } from '@/components/VenueCard';
 import { FavouriteButton } from '@/components/SavedVenues';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
@@ -141,12 +140,7 @@ function VenueSlide({ v }: { v: Card }) {
           </div>
         </div>
       </Link>
-      <div className="card-actions premium-slide-actions">
-        <Link href={href} className="card-book">Book venue</Link>
-        <EnquireButton venueId={v.id} venueName={v.venue_name ?? 'this venue'}
-          marketplace={v.marketplace ?? null} />
-        <FavouriteButton venueId={v.id} variant="card" />
-      </div>
+      <VenueActions v={v} href={href} />
     </div>
   );
 }
@@ -156,20 +150,41 @@ function VenueSlide({ v }: { v: Card }) {
  * quiet CTA — no description or type. Premium is the showcase; featured
  * is the browse. */
 function FeaturedSlide({ v }: { v: Card }) {
+  const href = venueHref(v);
   return (
-    <Link href={venueHref(v)} className="venue-card">
-      <div className="venue-card-image">
-        {v.image_url
-          ? <img src={v.image_url} alt="" loading="lazy" />
-          : <span className="placeholder-img">The Global Sanctum</span>}
-        {v.country && <span className="venue-card-tag">{v.country}</span>}
-      </div>
-      <div className="venue-card-content">
-        <p className="venue-card-location">{placeOf(v)}</p>
-        <h3 className="venue-card-name">{v.headline ?? v.venue_name}</h3>
-        <span className="card-cta">Explore Venue &rarr;</span>
-      </div>
-    </Link>
+    /* A div rather than a link, so the actions can sit inside the card. */
+    <div className="venue-card">
+      <Link href={href} className="card-link">
+        <div className="venue-card-image">
+          {v.image_url
+            ? <img src={v.image_url} alt="" loading="lazy" />
+            : <span className="placeholder-img">The Global Sanctum</span>}
+          {v.country && <span className="venue-card-tag">{v.country}</span>}
+        </div>
+        <div className="venue-card-content">
+          <p className="venue-card-location">{placeOf(v)}</p>
+          <h3 className="venue-card-name">{v.headline ?? v.venue_name}</h3>
+        </div>
+      </Link>
+      <VenueActions v={v} href={href} />
+    </div>
+  );
+}
+
+/* The three actions, in one place.
+ *
+ * Explore, Book, Save — sized to their words and pushed right, rather than
+ * three equal buttons filling the card. A row of full-width buttons is a form;
+ * three small actions in the corner is a card that happens to be actionable,
+ * which is what this is.
+ */
+function VenueActions({ v, href }: { v: Card; href: string }) {
+  return (
+    <div className="venue-actions">
+      <Link href={href} className="va-explore">Explore</Link>
+      <Link href={href} className="va-book">Book</Link>
+      <FavouriteButton venueId={v.id} variant="card" />
+    </div>
   );
 }
 
