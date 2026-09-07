@@ -11,6 +11,45 @@ type Item = { key: string; kind: string; id: number; label: string; detail: stri
 type VenueSlice = { venueName: string; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 
+/* Grouping the lines the way the cart was built.
+ *
+ * Rooms, then spaces, then dining, then experiences, then extras — the order
+ * somebody assembled them in, and the order they will check them in. Dining is
+ * in the list already so it needs nothing when it arrives.
+ */
+const GROUP_ORDER: [string, string][] = [
+  ['buyout', 'Whole venue'],
+  ['room', 'Accommodation'],
+  ['space', 'Spaces'],
+  ['meal', 'Dining'],
+  ['exp', 'Experiences'],
+  ['extra', 'Extras'],
+];
+
+function groupItems(items: Item[]) {
+  const out: { label: string; items: Item[] }[] = [];
+  for (const [kind, label] of GROUP_ORDER) {
+    const rows = items.filter((i) => i.kind === kind);
+    if (rows.length) out.push({ label, items: rows });
+  }
+  /* Anything with a kind not on the list still shows, rather than vanishing
+     because somebody added a new one. */
+  const known = new Set(GROUP_ORDER.map(([k]) => k));
+  const rest = items.filter((i) => !known.has(i.kind));
+  if (rest.length) out.push({ label: 'Also included', items: rest });
+  return out;
+}
+
+/* What is in the block, counted rather than listed. Stands in for the detail
+   when collapsed and sits above it when open, so the shape stays legible
+   either way. */
+function groupCounts(items: Item[]) {
+  return groupItems(items).map((g) => ({
+    label: g.label.toLowerCase(),
+    count: g.items.reduce((n, i) => n + (i.qty || 1), 0),
+  }));
+}
+
 function money(a: number | null, c: string | null): string {
   if (a == null) return '—';
   try { return new Intl.NumberFormat('en-AU', { style: 'currency', currency: c || 'AUD', maximumFractionDigits: 0 }).format(a); }
@@ -36,6 +75,13 @@ export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [resched, setResched] = useState<string | null>(null);
+  /* Which venue blocks are collapsed.
+   *
+   * Open by default with one venue, because a single booking is the thing you
+   * came to see. Collapsed by default from two, because a page of full
+   * itemisation for three venues is a wall, and what somebody wants first is
+   * the shape: which venues, when, how much. */
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let parsed: Cart | null = null;
@@ -106,6 +152,10 @@ export default function CartPage() {
         <div className="cart-main">
           {entries.map(([key, v]) => {
             const past = isPast(v.from);
+            /* Open with one venue, collapsed from two, unless somebody has
+               said otherwise for this one. A single booking is the thing you
+               came to see; three at full detail is a wall. */
+            const isShut = collapsed[key] ?? (entries.length > 1);
             const meta = [v.location, [fmtDate(v.from), fmtDate(v.to)].filter(Boolean).join('–'), v.guests ? `${v.guests} guests` : null].filter(Boolean).join(' · ');
             return (
               <div key={key} className={`cv${past ? ' cv-past' : ''}`}>
@@ -130,8 +180,27 @@ export default function CartPage() {
                   </div>
                 )}
                 {past && <div className="cv-past-banner">These dates have passed. Reschedule to keep this venue, or remove it.</div>}
-                <div className="cv-nest">
-                  {v.items.map((it) => (
+                {/* A summary that stands in for the detail when collapsed, and
+                    sits above it when open. Rooms, spaces and extras counted
+                    rather than listed, so the shape is legible either way. */}
+                <div className="cv-summary">
+                  {groupCounts(v.items).map((g) => (
+                    <span key={g.label} className="cv-summary-part">
+                      <strong>{g.count}</strong> {g.label}
+                    </span>
+                  ))}
+                  <span className="cv-summary-total">{money(v.total, v.currency)}</span>
+                  <button type="button" className="cv-toggle"
+                    onClick={() => setCollapsed({ ...collapsed, [key]: !isShut })}>
+                    {isShut ? 'Show detail' : 'Hide detail'}
+                  </button>
+                </div>
+
+                <div className="cv-nest" hidden={isShut}>
+                  {groupItems(v.items).map((group) => (
+                    <div key={group.label} className="cv-group">
+                      <div className="cv-group-h">{group.label}</div>
+                      {group.items.map((it) => (
                     <div key={it.key} className="cv-item">
                       <div className="cv-ithumb" style={it.image ? { backgroundImage: `url(${it.image})` } : undefined} />
                       <div className="cv-item-main">
@@ -154,9 +223,11 @@ export default function CartPage() {
                         </div>
                       </div>
                     </div>
+                      ))}
+                    </div>
                   ))}
                 </div>
-                <div className="cv-foot">
+                <div className="cv-foot" hidden={isShut}>
                   <Link className="cv-addmore" href={v.backHref || '/venues'}>+ Add more from this venue</Link>
                   <span className="cv-sub">Venue subtotal · {v.items.length} item{v.items.length === 1 ? '' : 's'}&nbsp;&nbsp;<b>{money(v.total, v.currency)}</b></span>
                 </div>
