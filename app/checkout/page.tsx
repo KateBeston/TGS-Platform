@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent } from '@/lib/track';
 import { createClient } from '@/lib/supabase/client';
-import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
+import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
@@ -64,7 +64,8 @@ export default function CheckoutPage() {
      hardcoded, so it is exactly what submitBooking will record. */
   useEffect(() => {
     if (!cart) return;
-    const ids = Object.values(cart.venues ?? {})
+    const slices = Object.values(cart.venues ?? {}) as any[];
+    const ids = slices
       .map((v) => v.venueId)
       .filter((n): n is number => typeof n === 'number');
     let live = true;
@@ -72,7 +73,9 @@ export default function CheckoutPage() {
       try {
         const db = createClient();
         const [tgs, ven] = await Promise.all([
-          fetchTgsAcceptanceDocs(db as never),
+          /* Which documents this booking calls for, from what is in it rather
+             than from how the venue is classified. */
+          fetchTgsAcceptanceDocs(db as never, contextsFromBooking(slices)),
           fetchVenueAcceptanceDocs(db as never, Array.from(new Set(ids))),
         ]);
         if (live) { setTgsDocs(tgs); setVenueDocs(ven); }

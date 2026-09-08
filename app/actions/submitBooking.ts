@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { notify, INTERNAL } from '@/lib/notify';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs } from '@/lib/acceptance';
+import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking } from '@/lib/acceptance';
 import { checkStay, stayRulesFrom } from '@/lib/stayRules';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -242,7 +242,9 @@ export async function submitBooking(
   try {
     const bookedVenueIds = Array.from(new Set(venueIds.filter((n): n is number => typeof n === 'number')));
     const [tgsDocs, venueDocs] = await Promise.all([
-      fetchTgsAcceptanceDocs(db as never),
+      /* The same contexts the checkout screen used, worked out the same way,
+         so what is recorded is exactly what was shown. */
+      fetchTgsAcceptanceDocs(db as never, contextsFromBooking(venues.map(([, v]) => v as any))),
       fetchVenueAcceptanceDocs(db as never, bookedVenueIds),
     ]);
 

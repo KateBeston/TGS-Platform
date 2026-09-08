@@ -40,14 +40,68 @@ type Queryable = {
       order: (c: string, o: { ascending: boolean; nullsFirst: boolean }) => any;
     };
   };
+  rpc: (fn: string, args: Record<string, unknown>) => any;
 };
 
-/** TGS documents the guest accepts. Same call from the browser and the server. */
-export async function fetchTgsAcceptanceDocs(db: Queryable): Promise<AcceptanceDoc[]> {
-  const { data } = await db
-    .from('booking_acceptance_documents')
-    .select(TGS_COLUMNS)
-    .order('display_order', { ascending: true, nullsFirst: false });
+/* What kind of booking this is, worked out from what is in it.
+ *
+ * Not from the venue's class. A venue can be marked for both marketplaces and
+ * that says nothing about what this person is doing there: booking one
+ * treatment at a retreat venue makes you a wellness guest, and showing you a
+ * retreat host agreement is both wrong and off-putting.
+ *
+ * So the signal is the line items.
+ *   Hiring a space, or the whole venue, or bringing a group to stay
+ *     → running something → Retreat.
+ *   Booking a treatment or a session
+ *     → attending something → Wellness.
+ *
+ * A booking can be both, and then it is both. Rooms alone are ambiguous — a
+ * couple booking a suite and a host housing their group choose the same line —
+ * so rooms defer to the venue's marketplace, which is the one case where the
+ * class is the best evidence available.
+ */
+export type BookingContext = 'Wellness' | 'Retreat';
+
+export function contextsFromBooking(
+  slices: { marketplace?: string | null; items?: { kind?: string }[] }[],
+): BookingContext[] {
+  const found = new Set<BookingContext>();
+
+  for (const slice of slices) {
+    const kinds = new Set((slice.items ?? []).map((i) => i.kind));
+
+    /* Unambiguous either way. */
+    if (kinds.has('space') || kinds.has('buyout')) found.add('Retreat');
+    if (kinds.has('exp')) found.add('Wellness');
+
+    /* Rooms on their own say nothing about intent, so fall back to what the
+       venue is. A venue marked for both, booked as rooms only, stays
+       undetermined rather than guessing — and undetermined returns the
+       universal documents, which is the safe direction to be wrong in. */
+    const onlyRooms = kinds.size > 0
+      && ![...kinds].some((k) => k === 'space' || k === 'buyout' || k === 'exp');
+    if (onlyRooms) {
+      if (slice.marketplace === 'Retreat') found.add('Retreat');
+      else if (slice.marketplace === 'Wellness') found.add('Wellness');
+    }
+  }
+
+  return [...found];
+}
+
+/** TGS documents this booking calls for. Same call from the browser and the
+ *  server.
+ *
+ *  Contexts come from the line items. Passing none returns the universal
+ *  documents only, which is deliberately the safe direction: too few is a
+ *  gap somebody can close, too many is a guest being asked to accept terms
+ *  that do not apply to them. */
+export async function fetchTgsAcceptanceDocs(
+  db: Queryable,
+  contexts: BookingContext[] = [],
+): Promise<AcceptanceDoc[]> {
+  const { data } = await db.rpc('booking_acceptance_docs', { p_contexts: contexts });
   return (data ?? []) as AcceptanceDoc[];
 }
 
