@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { contextsFromBooking } from '@/lib/acceptance';
 import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
@@ -79,8 +80,18 @@ export default function HostStepPage() {
         db.from('venues').select('id,venue_name').in('id', venueIds.length ? venueIds : [-1]),
       ]);
 
+      /* The whole booking's documents, not this step's half.
+       *
+       * I first passed a fixed context here — Wellness on the health step,
+       * Retreat on the host step — which throws away the derivation and means
+       * somebody booking a treatment AND a venue hire sees only half of what
+       * they will be asked to accept on each page.
+       *
+       * contextsFromBooking reads the line items, so a booking that is both is
+       * both, and a treatment at a venue that also hosts retreats is still
+       * only wellness. */
       const { data: bookingDocs } = await db.rpc('booking_acceptance_docs', {
-        p_contexts: ['Retreat'],
+        p_contexts: contextsFromBooking(Object.values(cart?.venues ?? {}) as any[]),
       });
       setTgsDocs((bookingDocs ?? []) as any[]);
 
