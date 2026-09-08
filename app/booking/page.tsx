@@ -117,8 +117,12 @@ export default function CartPage() {
   const reschedule = (k: string, f: string, t: string) => { if (!cart) return; write({ ...cart, venues: { ...cart.venues, [k]: { ...cart.venues[k], from: f, to: t } } }); setResched(null); };
   const clearAll = () => write({ venues: {} });
 
-  if (!loaded) return <div className="cart-wrap" />;
-
+  /* Above every early return, deliberately.
+   *
+   * This was below `if (!loaded) return`, which meant the hook ran on some
+   * renders and not others — React throws on the change, and the page died
+   * with a header and footer and nothing between them. A hook cannot sit after
+   * a conditional return, however convenient the position looks. */
   const entries = cart?.venues ? Object.entries(cart.venues).filter(([, v]) => v.items?.length) : [];
 
   useEffect(() => {
@@ -139,6 +143,9 @@ export default function CartPage() {
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart]);
+
+  if (!loaded) return <div className="cart-wrap" />;
+
   if (!entries.length) {
     return (
       <div className="cart-wrap">
