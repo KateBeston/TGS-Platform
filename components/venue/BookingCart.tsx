@@ -620,9 +620,11 @@ export function BookingCart({
               <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
               <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
               <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0 || !!issue} title={issue ?? undefined}>
-                {/* The button says what is missing rather than sitting grey
-                    with the reason in a paragraph above it. */}
-                {count === 0 ? 'Choose what you need' : (issue ?? 'Review booking')}
+                {/* Review booking throughout: it is the name of the step, and
+                    a button that renames itself is a button somebody has to
+                    read twice. When something is genuinely missing — dates, or
+                    beds for the group — it says so instead. */}
+                {issue ?? 'Review booking'}
               </button>
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
