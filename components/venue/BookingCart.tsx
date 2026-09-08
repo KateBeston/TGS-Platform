@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { trackCartEvent } from '@/lib/track';
+import { trackCartEvent, type CartSource } from '@/lib/track';
 import { NO_RULES, checkStay, earliestArrival, latestArrival, earliestDeparture, latestDeparture, minNightsFor, type StayRules } from '@/lib/stayRules';
 
 /* The booking drawer.
@@ -196,16 +196,19 @@ export function BookingCart({
   const issue = stayIssue ?? bedIssue;
   const qty = (k: Kind, id: number) => bag(k)[id] ?? 0;
   const setQtyRaw = (k: Kind, id: number, n: number) => setBag(k)({ ...bag(k), [id]: Math.max(0, n) });
-  const setQty = (k: Kind, id: number, n: number) => {
+  /* Where the press happened, carried through to the event. Defaults to the
+     listing because that is where most adds come from and where the existing
+     call sites are; the panel's own controls say otherwise. */
+  const setQty = (k: Kind, id: number, n: number, source: CartSource = 'listing') => {
     const prev = bag(k)[id] ?? 0;
     setQtyRaw(k, id, n);
-    if (n <= 0) trackCartEvent({ eventType: 'remove', venueId, itemType: k, itemId: id, quantity: 0, currency });
-    else if (n !== prev) trackCartEvent({ eventType: 'quantity_change', venueId, itemType: k, itemId: id, quantity: n, currency });
+    if (n <= 0) trackCartEvent({ eventType: 'remove', venueId, itemType: k, itemId: id, quantity: 0, currency, source });
+    else if (n !== prev) trackCartEvent({ eventType: 'quantity_change', venueId, itemType: k, itemId: id, quantity: n, currency, source });
   };
-  const add = (k: Kind, id: number) => {
+  const add = (k: Kind, id: number, source: CartSource = 'listing') => {
     const next = (bag(k)[id] ?? 0) + 1;
     setQtyRaw(k, id, next);
-    trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency });
+    trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency, source });
   };
   const clear = () => { setRoomQty({}); setSpaceQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
   const selectBuyout = () => { setRoomQty({}); setBuyout(true); };
@@ -535,7 +538,7 @@ export function BookingCart({
                                 </span>
                               </span>
                               <Stepper value={roomQty[r.id] ?? 0} min={0} max={r.quantity ?? 9}
-                                onChange={(n) => setRoomQty({ ...roomQty, [r.id]: n })} />
+                                onChange={(n) => setQty('room', r.id, n, 'panel')} />
                             </li>
                           );
                         })}
@@ -572,7 +575,7 @@ export function BookingCart({
                             </span>
                             <Stepper value={spaceQty[sp.id] ?? 0} min={0}
                               max={Math.max(nights || 1, 14)}
-                              onChange={(n) => setSpaceQty({ ...spaceQty, [sp.id]: n })} />
+                              onChange={(n) => setQty('space', sp.id, n, 'panel')} />
                           </li>
                         ))}
                       </ul>
@@ -606,7 +609,7 @@ export function BookingCart({
                             </span>
                             <Stepper value={expQty[sv.id] ?? 0} min={0}
                               max={Math.max(guestN, 20)}
-                              onChange={(n) => setExpQty({ ...expQty, [sv.id]: n })} />
+                              onChange={(n) => setQty('exp', sv.id, n, 'panel')} />
                           </li>
                         ))}
                       </ul>
@@ -650,7 +653,7 @@ export function BookingCart({
                       </span>
                     </span>
                     <Stepper value={expQty[sv.id] ?? 0} min={0} max={Math.max(guestN, 20)}
-                      onChange={(n) => setExpQty({ ...expQty, [sv.id]: n })} />
+                      onChange={(n) => setQty('exp', sv.id, n, 'suggestion')} />
                   </div>
                 ))}
               </div>

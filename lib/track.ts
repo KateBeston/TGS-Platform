@@ -40,8 +40,25 @@ export function trackOnce(event: string, payload: Payload = {}) {
 export type CartEventType =
   | 'add' | 'remove' | 'quantity_change' | 'cart_view' | 'checkout_start' | 'checkout_abandon' | 'book';
 
+/* Where an add came from.
+ *
+ * Without this, a massage added from a suggestion is indistinguishable from
+ * one added on the listing page, and there is no way to tell whether "Worth
+ * adding" earns its place — only that adds happened.
+ *
+ * A named union rather than a loose string, because free text becomes six
+ * spellings of the same thing and then the report is guesswork. */
+export type CartSource =
+  | 'listing'        // the venue page, where most adds happen
+  | 'suggestion'     // Worth adding, in the panel
+  | 'suggestion_booking' // Worth adding, on the booking page
+  | 'panel'          // the panel's own starting list, when nothing is chosen
+  | 'card';          // a venue card, before the listing was opened
+
 export type CartEvent = {
   eventType: CartEventType;
+  /* Recorded in metadata, so no migration and no new column. */
+  source?: CartSource;
   venueId?: number | null;
   itemType?: 'room' | 'space' | 'exp' | 'extra' | 'buyout' | null;
   itemId?: number | null;
@@ -62,7 +79,14 @@ export function trackCartEvent(e: CartEvent) {
     fetch('/api/cart-event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...e, sessionId: sid }),
+      /* Folded into metadata rather than added as a column: cart_events
+         already carries jsonb for exactly this, and a column would need a
+         migration to answer a question that may change shape. */
+      body: JSON.stringify({
+        ...e,
+        sessionId: sid,
+        metadata: e.source ? { ...(e.metadata ?? {}), source: e.source } : e.metadata ?? null,
+      }),
       keepalive: true,
     }).catch(() => { /* silent */ });
   } catch { /* never break the page */ }
