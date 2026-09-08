@@ -49,6 +49,12 @@ export default function HostStepPage() {
   const [agreed, setAgreed] = useState(false);
   const [steps, setSteps] = useState<BookingStep[]>([]);
   const [venues, setVenues] = useState<{ name: string; location: string; s: Settings | null }[]>([]);
+  /* The documents a venue hire calls for, from the register.
+     This page previously named the Health & Wellness Disclaimer — a public
+     policy with requires_acceptance false, and a guest document at that. A
+     retreat host hiring a venue was being pointed at the wrong thing while the
+     Retreat Host Agreement went unmentioned. */
+  const [tgsDocs, setTgsDocs] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -72,6 +78,11 @@ export default function HostStepPage() {
           .in('venue_id', venueIds.length ? venueIds : [-1]),
         db.from('venues').select('id,venue_name').in('id', venueIds.length ? venueIds : [-1]),
       ]);
+
+      const { data: bookingDocs } = await db.rpc('booking_acceptance_docs', {
+        p_contexts: ['Retreat'],
+      });
+      setTgsDocs((bookingDocs ?? []) as any[]);
 
       const byId = new Map(((rows ?? []) as Settings[]).map((r) => [r.venue_id, r]));
       const slices = Object.values(cart.venues ?? {}) as any[];
@@ -195,13 +206,32 @@ export default function HostStepPage() {
         </ul>
       </div>
 
+      {/* What checkout will ask you to accept. For a venue hire that is the
+          Retreat Host Agreement and the safety declaration, not the guest
+          health disclaimer this page used to name. */}
+      {tgsDocs.length > 0 && (
+        <section className="step-card">
+          <div className="step-form-req">
+            <h4>Agreements you will be asked to accept</h4>
+            <ul className="step-docs">
+              {tgsDocs.map((d) => (
+                <li key={d.slug}>
+                  <Link href={`/legal/${d.slug}`}>{d.name}</Link>
+                  {d.version_label && <span>{d.version_label}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <div className="step-ack">
         <label>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
             I have read what is included and excluded, I will hold the insurance the venue requires,
             and I accept responsibility for the participants I bring and for the programme I run.
-            I have read the <Link href="/legal/health-wellness-disclaimer">Health &amp; Wellness Disclaimer</Link>.
+            I understand the venue's conditions above.
           </span>
         </label>
       </div>

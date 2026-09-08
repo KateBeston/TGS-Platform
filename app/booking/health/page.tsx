@@ -32,6 +32,10 @@ export default function HealthStepPage() {
   const [ready, setReady] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [steps, setSteps] = useState<BookingStep[]>([]);
+  /* The TGS documents this booking calls for, read from the register rather
+     than named in the markup, so the page cannot drift from what checkout
+     will actually record. */
+  const [tgsDocs, setTgsDocs] = useState<any[]>([]);
   const [rows, setRows] = useState<{ venueName: string; serviceName: string; safety: Safety[] }[]>([]);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [formVenues, setFormVenues] = useState<string[]>([]);
@@ -64,6 +68,19 @@ export default function HealthStepPage() {
         db.from('venues').select('id,venue_name,requires_health_form')
           .in('id', venueIds.length ? venueIds : [-1]),
       ]);
+
+      /* The documents this booking actually calls for, from the register.
+       *
+       * This step used to name one document by slug — the Health & Wellness
+       * Disclaimer, which has requires_acceptance false and no booking context.
+       * It is a public policy, not part of the acceptance set. So somebody was
+       * being asked to confirm they had read something that is not required,
+       * while the documents that ARE required for their booking went
+       * unmentioned. */
+      const { data: bookingDocs } = await db.rpc('booking_acceptance_docs', {
+        p_contexts: ['Wellness'],
+      });
+      setTgsDocs((bookingDocs ?? []) as any[]);
 
       const practiceIds = Array.from(new Set(
         (services ?? []).map((s: any) => s.practice_id).filter(Boolean),
@@ -184,13 +201,36 @@ export default function HealthStepPage() {
         </ul>
       </div>
 
+      {/* What this booking will ask you to accept, named before you reach the
+          point of accepting it. Read from the register, so a document that is
+          renamed or superseded cannot leave a broken link behind. */}
+      {/* What checkout will ask you to accept, named here so it can be read
+          first rather than at the last moment. From the register, so a
+          document that is renamed or superseded cannot leave a broken link.
+          Same shape as the venue agreements above it. */}
+      {tgsDocs.length > 0 && (
+        <section className="step-card">
+          <div className="step-form-req">
+            <h4>Agreements you will be asked to accept</h4>
+            <ul className="step-docs">
+              {tgsDocs.map((d) => (
+                <li key={d.slug}>
+                  <Link href={`/legal/${d.slug}`}>{d.name}</Link>
+                  {d.version_label && <span>{d.version_label}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <div className="step-ack">
         <label>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
             I have read the notes above and understand they describe the practices, not my own
             circumstances. Where a venue requires a health form, I will complete it with them
-            directly. I have read the <Link href="/legal/health-wellness-disclaimer">Health &amp; Wellness Disclaimer</Link>.
+            directly.
           </span>
         </label>
       </div>
