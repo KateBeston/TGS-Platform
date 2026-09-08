@@ -5192,3 +5192,37 @@ img { max-width: 100%; height: auto; display: block; }
 .bc-start-name{font-size:13px;color:var(--charcoal);line-height:1.3}
 .bc-start-detail{font-size:10.5px;color:var(--ink-quiet)}
 .bc-start-price{font-size:11px;color:var(--ink-gold);margin-top:2px}
+
+/* ── Worth adding ────────────────────────────────────────────────────────
+   Beneath what somebody has chosen, behind a divider, above the total. Mixed
+   into the list a suggestion reads as something they picked; after it, it
+   reads as an offer, which is what it is.
+
+   Three at most, each with its price. An invitation to add something and then
+   be told the price is on request is worse than no invitation. */
+
+.bc-sugg{border-top:1px solid var(--border);margin-top:var(--s4);padding-top:14px}
+.bc-sugg-h{font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-gold);margin-bottom:10px}
+.bc-sugg-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.bc-sugg-row + .bc-sugg-row{border-top:1px solid rgba(49,49,49,.06)}
+.bc-sugg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.bc-sugg-name{font-size:12.5px;color:var(--charcoal);line-height:1.3}
+.bc-sugg-price{font-size:10.5px;color:var(--ink-quiet)}
+
+/* On the booking page the same block sits inside each venue, so it says which
+   venue it belongs to rather than floating. */
+.cv-sugg{border-top:1px solid var(--border);margin-top:var(--s4);padding-top:14px}
+.cv-sugg-h{font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-gold);margin-bottom:10px}
+.cv-sugg-row{display:flex;align-items:center;gap:var(--s4);padding:9px 0}
+.cv-sugg-row + .cv-sugg-row{border-top:1px solid rgba(49,49,49,.06)}
+.cv-sugg-main{flex:1;min-width:0}
+.cv-sugg-name{font-size:13px;color:var(--charcoal)}
+.cv-sugg-price{font-size:11px;color:var(--ink-quiet);margin-top:2px}
+.cv-sugg-add{background:none;border:1px solid var(--border);cursor:pointer;
+  font-family:inherit;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-gold);padding:8px 13px;white-space:nowrap;
+  transition:background .2s ease,color .2s ease,border-color .2s ease}
+.cv-sugg-add:hover{background:var(--charcoal);color:var(--warm-white);
+  border-color:var(--charcoal)}

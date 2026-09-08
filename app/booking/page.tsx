@@ -82,6 +82,11 @@ export default function CartPage() {
    * itemisation for three venues is a wall, and what somebody wants first is
    * the shape: which venues, when, how much. */
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  /* What else each venue offers, so a suggestion can name a real thing at a
+     real price. The cart stores only what was chosen, so this has to be
+     fetched — but it is one query for every venue in the booking, not one
+     each. */
+  const [offers, setOffers] = useState<Record<number, any[]>>({});
 
   useEffect(() => {
     let parsed: Cart | null = null;
@@ -115,6 +120,25 @@ export default function CartPage() {
   if (!loaded) return <div className="cart-wrap" />;
 
   const entries = cart?.venues ? Object.entries(cart.venues).filter(([, v]) => v.items?.length) : [];
+
+  useEffect(() => {
+    const ids = entries.map(([, v]) => (v as any).venueId).filter((n: any) => typeof n === 'number');
+    if (!ids.length) return;
+    let live = true;
+    (async () => {
+      const { data } = await createClient()
+        .from('published_venue_services')
+        .select('id,venue_id,name,base_price,currency,duration_minutes,is_featured')
+        .in('venue_id', Array.from(new Set(ids)))
+        .not('base_price', 'is', null);
+      if (!live) return;
+      const byVenue: Record<number, any[]> = {};
+      for (const row of data ?? []) (byVenue[row.venue_id] ??= []).push(row);
+      setOffers(byVenue);
+    })();
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart]);
   if (!entries.length) {
     return (
       <div className="cart-wrap">
@@ -227,6 +251,36 @@ export default function CartPage() {
                     </div>
                   ))}
                 </div>
+                {/* Worth adding, inside the venue it belongs to rather than
+                    floating at the bottom of the page. Hidden with the detail:
+                    somebody who has collapsed a block has said they are done
+                    with it for now. */}
+                {!isShut && (() => {
+                  const chosen = new Set(v.items.map((i) => `${i.kind}-${i.id}`));
+                  const picks = (offers[(v as any).venueId] ?? [])
+                    .filter((o) => !chosen.has(`exp-${o.id}`))
+                    .sort((a, b) => Number(!!b.is_featured) - Number(!!a.is_featured))
+                    .slice(0, 3);
+                  if (!picks.length) return null;
+                  return (
+                    <div className="cv-sugg">
+                      <div className="cv-sugg-h">Worth adding at {v.venueName}</div>
+                      {picks.map((o) => (
+                        <div key={o.id} className="cv-sugg-row">
+                          <div className="cv-sugg-main">
+                            <div className="cv-sugg-name">{o.name}</div>
+                            <div className="cv-sugg-price">
+                              {money(Number(o.base_price), o.currency ?? v.currency)} per person
+                              {o.duration_minutes ? ` \u00b7 ${o.duration_minutes} min` : ''}
+                            </div>
+                          </div>
+                          <Link className="cv-sugg-add" href={v.backHref || '/venues'}>Add</Link>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
                 <div className="cv-foot" hidden={isShut}>
                   <Link className="cv-addmore" href={v.backHref || '/venues'}>+ Add more from this venue</Link>
                   <span className="cv-sub">Venue subtotal · {v.items.length} item{v.items.length === 1 ? '' : 's'}&nbsp;&nbsp;<b>{money(v.total, v.currency)}</b></span>

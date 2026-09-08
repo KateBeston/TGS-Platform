@@ -184,6 +184,8 @@ export function BookingCart({
      work this out themselves. */
   const bedsChosen = rooms.reduce((n, r) => n + ((roomQty[r.id] ?? 0) * (Number(r.sleeps) || 0)), 0);
   const bedsShort = isStay && !buyout ? Math.max(0, guestN - bedsChosen) : 0;
+
+
   /* Not enough beds is a blocker of the same kind as a stay-rule failure, so
      it is said in the same place rather than through a second mechanism. It is
      only raised once something has been chosen: an empty cart is not an error,
@@ -307,6 +309,24 @@ export function BookingCart({
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
+
+  /* A few things worth adding, once there is a booking to add them to.
+   *
+   * Only what is not already chosen, only what has a price — an invitation to
+   * add something and then be told the price is on request is worse than no
+   * invitation. Featured first, because that is the venue saying what it is
+   * proud of rather than us guessing.
+   *
+   * Three, and only after something has been chosen. Suggesting extras to
+   * somebody with an empty booking is asking for a second thing before they
+   * have decided on a first. */
+  const suggestions = useMemo(() => {
+    if (count === 0) return [];
+    return [...services]
+      .filter((sv) => !(expQty[sv.id] ?? 0) && sv.base_price != null)
+      .sort((a, b) => Number(!!b.is_featured) - Number(!!a.is_featured))
+      .slice(0, 3);
+  }, [services, expQty, count]);
   const anyUnpriced = lines.some((l) => l.amount == null);
 
   const downloadQuote = async () => {
@@ -614,6 +634,28 @@ export function BookingCart({
           </div>
 
           <div className="bc-box-foot">
+            {/* Beneath the lines and above the total, behind a divider.
+                A suggestion sits after what somebody has decided, not among
+                it — mixed into the list it reads as something they chose. */}
+            {suggestions.length > 0 && (
+              <div className="bc-sugg">
+                <div className="bc-sugg-h">Worth adding</div>
+                {suggestions.map((sv) => (
+                  <div key={sv.id} className="bc-sugg-row">
+                    <span className="bc-sugg-main">
+                      <span className="bc-sugg-name">{sv.name}</span>
+                      <span className="bc-sugg-price">
+                        {money(Number(sv.base_price), currency)} per person
+                        {sv.duration_minutes ? ` \u00b7 ${sv.duration_minutes} min` : ''}
+                      </span>
+                    </span>
+                    <Stepper value={expQty[sv.id] ?? 0} min={0} max={Math.max(guestN, 20)}
+                      onChange={(n) => setExpQty({ ...expQty, [sv.id]: n })} />
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="bc-total"><span>Estimated total</span><span>{money(total, currency)}</span></div>
             {anyUnpriced && <p className="bb-note">Some items are priced on request and are not in this estimate.</p>}
             <div className="bc-actions">
