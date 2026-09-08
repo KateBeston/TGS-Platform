@@ -5165,3 +5165,30 @@ img { max-width: 100%; height: auto; display: block; }
   .cv-summary{gap:var(--s3);font-size:12px}
   .cv-summary-total{width:100%;margin-left:0;text-align:right}
 }
+
+/* ── The booking panel before anything is chosen ─────────────────────────
+   Not an empty state, a starting point. Telling somebody their booking is
+   empty and to go and find the tabs puts an instruction where a choice should
+   be. The rooms and spaces sit here at zero with their prices, and adding one
+   is a single press. */
+
+.bc-start{display:block}
+.bc-start-note{font-size:11.5px;line-height:1.6;color:var(--ink-quiet);
+  margin:0 0 16px}
+.bc-start-grp{border-top:1px solid var(--border)}
+.bc-start-grp:last-child{border-bottom:1px solid var(--border)}
+.bc-start-h{width:100%;display:flex;align-items:center;gap:10px;padding:13px 0;
+  background:none;border:0;cursor:pointer;font-family:inherit;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal)}
+.bc-start-h span:first-child{flex:1;text-align:left}
+.bc-start-n{font-size:11px;letter-spacing:0;color:var(--ink-quiet)}
+.bc-start-caret{font-size:15px;line-height:1;color:var(--ink-gold);width:12px;
+  text-align:center}
+.bc-start-list{list-style:none;margin:0;padding:0 0 12px}
+.bc-start-row{display:flex;align-items:flex-start;gap:12px;padding:9px 0;
+  border-top:1px solid var(--border-faint,rgba(49,49,49,.06))}
+.bc-start-row:first-child{border-top:0}
+.bc-start-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.bc-start-name{font-size:13px;color:var(--charcoal);line-height:1.3}
+.bc-start-detail{font-size:10.5px;color:var(--ink-quiet)}
+.bc-start-price{font-size:11px;color:var(--ink-gold);margin-top:2px}

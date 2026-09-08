@@ -95,6 +95,10 @@ export function BookingCart({
   const [guests, setGuests] = useState('2');
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
   const [spaceQty, setSpaceQty] = useState<Record<number, number>>({});
+  /* Which group is open in the starting state. One at a time: the panel is
+     narrow and three lists at once is the wall this was meant to avoid.
+     Accommodation opens first because it is the one that is required. */
+  const [openStart, setOpenStart] = useState<string | null>('rooms');
   const [expQty, setExpQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
   /* Always present, never tucked away.
@@ -471,7 +475,126 @@ export function BookingCart({
               </div>
             )}
 
-            {count === 0 && <p className="bb-empty">Your booking is empty. Choose rooms and experiences from the tabs and they&rsquo;ll gather here.</p>}
+            {/* Not an empty state, a starting point.
+                Telling somebody their booking is empty and to go and find the
+                tabs is a instruction where a choice should be. The rooms and
+                spaces are right here at zero, with their prices, and adding one
+                is a single press. */}
+            {count === 0 && (
+              <div className="bc-start">
+                <p className="bc-start-note">
+                  Choose what you need. Prices update as you go, and nothing is
+                  charged until the venue confirms.
+                </p>
+
+                {rooms.length > 0 && (
+                  <div className="bc-start-grp">
+                    <button type="button" className="bc-start-h"
+                      onClick={() => setOpenStart(openStart === 'rooms' ? null : 'rooms')}
+                      aria-expanded={openStart === 'rooms'}>
+                      <span>Accommodation</span>
+                      <span className="bc-start-n">{rooms.length}</span>
+                      <span className="bc-start-caret">{openStart === 'rooms' ? '\u2013' : '+'}</span>
+                    </button>
+                    {openStart === 'rooms' && (
+                      <ul className="bc-start-list">
+                        {rooms.map((r) => {
+                          const rp = roomPlan(r.id);
+                          return (
+                            <li key={r.id} className="bc-start-row">
+                              <span className="bc-start-main">
+                                <span className="bc-start-name">{r.name}</span>
+                                <span className="bc-start-detail">
+                                  {[r.bed_configuration, r.sleeps ? `sleeps ${r.sleeps}` : null]
+                                    .filter(Boolean).join(' \u00b7 ')}
+                                </span>
+                                <span className="bc-start-price">
+                                  {rp?.base_price != null
+                                    ? `${money(Number(rp.base_price), currency)} per night`
+                                    : 'Price on request'}
+                                </span>
+                              </span>
+                              <Stepper value={roomQty[r.id] ?? 0} min={0} max={r.quantity ?? 9}
+                                onChange={(n) => setRoomQty({ ...roomQty, [r.id]: n })} />
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {spaces.length > 0 && (
+                  <div className="bc-start-grp">
+                    <button type="button" className="bc-start-h"
+                      onClick={() => setOpenStart(openStart === 'spaces' ? null : 'spaces')}
+                      aria-expanded={openStart === 'spaces'}>
+                      <span>Spaces</span>
+                      <span className="bc-start-n">{spaces.length}</span>
+                      <span className="bc-start-caret">{openStart === 'spaces' ? '\u2013' : '+'}</span>
+                    </button>
+                    {openStart === 'spaces' && (
+                      <ul className="bc-start-list">
+                        {spaces.map((sp) => (
+                          <li key={sp.id} className="bc-start-row">
+                            <span className="bc-start-main">
+                              <span className="bc-start-name">{sp.name}</span>
+                              <span className="bc-start-detail">
+                                {[sp.space_type, sp.capacity ? `holds ${sp.capacity}` : null]
+                                  .filter(Boolean).join(' \u00b7 ')}
+                              </span>
+                              <span className="bc-start-price">
+                                {sp.is_included ? 'Included in your hire'
+                                  : sp.hire_price != null
+                                    ? `${money(Number(sp.hire_price), currency)} ${(sp.price_basis || 'per day').toLowerCase()}`
+                                    : 'Price on request'}
+                              </span>
+                            </span>
+                            <Stepper value={spaceQty[sp.id] ?? 0} min={0}
+                              max={Math.max(nights || 1, 14)}
+                              onChange={(n) => setSpaceQty({ ...spaceQty, [sp.id]: n })} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {services.length > 0 && (
+                  <div className="bc-start-grp">
+                    <button type="button" className="bc-start-h"
+                      onClick={() => setOpenStart(openStart === 'exp' ? null : 'exp')}
+                      aria-expanded={openStart === 'exp'}>
+                      <span>Experiences</span>
+                      <span className="bc-start-n">{services.length}</span>
+                      <span className="bc-start-caret">{openStart === 'exp' ? '\u2013' : '+'}</span>
+                    </button>
+                    {openStart === 'exp' && (
+                      <ul className="bc-start-list">
+                        {services.map((sv) => (
+                          <li key={sv.id} className="bc-start-row">
+                            <span className="bc-start-main">
+                              <span className="bc-start-name">{sv.name}</span>
+                              <span className="bc-start-detail">
+                                {sv.duration_minutes ? `${sv.duration_minutes} minutes` : ''}
+                              </span>
+                              <span className="bc-start-price">
+                                {sv.base_price != null
+                                  ? `${money(Number(sv.base_price), currency)} per person`
+                                  : 'Price on request'}
+                              </span>
+                            </span>
+                            <Stepper value={expQty[sv.id] ?? 0} min={0}
+                              max={Math.max(guestN, 20)}
+                              onChange={(n) => setExpQty({ ...expQty, [sv.id]: n })} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             {count > 0 && groups.map((g) => (
               <div key={g.key} className="bc-grp">
                 <div className="bc-grp-h">{g.label}</div>
@@ -497,7 +620,9 @@ export function BookingCart({
               <button type="button" className="bb-btn bb-btn-quiet" onClick={clear} disabled={count === 0}>Clear</button>
               <button type="button" className="bb-btn bb-btn-quiet" onClick={downloadQuote} disabled={count === 0}>Download quote</button>
               <button type="button" className="bb-btn bb-btn-primary" onClick={() => router.push('/booking')} disabled={count === 0 || !!issue} title={issue ?? undefined}>
-                {issue ?? 'Review booking'}
+                {/* The button says what is missing rather than sitting grey
+                    with the reason in a paragraph above it. */}
+                {count === 0 ? 'Choose what you need' : (issue ?? 'Review booking')}
               </button>
             </div>
             <p className="bb-note">An estimate. The final quote, deposit and payment schedule are confirmed at review.</p>
