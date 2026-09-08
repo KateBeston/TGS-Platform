@@ -5238,3 +5238,48 @@ img { max-width: 100%; height: auto; display: block; }
   color:var(--ink-gold);margin:0 0 4px}
 .acc-doc-blurb{font-size:11.5px;color:var(--ink-quiet);line-height:1.6;
   margin:0 0 10px}
+
+/* ── The featured space, actually featured ───────────────────────────────
+   It used the same title and text classes as every space below it, so apart
+   from sitting first on a different background it read as one of the list.
+   Scale is what separates a lead from an item, so the type steps up and the
+   copy gets room. */
+
+.feature-label--lead{font-size:11px;letter-spacing:.28em;color:var(--gold-dark);
+  margin-bottom:14px}
+.feature-title--lead{font-size:clamp(32px,3.4vw,52px);line-height:1.08;
+  margin-bottom:10px}
+
+/* The facts a host would otherwise open the modal for, said on the page. */
+.feature-sub{font-family:var(--sans);font-size:12px;letter-spacing:.06em;
+  color:var(--ink-quiet);margin:0 0 18px}
+
+.feature-text--lead{font-size:16px;line-height:1.75;max-width:46ch}
+.feature-content--lead{padding-top:var(--s2)}
+
+/* The way into the full detail. A quiet link rather than a button: the space
+   is the thing being looked at, not this. */
+.feature-more{margin-top:20px}
+.rm-open{background:none;border:0;padding:0 0 3px;cursor:pointer;font-family:var(--sans);
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-gold);
+  border-bottom:1px solid var(--gold);transition:color .2s ease}
+.rm-open:hover{color:var(--charcoal)}
+
+/* Space modal sections. The room modal already carries .rm, .rm-body and the
+   rest; these are the parts a space needs and a room does not. */
+.rm-desc{font-size:14px;line-height:1.75;color:var(--ink);margin:0 0 16px}
+.rm-price{font-size:12.5px;color:var(--ink-gold);margin:0 0 20px}
+.rm-sec{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
+.rm-sec h4{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-gold);margin:0 0 10px}
+.rm-dl{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;margin:0}
+.rm-dl>div{display:flex;justify-content:space-between;gap:12px;
+  border-bottom:1px solid rgba(49,49,49,.06);padding-bottom:6px}
+.rm-dl dt{font-size:12px;color:var(--ink-quiet);margin:0}
+.rm-dl dd{font-size:12.5px;color:var(--charcoal);margin:0;text-align:right}
+.rm-note{font-size:12.5px;line-height:1.7;color:var(--ink-quiet);margin:10px 0 0}
+
+@media (max-width:620px){
+  .rm-dl{grid-template-columns:1fr}
+  .feature-text--lead{font-size:15px}
+}

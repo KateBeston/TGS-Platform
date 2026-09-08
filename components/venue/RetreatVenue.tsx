@@ -5,6 +5,7 @@ import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap, { venueAddressLine } from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
+import { SpaceDetails } from './SpaceDetails';
 import { FavouriteButton } from '@/components/SavedVenues';
 import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
@@ -217,11 +218,23 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             <Section tone="white">
               <div className="feature-block">
                 <SpaceImage s={featured} />
-                <div className="feature-content">
-                  <p className="feature-label">Featured Space</p>
-                  <h2 className="feature-title">{featured.name}</h2>
+                {/* The featured space used the same title and text classes as
+                    every space below it, so apart from sitting first on a
+                    different background it read as one of the list. It now has
+                    its own scale, a line saying why it leads, and the facts a
+                    host would otherwise have to open the modal for. */}
+                <div className="feature-content feature-content--lead">
+                  <p className="feature-label feature-label--lead">The principal space</p>
+                  <h2 className="feature-title feature-title--lead">{featured.name}</h2>
+                  <p className="feature-sub">
+                    {[
+                      featured.space_type,
+                      featured.capacity ? `holds ${featured.capacity}` : null,
+                      featured.area ? `${featured.area} ${featured.area_unit ?? 'sqm'}` : null,
+                    ].filter(Boolean).join('  ·  ')}
+                  </p>
                   {featured.description && (
-                    <p className="feature-text">{featured.description}</p>
+                    <p className="feature-text feature-text--lead">{featured.description}</p>
                   )}
                   {!!spaceTags(featured).length && (
                     <div className="feature-tags">
@@ -230,6 +243,9 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
                       ))}
                     </div>
                   )}
+                  <div className="feature-more">
+                    <SpaceDetails space={featured} />
+                  </div>
                 </div>
               </div>
             </Section>
@@ -249,6 +265,9 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
                         {spaceTags(s).map((t) => <span key={t} className="tag">{t}</span>)}
                       </div>
                     )}
+                    <div className="feature-more">
+                      <SpaceDetails space={s} />
+                    </div>
                   </div>
                 );
                 return (
