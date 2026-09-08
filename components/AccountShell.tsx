@@ -10,7 +10,10 @@ import TwoFactorSetup from '@/components/TwoFactorSetup';
 import type { HostData } from '@/app/actions/host';
 
 const VMS_URL = 'https://vms.theglobalsanctum.com';
-const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings', 'Venue management'] as const;
+/* Venue management was here. It is not a tab any more — see the note in the
+   component — so it is removed from the list rather than filtered out of it,
+   because a filtered tab is still a route somebody can reach by typing. */
+const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings'] as const;
 type Tab = (typeof TABS)[number];
 
 export type MyBooking = {
@@ -47,9 +50,18 @@ type Country = { id: number; name: string; iso_code: string; dialling_code: stri
 export default function AccountShell({
   email, profile, isOwner, isHost, savedNode, activity, bookings, bookingItems = [], hostData, countries, initialTab,
 }: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; bookingItems?: BookingItem[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
-  const safeInitial = initialTab === 'Venue management' && !isOwner ? 'Profile' : (initialTab ?? 'Profile');
+  const safeInitial = initialTab ?? 'Profile';
   const [tab, setTab] = useState<Tab>(safeInitial);
-  const visibleTabs = TABS.filter((t) => t !== 'Venue management' || isOwner);
+  /* The VMS is a separate account type by design — account_kind='venue_owner'
+     in auth metadata, with no platform profiles row — so a venue owner is not
+     meant to have a platform account at all. Linking the VMS from here said
+     the opposite: that a consumer login grants access to the system that
+     controls a business's listings, pricing and subscription, which caps the
+     VMS at whatever security this account has.
+
+     Venue owners reach the VMS from their emails, from the site footer, and
+     from vms.theglobalsanctum.com directly. */
+  const visibleTabs = TABS;
   const name = [profile.first_name, profile.surname].filter(Boolean).join(' ') || email;
   const since = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
@@ -75,7 +87,6 @@ export default function AccountShell({
       {tab === 'Preferences' && <PreferencesPanel profile={profile} isHost={isHost} hostData={hostData} />}
       {tab === 'Communications' && <CommsPanel profile={profile} />}
       {tab === 'Settings' && <SettingsPanel email={email} />}
-      {tab === 'Venue management' && isOwner && <VenuePanel isOwner={isOwner} />}
 
       <form action={signOut} className="acct-signout">
         <button type="submit" className="acct-ghost-btn">Sign out</button>
@@ -297,28 +308,6 @@ function SettingsPanel({ email }: { email: string }) {
   );
 }
 
-function VenuePanel({ isOwner }: { isOwner: boolean }) {
-  return (
-    <section className="acct-panel">
-      <div className="acct-vms">
-        <div className="acct-vms-eyebrow">The Global Sanctum</div>
-        <img src="/brand/lockups/sanctum-vms.png" alt="Sanctum VMS" className="acct-vms-mark" />
-        <p className="acct-vms-desc">Venue Management &mdash; a service of The Global Sanctum</p>
-        {isOwner ? (
-          <>
-            <p className="acct-vms-body">You&rsquo;re a venue partner. Manage your listings, subscription and venue details in your management portal.</p>
-            <a href={VMS_URL} className="acct-btn" target="_blank" rel="noopener">Open Sanctum VMS &rarr;</a>
-          </>
-        ) : (
-          <>
-            <p className="acct-vms-body">Have a venue to list? Join The Global Sanctum as a venue partner and reach a global wellness audience. Sign in with your Global Sanctum account &mdash; we&rsquo;ll add venue management to it.</p>
-            <a href={`${VMS_URL}/sign-up`} className="acct-btn" target="_blank" rel="noopener">List your venue &rarr;</a>
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
 
 /* The itemisation.
  *

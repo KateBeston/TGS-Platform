@@ -25,6 +25,12 @@ const DISCOVER = [
 const PARTNER = [
   { label: 'List Your Venue', href: '/list-your-venue' },
   { label: 'Host A Retreat', href: '/how-it-works#retreat-hosts' },
+  /* The way in for venue owners, and deliberately the only one on this site.
+     The VMS is a separate account type, so linking it from a signed-in guest
+     account would say a consumer login grants access to the system that runs
+     a business's listings and subscription. Here it is a door, not a
+     privilege attached to a session. */
+  { label: 'Venue Partner Login', href: 'https://vms.theglobalsanctum.com' },
   { label: 'Press & Media', href: '/contact#press-media' },
   { label: 'Contact Us', href: '/contact' },
 ];
@@ -49,9 +55,14 @@ function Column({ title, links }: { title: string; links: { label: string; href:
       <ul className="footer-links">
         {links.map((l) => (
           <li key={l.href}>
+            {/* An anchor stays an anchor, and an absolute URL leaves the site
+                properly. Passing an external address to next/link makes it try
+                to route internally and the link quietly does nothing. */}
             {l.href.startsWith('#')
               ? <a href={l.href}>{l.label}</a>
-              : <Link href={l.href}>{l.label}</Link>}
+              : l.href.startsWith('http')
+                ? <a href={l.href} rel="noopener">{l.label}</a>
+                : <Link href={l.href}>{l.label}</Link>}
           </li>
         ))}
       </ul>

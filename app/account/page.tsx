@@ -8,9 +8,14 @@ import { getHostData, type HostData } from '@/app/actions/host';
 
 export const metadata = { title: 'Your account — The Global Sanctum' };
 
+/* ?tab=venue is gone with the tab it pointed at. The VMS is a separate account
+   type by design, and linking it from a signed-in consumer account said the
+   opposite: that this login grants access to the system running a business's
+   listings and subscription. Venue owners reach it from their emails, the site
+   footer, or vms.theglobalsanctum.com. */
 const TAB_MAP: Record<string, string> = {
   profile: 'Profile', bookings: 'Bookings', saved: 'Saved venues', preferences: 'Preferences',
-  communications: 'Communications', settings: 'Settings', venue: 'Venue management',
+  communications: 'Communications', settings: 'Settings',
 };
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -28,7 +33,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
 
   const sp = await searchParams;
   const initialTab = (TAB_MAP[sp?.tab ?? ''] ?? 'Profile') as
-    'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Settings' | 'Venue management';
+    'Profile' | 'Bookings' | 'Saved venues' | 'Preferences' | 'Communications' | 'Settings';
 
   const [{ data: profile }, { data: roles }, { data: savedRows }, { data: activity }, { data: bookings }, { data: countries }] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),

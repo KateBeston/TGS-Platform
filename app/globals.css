@@ -3996,11 +3996,6 @@ img { max-width: 100%; height: auto; display: block; }
 .acct-choice-opt strong,.acct-check strong{font-family:var(--sans);font-size:13.5px;font-weight:500;color:var(--charcoal);letter-spacing:.02em}
 .acct-choice-opt em,.acct-check em{font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.5}
 .acct-check{margin-bottom:8px}
-.acct-vms{max-width:480px;border:1px solid var(--border);background:var(--warm-cream);padding:44px 40px;text-align:center}
-.acct-vms-eyebrow{font-family:var(--sans);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:16px}
-.acct-vms-mark{width:180px;height:auto;display:block;margin:0 auto 14px;opacity:.92}
-.acct-vms-desc{font-family:var(--sans);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 22px}
-.acct-vms-body{font-size:14px;line-height:1.7;color:var(--charcoal);margin:0 0 24px}
 .acct-signout{margin-top:48px;padding-top:28px;border-top:1px solid var(--border)}
 .acct-ghost-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 22px;font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .acct-ghost-btn:hover{border-color:var(--charcoal);color:var(--charcoal)}
