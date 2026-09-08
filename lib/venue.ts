@@ -68,7 +68,11 @@ export async function loadVenue(marketplace: string, slug: string) {
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_transfer_options').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
-      supabase.from('venue_tab_content').select('*').eq('venue_id', id)
+      /* The view, not the table. venue_tab_content is staff-only — its one
+         policy is portal_rw — so reading it as a guest always returned
+         nothing, which is why the editorial headings could be written and
+         never appear. */
+      supabase.from('published_tab_content').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_related').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),

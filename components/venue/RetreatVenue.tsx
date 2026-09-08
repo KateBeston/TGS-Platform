@@ -209,9 +209,21 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       {/* ── spaces ─────────────────────────────────────────────────── */}
       {!!v.spaces.length && (
         <div id="panel-spaces" className="vpanel" hidden>
-          <TabHero image={v.image_url} label="Retreat Spaces"
-            title="Spaces That Hold Whatever You Bring"
-            subtitle={`${v.spaces.length} distinct environments for practice, ceremony, and transformation`} />
+          {/* Written per venue where somebody has written it, and the general
+              line where nobody has. venue_tab_content has carried
+              section_label, section_title and section_subtitle all along and
+              nothing read them, so every venue said the same sentence about
+              practice, ceremony and transformation. */}
+          {(() => {
+            const tc = (v.tab_content ?? []).find((t: any) => t.tab_key === 'spaces');
+            return (
+              <TabHero image={tc?.hero_image_url || v.image_url}
+                label={tc?.section_label || 'Retreat Spaces'}
+                title={tc?.section_title || 'Spaces That Hold Whatever You Bring'}
+                subtitle={tc?.section_subtitle
+                  || `${v.spaces.length} distinct environments for practice, ceremony, and transformation`} />
+            );
+          })()}
 
           {/* Featured space — image beside the copy, the way the mockup opens */}
           {featured && (
