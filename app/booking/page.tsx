@@ -117,6 +117,37 @@ export default function CartPage() {
   const reschedule = (k: string, f: string, t: string) => { if (!cart) return; write({ ...cart, venues: { ...cart.venues, [k]: { ...cart.venues[k], from: f, to: t } } }); setResched(null); };
   const clearAll = () => write({ venues: {} });
 
+  /* The whole booking as a quote, not one venue.
+   *
+   * The sidebar on a listing page downloads a quote for that venue, which is
+   * right there. Here a booking can span three, and a host comparing them
+   * needs one sheet rather than three. Loaded on demand: most visits never
+   * download anything and jsPDF is not small. */
+  const downloadQuote = async () => {
+    const { downloadBookingQuote } = await import('@/components/bookingQuote');
+    const rows = cart?.venues ? Object.entries(cart.venues).filter(([, v]) => v.items?.length) : [];
+    downloadBookingQuote({
+      sections: rows.map(([, v]) => ({
+        venueName: v.venueName ?? 'Venue',
+        location: v.location ?? '',
+        from: v.from ?? '',
+        to: v.to ?? '',
+        guests: v.guests ? Number(v.guests) : null,
+        lines: v.items.map((it) => ({
+          label: it.qty > 1 ? `${it.label} × ${it.qty}` : it.label,
+          detail: it.detail ?? '',
+          amount: it.amount,
+        })),
+        subtotal: v.total ?? 0,
+      })),
+      total: rows.reduce((sum, [, v]) => sum + (v.total ?? 0), 0),
+      currency: rows[0]?.[1]?.currency || 'AUD',
+      /* Said once at the foot rather than beside every line: a quote covered
+         in caveats reads as small print. */
+      anyUnpriced: rows.some(([, v]) => v.items.some((it) => it.amount == null)),
+    });
+  };
+
   /* Above every early return, deliberately.
    *
    * This was below `if (!loaded) return`, which meant the hook ran on some
@@ -176,7 +207,10 @@ export default function CartPage() {
     <div className="cart-wrap">
       <div className="cart-head">
         <div><h1 className="cart-h1">Your booking</h1><div className="cart-sub">{itemCount} item{itemCount === 1 ? '' : 's'} across {entries.length} venue{entries.length === 1 ? '' : 's'} · held for you</div></div>
-        <div className="cart-head-actions"><button onClick={clearAll}>Start again</button></div>
+        <div className="cart-head-actions">
+          <button onClick={downloadQuote}>Download quote</button>
+          <button onClick={clearAll}>Start again</button>
+        </div>
       </div>
 
       <div className="cart-cols">

@@ -5137,8 +5137,11 @@ img { max-width: 100%; height: auto; display: block; }
    came for. So a block collapses to a summary that still says what is inside,
    counted rather than listed. */
 
+/* 18px each side, matching .cv-head, .cv-nest and .cv-foot. I had 12px 0,
+   which put the counts and the total hard against the card border while every
+   other row in the same card was inset. */
 .cv-summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s4);
-  padding:12px 0;border-top:1px solid var(--border);font-size:12.5px;
+  padding:12px 18px;border-top:1px solid var(--border);font-size:12.5px;
   color:var(--ink-quiet)}
 .cv-summary-part strong{color:var(--charcoal);font-weight:500}
 .cv-summary-total{margin-left:auto;font-family:var(--serif);font-size:19px;
@@ -5151,6 +5154,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* Groups, in the order the booking was assembled: rooms, spaces, dining,
    experiences, extras. Dining is already in the order so it needs nothing
    when it arrives. */
+/* The nest already has 18px, so the groups sit inside it. */
 .cv-group{margin-bottom:var(--s4)}
 .cv-group:last-child{margin-bottom:0}
 .cv-group-h{font-size:9px;letter-spacing:.18em;text-transform:uppercase;
@@ -5221,3 +5225,16 @@ img { max-width: 100%; height: auto; display: block; }
   transition:background .2s ease,color .2s ease,border-color .2s ease}
 .cv-sugg-add:hover{background:var(--charcoal);color:var(--warm-white);
   border-color:var(--charcoal)}
+
+/* The acceptance list wrapper. Never had a rule — the checker has been
+   flagging it and it predates today's work. A block, so the groups inside it
+   stack rather than inheriting whatever the parent happens to be. */
+.acc-docs{display:block}
+.acc-doc-group{margin-bottom:var(--s4)}
+.acc-doc-group:last-child{margin-bottom:0}
+/* Only drawn when a booking spans both marketplaces and the list is split.
+   A single-context booking shows one ungrouped list, so these never appear. */
+.acc-doc-h{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-gold);margin:0 0 4px}
+.acc-doc-blurb{font-size:11.5px;color:var(--ink-quiet);line-height:1.6;
+  margin:0 0 10px}

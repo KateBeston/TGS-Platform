@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { contextsFromBooking } from '@/lib/acceptance';
+import AcceptanceDocList from '@/components/AcceptanceDocList';
 import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
@@ -224,14 +225,7 @@ export default function HostStepPage() {
         <section className="step-card">
           <div className="step-form-req">
             <h4>Agreements you will be asked to accept</h4>
-            <ul className="step-docs">
-              {tgsDocs.map((d) => (
-                <li key={d.slug}>
-                  <Link href={`/legal/${d.slug}`}>{d.name}</Link>
-                  {d.version_label && <span>{d.version_label}</span>}
-                </li>
-              ))}
-            </ul>
+            <AcceptanceDocList docs={tgsDocs} />
           </div>
         </section>
       )}
