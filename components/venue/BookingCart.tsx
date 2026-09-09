@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useMemo, useRef, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { trackCartEvent, type CartSource } from '@/lib/track';
 import { NO_RULES, checkStay, earliestArrival, latestArrival, earliestDeparture, latestDeparture, minNightsFor, type StayRules } from '@/lib/stayRules';
@@ -24,8 +24,12 @@ type Any = Record<string, any>;
 type Drawer = 'open' | 'min';
 /* Spaces are a kind of their own. A shala is not a room and not an extra: it
    is hired by the day, there is only ever one of it, and for a retreat host it
-   is often the deciding line. */
-type Kind = 'room' | 'space' | 'exp' | 'extra';
+   is often the deciding line.
+
+   Packages likewise. A package is a programme with its own price and its own
+   inclusions, and folding it into 'extra' would put a three-night programme in
+   the same group as yoga mats. */
+type Kind = 'room' | 'space' | 'exp' | 'extra' | 'package';
 
 type CartValue = {
   from: string; to: string; guests: string;
@@ -80,10 +84,10 @@ export function AddToCart({ kind, id, max = 9 }: { kind: Kind; id: number; max?:
 }
 
 export function BookingCart({
-  rooms = [], spaces = [], services = [], extras = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
+  rooms = [], spaces = [], services = [], extras = [], packages = [], ratePlans = [], currency = 'AUD', venueName = '', location = '', venueImage = null, venueId = null, freeCancelDays = null,
   allowBuyout = false, minStayNights = null, stayRules = NO_RULES, dateMode = 'range', requiresTime = false, summary = null, confirmation = null, cancellation = null, children,
 }: {
-  rooms?: Any[]; spaces?: Any[]; services?: Any[]; extras?: Any[]; ratePlans?: Any[]; currency?: string | null;
+  rooms?: Any[]; spaces?: Any[]; services?: Any[]; extras?: Any[]; packages?: Any[]; ratePlans?: Any[]; currency?: string | null;
   venueName?: string; location?: string; venueImage?: string | null; venueId?: number | null; freeCancelDays?: number | null; allowBuyout?: boolean; minStayNights?: number | null; stayRules?: StayRules;
   dateMode?: 'single' | 'range'; requiresTime?: boolean;
   summary?: string | null; confirmation?: string | null; cancellation?: string | null;
@@ -95,6 +99,7 @@ export function BookingCart({
   const [guests, setGuests] = useState('2');
   const [roomQty, setRoomQty] = useState<Record<number, number>>({});
   const [spaceQty, setSpaceQty] = useState<Record<number, number>>({});
+  const [pkgQty, setPkgQty] = useState<Record<number, number>>({});
   /* Which group is open in the starting state. One at a time: the panel is
      narrow and three lists at once is the wall this was meant to avoid.
      Accommodation opens first because it is the one that is required. */
@@ -176,8 +181,8 @@ export function BookingCart({
   const guestN = Math.max(1, Number(guests) || 1);
 
 
-  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'space' ? spaceQty : k === 'exp' ? expQty : extraQty);
-  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'space' ? setSpaceQty : k === 'exp' ? setExpQty : setExtraQty);
+  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'space' ? spaceQty : k === 'package' ? pkgQty : k === 'exp' ? expQty : extraQty);
+  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'space' ? setSpaceQty : k === 'package' ? setPkgQty : k === 'exp' ? setExpQty : setExtraQty);
 
   /* How many people the chosen rooms sleep, and how many still have nowhere.
      The whole point of the count beside each line: a host should never have to
@@ -205,12 +210,22 @@ export function BookingCart({
     if (n <= 0) trackCartEvent({ eventType: 'remove', venueId, itemType: k, itemId: id, quantity: 0, currency, source });
     else if (n !== prev) trackCartEvent({ eventType: 'quantity_change', venueId, itemType: k, itemId: id, quantity: n, currency, source });
   };
+  /* Whether the panel has already introduced itself this visit.
+   *
+   * On the first add it opens, so somebody who has just pressed a button in
+   * the middle of a page can see where the thing went. After that it stays as
+   * it is and only the count moves — throwing the panel open on every add
+   * interrupts somebody adding a massage, a transfer and yoga mats, and by the
+   * third time it is in the way rather than reassuring. */
+  const introduced = useRef(false);
+
   const add = (k: Kind, id: number, source: CartSource = 'listing') => {
     const next = (bag(k)[id] ?? 0) + 1;
     setQtyRaw(k, id, next);
     trackCartEvent({ eventType: 'add', venueId, itemType: k, itemId: id, quantity: next, currency, source });
+    if (!introduced.current) { introduced.current = true; setDrawer('open'); }
   };
-  const clear = () => { setRoomQty({}); setSpaceQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
+  const clear = () => { setRoomQty({}); setSpaceQty({}); setPkgQty({}); setExpQty({}); setExtraQty({}); setBuyout(false); };
   const selectBuyout = () => { setRoomQty({}); setBuyout(true); };
 
   const roomPlan = (roomId: number) => ratePlans.find((rp) => (rp.applies_to === 'Room Type' || rp.applies_to === 'Room') && rp.target_id === roomId);
@@ -307,8 +322,29 @@ export function BookingCart({
       const unit = e.price != null ? extraBasis(Number(e.price), e.price_basis) : null;
       out.push({ key: `extra-${e.id}`, label: e.name, detail: e.extra_category || 'Extra', amount: unit != null ? unit * q : null, kind: 'extra', id: e.id, qty: q, max: e.maximum_quantity ?? 20, image: e.gallery_images?.[0] ?? venueImage, eyebrow: 'Room extra', qtyLabel: 'Qty', unit });
     }
+    /* Packages last in the list but priced like the rest. price_per_person
+       where a package is sold that way, otherwise the flat price — a
+       three-night programme for a couple is not the same shape as a massage,
+       and pricing it per head when it is not would be wrong in the guest's
+       favour and then wrong again on the invoice. */
+    for (const pk of packages) {
+      const q = pkgQty[pk.id] ?? 0; if (!q) continue;
+      const perPerson = (pk.price_basis ?? '').toLowerCase().includes('person')
+        || pk.price_per_person != null;
+      const unit = pk.price_per_person != null ? Number(pk.price_per_person)
+        : pk.price != null ? Number(pk.price) : null;
+      out.push({
+        key: `package-${pk.id}`, label: pk.name,
+        detail: [pk.duration_label, perPerson ? 'per person' : null]
+          .filter(Boolean).join(' · ') || 'Package',
+        amount: unit != null ? unit * q : null,
+        kind: 'package', id: pk.id, qty: q, max: pk.max_participants ?? 20,
+        image: pk.image_url ?? venueImage, eyebrow: 'Package',
+        qtyLabel: perPerson ? 'Guests' : 'Qty', unit,
+      });
+    }
     return out;
-  }, [rooms, spaces, services, extras, ratePlans, roomQty, spaceQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
+  }, [rooms, spaces, services, extras, packages, ratePlans, roomQty, spaceQty, pkgQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);

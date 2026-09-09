@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { OfferList } from '@/components/venue/OfferCard';
+import { FeaturedOffers, OfferList } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer, excursionToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
@@ -39,11 +39,16 @@ function spaceTags(s: any): string[] {
  * one is uploaded; until then it degrades to the house placeholder rather
  * than borrowing the venue hero, which would repeat one image down the
  * whole tab. */
+/* The same carousel the room cards use: a main image with a small strip of
+   thumbnails floating bottom-right, and arrows once there is more than one.
+   A shala photographed empty tells you very little; several angles tell you
+   whether the practice you have in mind fits in it. */
 function SpaceImage({ s }: { s: any }) {
+  const images: string[] = (s.gallery_images ?? []).filter(Boolean);
   return (
     <div className="feature-image">
-      {s.image_url
-        ? <img src={s.image_url} alt={s.name} loading="lazy" />
+      {images.length
+        ? <ImageCarousel images={images} alt={s.name} variant="card" />
         : <span className="placeholder-img">The Global Sanctum</span>}
     </div>
   );
@@ -112,7 +117,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         </div>
       </ImageCarousel>
 
-      <BookingCart rooms={v.rooms} spaces={v.spaces} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} allowBuyout venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} stayRules={stayRulesFrom(v.booking_settings, v.minimum_stay_nights)} dateMode="range" summary={v.venue_short_description ?? v.listing_description ?? null}>
+      <BookingCart rooms={v.rooms} spaces={v.spaces} services={v.services} packages={v.packages} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} allowBuyout venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} stayRules={stayRulesFrom(v.booking_settings, v.minimum_stay_nights)} dateMode="range" summary={v.venue_short_description ?? v.listing_description ?? null}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
       {/* ── overview ───────────────────────────────────────────────── */}
@@ -236,7 +241,11 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
                     its own scale, a line saying why it leads, and the facts a
                     host would otherwise have to open the modal for. */}
                 <div className="feature-content feature-content--lead">
-                  <p className="feature-label feature-label--lead">The principal space</p>
+                  {/* Not "principal": a featured space is the one the venue
+                      chose to lead with, which is not the same as the main
+                      one and often is not. "In focus" says we are pointing at
+                      it without claiming it outranks the rest. */}
+                  <p className="feature-label feature-label--lead">In focus</p>
                   <h2 className="feature-title feature-title--lead">{featured.name}</h2>
                   <p className="feature-sub">
                     {[
@@ -402,11 +411,22 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             </Section>
           )}
 
-          {!!v.services.length && (
-            <Section tone="white">
-              <OfferList offers={v.services.map((x: any) => serviceToOffer(x, v.offer_media ?? [], v.service_focus ?? []))} />
-            </Section>
-          )}
+          {!!v.services.length && (() => {
+            /* Featured leads, as on the wellness side and on Spaces. A retreat
+               venue's signature treatment was sitting in the middle of the
+               list while the wellness listing gave the same thing a section of
+               its own — same object, two different treatments. */
+            const offers = v.services.map((x: any) =>
+              serviceToOffer(x, v.offer_media ?? [], v.service_focus ?? []));
+            return (
+              <>
+                <FeaturedOffers offers={offers} />
+                <Section tone="white">
+                  <OfferList offers={offers} />
+                </Section>
+              </>
+            );
+          })()}
 
           {!!v.excursions.length && (
             <Section tone="cream" label="Beyond the venue" title="Local excursions">

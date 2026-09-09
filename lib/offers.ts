@@ -188,7 +188,12 @@ export function packageToOffer(p: any, media: any[], focus: any[]): Offer {
     flag: p.is_limited_edition ? 'Limited' : (p.is_featured ? 'Signature' : null),
     featured: !!p.is_featured,
     maxQty: 6,
-    bookable: false,
+    /* Read from the record, as services do. It was hardcoded false, so all 18
+       packages fell through to Enquire however they were set — and every one
+       of them is marked bookable and priced. A package is a bigger thing than
+       a massage, but that is a reason for a larger card, not for taking the
+       button away. */
+    bookable: p.is_bookable !== false,
     detail: (included.length || facts.length) ? {
       whoFor: null, whatToBring: null, included, goodToKnow: null, facts,
     } : null,

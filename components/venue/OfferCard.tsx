@@ -113,7 +113,9 @@ export default function OfferCard({ offer }: { offer: Offer }) {
             <a className="ofc-policies" href="#policies">Policies</a>
             <span className="ofc-foot-spacer" />
             {o.bookable
-              ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
+              ? <AddToCart
+                  kind={o.kind === 'exp' ? 'exp' : o.kind === 'package' ? 'package' : 'extra'}
+                  id={o.id} max={o.maxQty} />
               : <a className="ofc-enquire" href="#enquire">Enquire</a>}
           </div>
         </div>

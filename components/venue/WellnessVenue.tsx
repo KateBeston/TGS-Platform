@@ -99,7 +99,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         </div>
       </ImageCarousel>
 
-      <BookingCart rooms={v.rooms} spaces={v.spaces} services={v.services} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} stayRules={stayRulesFrom(v.booking_settings, v.minimum_stay_nights)} dateMode={wvDateMode} requiresTime={wvRequiresTime} summary={v.venue_short_description ?? v.listing_description ?? null}>
+      <BookingCart rooms={v.rooms} spaces={v.spaces} services={v.services} packages={v.packages} extras={v.extras} ratePlans={v.rate_plans} currency={v.price_currency} venueName={v.venue_name} location={[v.city, v.country].filter(Boolean).join(", ")} venueImage={v.hero_images?.[0] ?? null} venueId={v.id ?? null} freeCancelDays={v.free_cancellation_days ?? null} minStayNights={v.minimum_stay_nights ?? null} stayRules={stayRulesFrom(v.booking_settings, v.minimum_stay_nights)} dateMode={wvDateMode} requiresTime={wvRequiresTime} summary={v.venue_short_description ?? v.listing_description ?? null}>
       <VenueTabs tabs={tabs} venueName={v.venue_name} location={v.city ?? v.country ?? ''} />
 
 

@@ -153,6 +153,25 @@ export async function loadVenue(marketplace: string, slug: string) {
     return { ...r, gallery_images };
   });
 
+  /* Spaces get the same treatment as rooms.
+   *
+   * A shala with one photograph of an empty room says very little about
+   * whether a practice can happen in it, and the card already knows how to
+   * show a strip of thumbnails. Both space placements accept several images
+   * now, so this reads whichever has been used and falls back to the single
+   * field where neither has. */
+  const spacesWithImages = ((spaces.data ?? []) as any[]).map((sp) => {
+    const uploaded = uniq(
+      mediaRows
+        .filter((m) => (m.placement_key === 'space_card' || m.placement_key === 'space_feature')
+          && m.space_id === sp.id)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+        .map((m) => m.url),
+    );
+    const gallery_images = uploaded.length ? uploaded : uniq([sp.image_url]);
+    return { ...sp, gallery_images };
+  });
+
   // Cancellation — the free-cancellation window is the widest days_before_arrival
   // that still gives a full (100%) refund. Drives "Free cancellation until X"
   // from real per-venue tiers rather than a hardcoded string.
@@ -170,7 +189,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     // Host and languages, from the profile view. The host block is already
     // gated in the view — it is null unless the venue chose to show it.
     ...((profile.data ?? {}) as Record<string, any>),
-    spaces: spaces.data ?? [],
+    spaces: spacesWithImages,
     rooms: roomsWithImages,
     services: services.data ?? [],
     facilities: facilities.data ?? [],

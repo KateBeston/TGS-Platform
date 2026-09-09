@@ -1,5 +1,5 @@
 import { duration, money } from '@/lib/venue';
-import { OfferList } from '@/components/venue/OfferCard';
+import { FeaturedOffers, OfferList } from '@/components/venue/OfferCard';
 import { packageToOffer, excursionToOffer } from '@/lib/offers';
 import { AddToCart } from './BookingCart';
 import { RoomDetails } from './RoomDetails';
@@ -381,7 +381,12 @@ export function PackagesPanel({ v }: { v: Record<string, any> }) {
   return (
     <>
       <TabHero image={v.image_url} label="Packages" title="Curated packages"
-        subtitle="Set programmes, priced and ready to enquire on" />
+        subtitle="Set programmes, priced and ready to book" />
+      {/* The featured ones lead, the same way a featured space leads its tab
+          and a signature treatment leads Experiences. packageToOffer has
+          always set featured and a Signature or Limited flag; nothing read it,
+          so nine featured packages sat in the middle of a list. */}
+      <FeaturedOffers offers={offers} label="Signature" title="The programmes this venue is known for" />
       <Section tone="white">
         <OfferList offers={offers} />
       </Section>

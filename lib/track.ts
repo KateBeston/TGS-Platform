@@ -60,7 +60,7 @@ export type CartEvent = {
   /* Recorded in metadata, so no migration and no new column. */
   source?: CartSource;
   venueId?: number | null;
-  itemType?: 'room' | 'space' | 'exp' | 'extra' | 'buyout' | null;
+  itemType?: 'room' | 'space' | 'package' | 'exp' | 'extra' | 'buyout' | null;
   itemId?: number | null;
   quantity?: number | null;
   unitPrice?: number | null;
