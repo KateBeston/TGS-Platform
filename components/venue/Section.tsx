@@ -321,46 +321,13 @@ export function VenueLinks({
   );
 }
 
-/* The hosts.
+/* The host block was removed from both venue pages.
  *
- * Only shown when the venue chose to — the profile view returns null for
- * every host field otherwise, so this renders nothing rather than a
- * half-empty block. */
-export function HostBlock({
-  v, tone = 'cream',
-}: { v: Record<string, any>; tone?: 'white' | 'cream' }) {
-  if (!v.host_display_names && !v.host_bio && !v.host_quote) return null;
-
-  const stats = [
-    v.years_hosting ? `${v.years_hosting} years hosting` : null,
-    v.retreats_per_year ? `${v.retreats_per_year} retreats a year` : null,
-    v.total_retreats_hosted ? `${v.total_retreats_hosted} retreats hosted` : null,
-  ].filter(Boolean).join(' · ');
-
-  return (
-    <Section tone={tone} label="Your hosts" title={v.host_display_names ?? undefined}>
-      {v.host_quote && (
-        <div className="prose-narrow">
-          <p className="prose-lead" style={{ fontStyle: 'italic' }}>{v.host_quote}</p>
-        </div>
-      )}
-      {v.host_image_url ? (
-        <div className="feature-split">
-          <div><img src={v.host_image_url} alt={v.host_display_names ?? ''} /></div>
-          <div>
-            {v.host_bio && <p className="feature-body">{v.host_bio}</p>}
-            {stats && <div className="feature-meta">{stats}</div>}
-          </div>
-        </div>
-      ) : (
-        <div className="prose-narrow">
-          {v.host_bio && <p>{v.host_bio}</p>}
-          {stats && <p className="muted-small">{stats}</p>}
-        </div>
-      )}
-    </Section>
-  );
-}
+ * A venue's owner is not what a guest is choosing between, and a half-filled
+ * "your hosts" section with a display name and nothing else read as filler.
+ * Practitioner detail stays: who runs a treatment is a real reason to pick
+ * one venue over another.
+ */
 
 /* Packages — set programmes, priced. Its items come through as a JSON
  * array on the view, aggregated so the whole package is one row. */

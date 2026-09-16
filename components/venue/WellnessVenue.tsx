@@ -10,7 +10,7 @@ import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
-  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money } from '@/lib/venue';
@@ -176,7 +176,6 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <ExperienceBlock v={v} tone="cream" />
-        <HostBlock v={v} tone="white" />
       </div>
 
       {/* Services first, because that is the question a guest is here to

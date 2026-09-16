@@ -11,7 +11,7 @@ import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
-  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, HostBlock, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money, roomSummary } from '@/lib/venue';
@@ -208,7 +208,6 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <ExperienceBlock v={v} tone="white" />
-        <HostBlock v={v} tone="cream" />
       </div>
 
       {/* ── spaces ─────────────────────────────────────────────────── */}
