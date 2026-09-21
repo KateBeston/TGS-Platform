@@ -144,7 +144,10 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
       <FavouriteButton venueId={card.id} variant="card" />
     </div>
   );
-  const blurb = card.listing_description ?? card.venue_short_description;
+  /* Listing copy only. venue_short_description is an internal summary for
+     staff and is never published, so a card with no listing copy shows no
+     blurb rather than a harvested one. */
+  const blurb = card.listing_description;
   const name = card.headline ?? card.venue_name;
   const tags = (card.tags ?? []) as string[];
   const badges = (card.promo_badges ?? []) as string[];

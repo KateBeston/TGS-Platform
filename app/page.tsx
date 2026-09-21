@@ -114,7 +114,7 @@ function VenueSlide({ v }: { v: Card }) {
           <p className="premium-card-location">{placeOf(v)}</p>
           <h3 className="premium-card-name">{v.headline ?? v.venue_name}</h3>
           <p className="premium-card-desc">
-            {v.editor_note ?? v.listing_description ?? v.venue_short_description}
+            {v.editor_note ?? v.listing_description}
           </p>
           {/* Three tags, not the listing page's four, and no practice list
               beneath them. A card in a carousel is passed at a glance: enough

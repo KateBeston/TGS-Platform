@@ -20,11 +20,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // name, place and modality mix.
   return {
     title: `${v.headline ?? v.venue_name}${place ? ` — ${place}` : ''}`,
-    description: v.listing_description ?? v.venue_short_description ?? undefined,
+    description: v.listing_description ?? undefined,
     alternates: { canonical: `/${marketplace}/${slug}` },
     openGraph: {
       title: v.headline ?? v.venue_name,
-      description: v.listing_description ?? v.venue_short_description ?? undefined,
+      description: v.listing_description ?? undefined,
       images: v.image_url ? [v.image_url] : undefined,
       type: 'website',
     },
@@ -42,7 +42,7 @@ export default async function VenuePage({ params }: Params) {
     '@context': 'https://schema.org',
     '@type': isRetreat ? 'LodgingBusiness' : 'HealthAndBeautyBusiness',
     name: v.venue_name,
-    description: v.listing_description ?? v.venue_short_description,
+    description: v.listing_description ?? undefined,
     image: v.image_url ?? undefined,
     url: `https://www.theglobalsanctum.com/${marketplace}/${slug}`,
     // Locality only. The street is not public information and the town

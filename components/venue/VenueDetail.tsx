@@ -11,7 +11,7 @@ export default function VenueDetail({ v, marketplace, slug }: { v: any; marketpl
     '@context': 'https://schema.org',
     '@type': isRetreat ? 'LodgingBusiness' : 'HealthAndBeautyBusiness',
     name: v.venue_name,
-    description: v.listing_description ?? v.venue_short_description,
+    description: v.listing_description ?? undefined,
     image: v.image_url ?? undefined,
     url: `https://www.theglobalsanctum.com/${marketplace}/${slug}`,
     address: {

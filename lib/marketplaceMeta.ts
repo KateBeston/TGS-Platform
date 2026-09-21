@@ -26,11 +26,11 @@ export async function marketplaceMetadata(marketplace: string, path: string[]): 
       const place = [v.city, v.country].filter(Boolean).join(', ');
       return {
         title: `${v.headline ?? v.venue_name}${place ? ` — ${place}` : ''}`,
-        description: v.listing_description ?? v.venue_short_description ?? undefined,
+        description: v.listing_description ?? undefined,
         alternates: { canonical: `/${marketplace}/${path[0]}` },
         openGraph: {
           title: v.headline ?? v.venue_name,
-          description: v.listing_description ?? v.venue_short_description ?? undefined,
+          description: v.listing_description ?? undefined,
           images: v.image_url ? [v.image_url] : undefined,
           type: 'website',
         },
