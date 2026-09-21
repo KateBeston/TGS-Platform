@@ -13,6 +13,8 @@ export type Card = {
   venue_type: string | null;
   headline: string | null;
   listing_description: string | null;
+  /** The listing's long description, from the listing editor. */
+  listing_full_description?: string | null;
   venue_short_description: string | null;
   image_url: string | null;
   locality: string | null;

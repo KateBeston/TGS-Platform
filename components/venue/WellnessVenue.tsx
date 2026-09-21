@@ -137,8 +137,10 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             <p className="prose-lead">
               {v.listing_description}
             </p>
-            {/* The venue's own full description is an internal summary for staff
-                and is never published. Body copy comes from the listing. */}
+            {/* The listing's long description, written in the listing editor.
+                Never the venue's own full description, which is an internal
+                summary for staff. */}
+            {v.listing_full_description && <p>{v.listing_full_description}</p>}
             {v.introduction_text && <p>{v.introduction_text}</p>}
             {(v.property_type || v.architecture_style) && (
               <p className="muted-small">
