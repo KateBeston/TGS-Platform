@@ -10,7 +10,7 @@ import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
-  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Credentials, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money } from '@/lib/venue';
@@ -392,6 +392,10 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
         )}
+
+        {/* What the venue holds, where it may be shown. */}
+
+        <Credentials v={v} tone="cream" />
 
         <Climate v={v} tone="white" />
 

@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
+         distances, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -67,6 +67,12 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('published_venue_seasons').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_transfer_options').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      /* Awards and affiliations, from the view that shows only what the
+         venue has given permission for and we have chosen to show. Their
+         marks belong to the bodies that gave them; the venue's signed media
+         permission is what lets us show them at all. */
+      supabase.from('venue_credentials_public').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       /* The view, not the table. venue_tab_content is staff-only — its one
          policy is portal_rw — so reading it as a guest always returned
@@ -210,6 +216,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     faqs: faqs.data ?? [],
     seasons: seasons.data ?? [],
     transfers: transfers.data ?? [],
+    credentials: credentials.data ?? [],
     tab_content: tabContent.data ?? [],
     related: relatedCards,
     promotions: promotions.data ?? [],

@@ -197,6 +197,44 @@ export function Nearby({ v, tone = 'white' }: { v: Record<string, any>; tone?: '
   );
 }
 
+/* Awards and affiliations, as a quiet row of marks.
+ *
+ * Restraint matters here more than anywhere: a wall of badges reads as a
+ * venue insisting on itself. The logo where there is one, the name where
+ * there is not, and nothing shouted. Shown only where the venue has signed
+ * its media permission, which the view already decides. */
+export function Credentials({ v, tone = 'cream' }: { v: Record<string, any>; tone?: 'cream' | 'white' }) {
+  const rows = (v.credentials ?? []) as any[];
+  if (!rows.length) return null;
+
+  const awards = rows.filter((r) => r.kind === 'award');
+  const ties = rows.filter((r) => r.kind !== 'award');
+
+  const mark = (r: any, i: number) => (
+    <div key={`${r.kind}-${i}`} className="credential">
+      {r.image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={r.image_url} alt={r.title} loading="lazy" />
+      ) : null}
+      <p className="credential-name">{r.title}</p>
+      {(r.body || r.year) && (
+        <p className="credential-meta">
+          {[r.body, r.year].filter(Boolean).join(' · ')}
+        </p>
+      )}
+    </div>
+  );
+
+  return (
+    <Section tone={tone} label="Recognition &amp; registrations">
+      {awards.length > 0 && <div className="credential-row">{awards.map(mark)}</div>}
+      {ties.length > 0 && (
+        <div className="credential-row credential-row--quiet">{ties.map(mark)}</div>
+      )}
+    </Section>
+  );
+}
+
 /* Climate and best time to visit, as season cards.
  *
  * Season, months, the temperature range large, then what the season is like.

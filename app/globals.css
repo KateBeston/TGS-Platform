@@ -5283,3 +5283,42 @@ img { max-width: 100%; height: auto; display: block; }
   .rm-dl{grid-template-columns:1fr}
   .feature-text--lead{font-size:15px}
 }
+
+/* ── Recognition and registrations ──────────────────────────────────────
+   A quiet row of marks rather than a wall of badges. Logos are held to a
+   consistent height and sit on their own, because an award logo crowded
+   against another reads as a sponsor strip. */
+.credential-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  align-items: flex-start;
+}
+.credential-row--quiet { margin-top: 32px; opacity: .85; }
+.credential {
+  max-width: 200px;
+  text-align: center;
+}
+.credential img {
+  height: 56px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+  display: block;
+}
+.credential-name {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+.credential-meta {
+  font-size: 11.5px;
+  letter-spacing: .04em;
+  margin: 4px 0 0;
+  opacity: .7;
+}
+@media (max-width: 640px) {
+  .credential-row { gap: 28px; }
+  .credential img { height: 44px; }
+}

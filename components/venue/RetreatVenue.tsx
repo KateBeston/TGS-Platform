@@ -11,7 +11,7 @@ import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
-  Accessibility, Climate, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Credentials, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money, roomSummary } from '@/lib/venue';
@@ -508,6 +508,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
         )}
 
         {/* Climate and best time to visit, as season cards. */}
+        {/* What the venue holds, where it may be shown. */}
+        <Credentials v={v} tone="cream" />
         <Climate v={v} tone="white" />
 
         <OpeningHours v={v} tone="white" />
