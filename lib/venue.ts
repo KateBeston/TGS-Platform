@@ -195,7 +195,15 @@ export async function loadVenue(marketplace: string, slug: string) {
     // Host and languages, from the profile view. The host block is already
     // gated in the view — it is null unless the venue chose to show it.
     ...((profile.data ?? {}) as Record<string, any>),
-    spaces: spacesWithImages,
+    /* Three homes, as a venue actually divides: where the retreat happens,
+       where the group eats and sleeps, and what complements the place.
+       A pool is not a practice space, and a page that says otherwise
+       misleads the facilitator deciding on it. */
+    spaces: spacesWithImages.filter((s2: any) =>
+      !s2.space_purpose || s2.space_purpose === 'Practice space'),
+    dining_spaces: spacesWithImages.filter((s2: any) => s2.space_purpose === 'Dining'),
+    amenity_spaces: spacesWithImages.filter((s2: any) =>
+      s2.space_purpose === 'Better recorded as a facility'),
     rooms: roomsWithImages,
     services: services.data ?? [],
     facilities: facilities.data ?? [],

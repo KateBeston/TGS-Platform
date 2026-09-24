@@ -68,7 +68,7 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
     v.packages.length && { id: 'packages', label: 'Packages' },
     v.practitioners.length && { id: 'practitioners', label: 'Practitioners' },
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
-    v.rooms.length && { id: 'stay', label: 'Accommodation' },
+    (v.rooms.length || v.dining_spaces?.length) && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     { id: 'location', label: 'Location & access' },
     (v.policies.length || v.faqs.length || v.cultural_protocol_details || hasBring) && { id: 'policies', label: 'Good to know' },
@@ -255,6 +255,25 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             )}
             <RoomGrid rooms={v.rooms} ratePlans={v.rate_plans} currency={v.price_currency} />
           </Section>
+          {/* Where the group eats, with where it sleeps. */}
+          {!!v.dining_spaces?.length && (
+            <Section tone="white" label="Dining" title="Where you eat together">
+              <div className="space-grid">
+                {v.dining_spaces.map((d: any) => (
+                  <article key={d.id} className="space-card">
+                    {d.images?.[0] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={d.images[0]} alt={d.name} loading="lazy" className="space-card-img" />
+                    )}
+                    <h3 className="space-card-name">{d.name}</h3>
+                    {d.description && <p className="space-card-text">{d.description}</p>}
+                    {d.capacity && <p className="space-card-meta">Seats {d.capacity}</p>}
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
           <InEveryRoom rooms={v.rooms} tone="cream" />
           {(v.check_in_time || v.check_out_time || !!v.minimum_stay_nights || v.minimum_child_age != null) && (
             <Section tone="white" label="Stay details" title="Check-in and check-out">
@@ -281,7 +300,8 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         </div>
       )}
 
-      {(!!v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
+      {(!!v.facilities.length || !!v.amenity_spaces?.length || v.wifi_coverage || v.wifi_details
+        || v.mobile_coverage || v.mobile_coverage_notes) && (
         <div id="panel-amenities" className="vpanel" hidden>
           {!!v.facilities.length && (
           <Section tone="white" label="Facilities" title="What is here">
@@ -301,6 +321,30 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
           )}
+          {/* The amenities that earn a picture: a spring pool, a walled
+              garden, a games room. Listed with their own heading and
+              description rather than as one more pill, because a pill
+              cannot show what a place is like. */}
+          {!!v.amenity_spaces?.length && (
+            <Section tone="cream" label="On the property" title="What else is here">
+              <div className="space-grid">
+                {v.amenity_spaces.map((a: any) => (
+                  <article key={a.id} className="space-card">
+                    {a.images?.[0] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={a.images[0]} alt={a.name} loading="lazy" className="space-card-img" />
+                    )}
+                    <h3 className="space-card-name">{a.name}</h3>
+                    {a.description && <p className="space-card-text">{a.description}</p>}
+                    {a.suitable_for?.length > 0 && (
+                      <p className="space-card-meta">{a.suitable_for.join(' · ')}</p>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
           {(v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
             <Section tone="cream" label="Connectivity" title="Staying connected">
               <div className="prose-narrow">

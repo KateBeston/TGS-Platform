@@ -86,8 +86,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
   const tabs = [
     { id: 'overview', label: 'Overview' },
     v.spaces.length && { id: 'spaces', label: 'Spaces' },
-    v.rooms.length && { id: 'stay', label: 'Accommodation' },
-    (v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
+    (v.rooms.length || v.dining_spaces?.length) && { id: 'stay', label: 'Accommodation' },
+    (v.facilities.length || v.amenity_spaces?.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     (v.services.length || v.excursions.length || v.extras?.length) && { id: 'experiences', label: 'Experiences' },
     v.packages.length && { id: 'packages', label: 'Packages' },
     { id: 'location', label: 'Location & access' },
@@ -321,7 +321,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {/* ── accommodation ──────────────────────────────────────────── */}
-      {!!v.rooms.length && (
+      {(!!v.rooms.length || !!v.dining_spaces?.length) && (
         <div id="panel-stay" className="vpanel" hidden>
           <TabHero image={v.image_url} label="Accommodation"
             title="Where your group sleeps"
@@ -336,6 +336,28 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           <Section tone="cream" label="Room types" subtitle="Choose your sanctuary">
             <RoomGrid rooms={v.rooms} ratePlans={v.rate_plans} currency={v.price_currency} />
           </Section>
+
+          {/* Where the group eats, with where it sleeps. A dining room is
+              not a practice space and does not belong beside the shala. */}
+          {!!v.dining_spaces?.length && (
+            <Section tone="white" label="Dining" title="Where you eat together">
+              <div className="space-grid">
+                {v.dining_spaces.map((d: any) => (
+                  <article key={d.id} className="space-card">
+                    {d.images?.[0] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={d.images[0]} alt={d.name} loading="lazy" className="space-card-img" />
+                    )}
+                    <h3 className="space-card-name">{d.name}</h3>
+                    {d.description && <p className="space-card-text">{d.description}</p>}
+                    {d.capacity && (
+                      <p className="space-card-meta">Seats {d.capacity}</p>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
 
           <InEveryRoom rooms={v.rooms} tone="white" />
           {(v.check_in_time || v.check_out_time || !!v.minimum_stay_nights || v.minimum_child_age != null) && (
@@ -364,7 +386,8 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       )}
 
       {/* ── amenities ──────────────────────────────────────────────── */}
-      {(!!v.facilities.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
+      {(!!v.facilities.length || !!v.amenity_spaces?.length || v.wifi_coverage || v.wifi_details
+        || v.mobile_coverage || v.mobile_coverage_notes) && (
         <div id="panel-amenities" className="vpanel" hidden>
           {!!v.facilities.length && (
           <Section tone="white" label="Amenities"
@@ -385,6 +408,30 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             </div>
           </Section>
           )}
+          {/* The amenities that earn a picture: a spring pool, a walled
+              garden, a games room. Listed with their own heading and
+              description rather than as one more pill, because a pill
+              cannot show what a place is like. */}
+          {!!v.amenity_spaces?.length && (
+            <Section tone="cream" label="On the property" title="What else is here">
+              <div className="space-grid">
+                {v.amenity_spaces.map((a: any) => (
+                  <article key={a.id} className="space-card">
+                    {a.images?.[0] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={a.images[0]} alt={a.name} loading="lazy" className="space-card-img" />
+                    )}
+                    <h3 className="space-card-name">{a.name}</h3>
+                    {a.description && <p className="space-card-text">{a.description}</p>}
+                    {a.suitable_for?.length > 0 && (
+                      <p className="space-card-meta">{a.suitable_for.join(' · ')}</p>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
           {(v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && (
             <Section tone="cream" label="Connectivity" title="Staying connected">
               <div className="prose-narrow">

@@ -5322,3 +5322,36 @@ img { max-width: 100%; height: auto; display: block; }
   .credential-row { gap: 28px; }
   .credential img { height: 44px; }
 }
+
+/* ── Amenities that earn a picture ───────────────────────────────────
+   A spring pool or a walled garden says more in a photograph than in a
+   pill. Laid out as cards beneath the amenity list, not competing with
+   the practice spaces above, which are what a facilitator is deciding on. */
+.space-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
+}
+.space-card-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  margin-bottom: 12px;
+}
+.space-card-name {
+  font-size: 17px;
+  font-weight: 400;
+  margin: 0 0 6px;
+}
+.space-card-text {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+.space-card-meta {
+  font-size: 12px;
+  letter-spacing: .04em;
+  margin: 8px 0 0;
+  opacity: .7;
+}
