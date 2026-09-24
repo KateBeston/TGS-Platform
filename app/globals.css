@@ -5355,3 +5355,26 @@ img { max-width: 100%; height: auto; display: block; }
   margin: 8px 0 0;
   opacity: .7;
 }
+
+/* ── The way home, from the menu ─────────────────────────────────────
+   The emblem was decoration beside empty space. Emblem and wordmark as
+   one link, which is where somebody looks for it. */
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--charcoal);
+  text-decoration: none;
+}
+.drawer-brand:hover { text-decoration: none; }
+.drawer-brand:hover .drawer-brand-text { color: var(--gold, #C9A227); }
+.drawer-brand-text {
+  font-family: var(--serif);
+  font-size: 19px;
+  letter-spacing: .04em;
+  line-height: 1.1;
+  transition: color .15s;
+}
+@media (max-width: 380px) {
+  .drawer-brand-text { font-size: 16px; }
+}

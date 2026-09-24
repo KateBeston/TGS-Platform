@@ -85,7 +85,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
   const hasBring = !!(v.please_bring?.length || v.optional_to_bring?.length);
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    v.spaces.length && { id: 'spaces', label: 'Spaces' },
+    v.spaces.length && { id: 'spaces', label: 'Practice spaces' },
     (v.rooms.length || v.dining_spaces?.length) && { id: 'stay', label: 'Accommodation' },
     (v.facilities.length || v.amenity_spaces?.length || v.wifi_coverage || v.wifi_details || v.mobile_coverage || v.mobile_coverage_notes) && { id: 'amenities', label: 'Amenities' },
     (v.services.length || v.excursions.length || v.extras?.length) && { id: 'experiences', label: 'Experiences' },
@@ -179,7 +179,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             ['Guests', v.max_guests],
             ['Bedrooms', v.total_bedrooms],
             ['Bathrooms', v.total_bathrooms],
-            ['Spaces', v.spaces.length || null],
+            ['Practice spaces', v.spaces.length || null],
             ['Practices', v.categories.length || null],
             ['Established', v.established_year],
           ]} />
@@ -478,7 +478,7 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
           })()}
 
           {!!v.excursions.length && (
-            <Section tone="cream" label="Beyond the venue" title="Local excursions">
+            <Section tone="cream" label="Beyond the venue" title="Arranged by the venue">
               <OfferList offers={v.excursions.map((e: any) => excursionToOffer(e))} />
             </Section>
           )}

@@ -131,9 +131,18 @@ export default function SiteHeader() {
       <div id="site-drawer" className={`drawer ${open ? 'active' : ''}`}
            role="dialog" aria-modal="true" aria-label="Navigation">
         <div className="drawer-header">
-          <div className="drawer-header-left">
+          {/* The emblem sat here as decoration beside empty space, which
+              is the one place in a menu somebody expects to find the way
+              home. Emblem and wordmark together, one link, closing the
+              drawer as it goes. */}
+          <Link href="/" className="drawer-brand" onClick={close}>
             <span className="drawer-logo" aria-hidden="true" />
-          </div>
+            <span className="drawer-brand-text">
+              The Global Sanctum
+              <sup style={{ fontSize: '0.5em', verticalAlign: 'top', letterSpacing: 0,
+                            marginLeft: 1 }}>™</sup>
+            </span>
+          </Link>
           <button type="button" className="drawer-close" aria-label={t('nav.closeMenu')}
             onClick={close}>&times;</button>
         </div>
