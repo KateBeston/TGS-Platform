@@ -1144,7 +1144,7 @@ img { max-width: 100%; height: auto; display: block; }
 .amenity-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
 .amenity-cat {
   font-family: var(--serif); font-size: 21px; font-style: italic;
-  font-weight: 400; color: var(--gold-dark); margin-bottom: 16px;
+  font-weight: 400; color: var(--gold-dark);
 }
 .amenity-pill-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 40px; }
 .amenity-pill {
@@ -1154,6 +1154,36 @@ img { max-width: 100%; height: auto; display: block; }
   border: 1px solid var(--gold-light); border-radius: var(--radius);
 }
 .section--cream .amenity-pill { background: var(--warm-white); }
+
+/* ── amenities as an index ───────────────────────────────────────────
+   The pills read as neglect rather than restraint: outlined boxes with
+   two words in each, on a page that is otherwise generous. An index with
+   a drawn mark per category, a count, and a thin rule reads as considered
+   at the same density of information. */
+.amenity-group { break-inside: avoid; margin-bottom: 44px; }
+.amenity-head {
+  display: flex; align-items: baseline; gap: 10px;
+  padding-bottom: 10px; margin-bottom: 14px;
+  border-bottom: 1px solid var(--gold-light);
+}
+.amenity-icon {
+  width: 22px; height: 22px; flex-shrink: 0;
+  color: var(--gold-dark); align-self: center;
+}
+.amenity-count {
+  font-family: var(--sans); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--charcoal-50); margin-left: auto;
+}
+.amenity-items {
+  columns: 2; column-gap: 32px;
+  font-family: var(--sans); font-size: 13.5px; font-weight: 300;
+  line-height: 2; color: var(--ink);
+}
+.amenity-item { break-inside: avoid; }
+.amenity-detail { color: var(--charcoal-50); }
+@media (max-width: 720px) {
+  .amenity-items { columns: 1; }
+}
 
 /* ── distances ────────────────────────────────────────────────────── */
 

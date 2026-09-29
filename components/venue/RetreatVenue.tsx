@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AmenityIcon from './AmenityIcon';
 import { FeaturedOffers, OfferList } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer, excursionToOffer } from '@/lib/offers';
 import { stayRulesFrom } from '@/lib/stayRules';
@@ -424,13 +425,18 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             title="Everything your retreat needs">
             <div className="amenity-columns">
               {Object.entries(byCategory).map(([cat, items]) => (
-                <div key={cat}>
-                  <div className="amenity-cat">{cat}</div>
-                  <div className="amenity-pill-row">
+                <div key={cat} className="amenity-group">
+                  <div className="amenity-head">
+                    <AmenityIcon category={cat} />
+                    <span className="amenity-cat">{cat}</span>
+                    <span className="amenity-count">{(items as any[]).length}</span>
+                  </div>
+                  <div className="amenity-items">
                     {(items as any[]).map((f) => (
-                      <span key={f.facility_id} className="amenity-pill">
-                        {f.name}{f.detail ? ` — ${f.detail}` : ''}
-                      </span>
+                      <div key={f.facility_id} className="amenity-item">
+                        {f.name}
+                        {f.detail && <span className="amenity-detail"> — {f.detail}</span>}
+                      </div>
                     ))}
                   </div>
                 </div>
