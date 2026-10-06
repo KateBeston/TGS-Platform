@@ -141,6 +141,37 @@ export function Distances({ v, tone = 'cream' }: { v: Record<string, any>; tone?
   );
 }
 
+/* What the area is known for.
+ *
+ * The editorial half of a location, and deliberately placed before the
+ * measured half beneath it. A drive time answers whether a guest can reach a
+ * pharmacy; it cannot say why anybody would want to be here in the first
+ * place. Each highlight carries its own line, so this reads as something
+ * written rather than a list of nouns.
+ *
+ * Nothing names a business. The moment a highlight would, it belongs in
+ * What's nearby, where it can carry a distance.
+ */
+export function LocationHighlights({ v, tone = 'white' }: {
+  v: Record<string, any>; tone?: 'cream' | 'white';
+}) {
+  const items = v.location_highlights ?? [];
+  if (!items.length) return null;
+
+  return (
+    <Section tone={tone} label="The area" title="Location highlights">
+      <div className="item-grid">
+        {items.map((h: any) => (
+          <article key={h.id} className="item">
+            <h3>{h.name}</h3>
+            {h.description && <p>{h.description}</p>}
+          </article>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 /* What is nearby, grouped.
  *
  * The travel grid answers whether a group can get here. This answers what is
@@ -177,7 +208,8 @@ export function Nearby({ v, tone = 'white' }: { v: Record<string, any>; tone?: '
   };
 
   return (
-    <Section tone={tone} label="What's nearby">
+    <Section tone={tone} label="What's nearby" title="Everything within reach"
+      subtitle="Driving times from the venue, nearest first">
       <div className="nearby-grid">
         {[...groups.entries()].map(([name, list]) => (
           <div key={name} className="nearby-group">

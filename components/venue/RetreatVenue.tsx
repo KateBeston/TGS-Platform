@@ -12,7 +12,7 @@ import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import {
-  Accessibility, Climate, Credentials, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Credentials, Distances, LocationHighlights, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money, roomSummary } from '@/lib/venue';
@@ -536,7 +536,10 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
             beach" are different claims, and running them together is how
             a listing overstates itself. */}
         <Distances v={v} tone="cream" />
-        <Nearby v={v} tone="white" />
+        {/* The area first, then what can be reached in it. Why somebody
+            would come here, before how far the supermarket is. */}
+        <LocationHighlights v={v} tone="white" />
+        <Nearby v={v} tone="cream" />
 
         {!!v.transfers.length && (
           <Section tone="white" label="Transfers" title="Getting to the door">

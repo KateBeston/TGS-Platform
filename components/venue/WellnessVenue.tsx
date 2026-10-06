@@ -11,7 +11,7 @@ import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
-  Accessibility, Climate, Credentials, Distances, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
+  Accessibility, Climate, Credentials, Distances, LocationHighlights, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
   PackagesPanel, PoliciesPanel, PractitionersPanel, RoomGrid, Section, TabHero,
 } from './Section';
 import { duration, money } from '@/lib/venue';
@@ -402,7 +402,10 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
         )}
 
         <Distances v={v} tone="cream" />
-        <Nearby v={v} tone="white" />
+        {/* The area first, then what can be reached in it. Why somebody
+            would come here, before how far the supermarket is. */}
+        <LocationHighlights v={v} tone="white" />
+        <Nearby v={v} tone="cream" />
 
         {!!v.transfers.length && (
           <Section tone="white" label="Transfers" title="Getting to the door">

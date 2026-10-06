@@ -32,7 +32,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   // Everything else at once. All tabs, one round trip.
   const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
+         distances, locationHighlights, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -59,6 +59,10 @@ export async function loadVenue(marketplace: string, slug: string) {
       // authenticated only, so reading them as the public site returned an
       // empty array with no error and these sections never appeared at all.
       supabase.from('published_venue_distances').select('*').eq('venue_id', id)
+        .order('display_order', { nullsFirst: false }),
+      // What the area is known for, each with its own line. The view, not the
+      // table, for the same reason as the distances above.
+      supabase.from('published_venue_location_highlights').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
       supabase.from('venue_excursions').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
@@ -198,12 +202,29 @@ export async function loadVenue(marketplace: string, slug: string) {
     /* Three homes, as a venue actually divides: where the retreat happens,
        where the group eats and sleeps, and what complements the place.
        A pool is not a practice space, and a page that says otherwise
-       misleads the facilitator deciding on it. */
-    spaces: spacesWithImages.filter((s2: any) =>
-      !s2.space_purpose || s2.space_purpose === 'Practice space'),
+       misleads the facilitator deciding on it.
+
+       Placement comes from the two ticks on the record, not from
+       space_purpose. That string answers a different question — what KIND
+       of space it is — and routing by it meant the portal's ticks changed
+       nothing on the site: a space ticked as a general amenity still
+       landed on the practice spaces tab, because its purpose happened to
+       be null. Worse, the only string that reached the amenities section
+       was the literal phrase "Better recorded as a facility", so a pool
+       recorded properly as a pool appeared nowhere at all.
+
+       The two ticks are independent on purpose. A gym a guest may use and
+       a retreat may hire is ticked twice and appears in both sections as
+       one record — editing it in either edits the same row.
+
+       Dining is the one exception, and stays keyed to purpose: a dining
+       room belongs with accommodation rather than among the amenities,
+       and two of them are also ticked general, so without excluding it
+       here the same room would appear twice on one page. */
+    spaces: spacesWithImages.filter((s2: any) => s2.is_practice_space),
     dining_spaces: spacesWithImages.filter((s2: any) => s2.space_purpose === 'Dining'),
     amenity_spaces: spacesWithImages.filter((s2: any) =>
-      s2.space_purpose === 'Better recorded as a facility'),
+      s2.is_general_space && s2.space_purpose !== 'Dining'),
     rooms: roomsWithImages,
     services: services.data ?? [],
     facilities: facilities.data ?? [],
@@ -220,6 +241,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     service_focus: serviceFocus.data ?? [],
     package_focus: packageFocus.data ?? [],
     distances: distances.data ?? [],
+    location_highlights: locationHighlights.data ?? [],
     excursions: excursions.data ?? [],
     faqs: faqs.data ?? [],
     seasons: seasons.data ?? [],
