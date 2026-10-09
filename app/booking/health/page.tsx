@@ -9,6 +9,7 @@ import AcceptanceDocList from '@/components/AcceptanceDocList';
 import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
+import { trackStepOnce } from '@/lib/track';
 
 /* Before you book: the health step.
  *
@@ -47,6 +48,8 @@ export default function HealthStepPage() {
       let cart: any = null;
       try { cart = JSON.parse(localStorage.getItem('tgs_cart') ?? 'null'); } catch { /* ignore */ }
       if (!cart) { router.replace('/booking'); return; }
+
+      trackStepOnce('health', 'view');
 
       const db = createClient();
       const resolved = await resolveSteps(db as never, cart);
@@ -125,6 +128,7 @@ export default function HealthStepPage() {
 
   const onwards = () => {
     recordAck('health');
+    trackStepOnce('health', 'complete');
     router.push(nextDestination(steps, { ...readAcks(), health: true }));
   };
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
-import { trackCartEvent } from '@/lib/track';
+import { trackCartEvent, trackStepOnce } from '@/lib/track';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
@@ -53,9 +53,17 @@ export default function CheckoutPage() {
     let live = true;
     (async () => {
       const steps = await resolveSteps(createClient() as never, cart);
-      if (!live || !steps.length) return;
+      if (!live || !steps.length) { trackStepOnce('checkout', 'view'); return; }
       const dest = nextDestination(steps, readAcks());
-      if (dest !== '/checkout') router.replace(dest);
+      if (dest !== '/checkout') {
+        /* Sent back because a step is outstanding. Worth its own event:
+           a guest bounced off the review screen is a different problem
+           from one who never reached it. */
+        trackStepOnce('checkout', 'blocked', { sent_to: dest });
+        router.replace(dest);
+        return;
+      }
+      trackStepOnce('checkout', 'view');
     })();
     return () => { live = false; };
   }, [cart, router]);

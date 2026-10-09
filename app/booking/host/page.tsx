@@ -9,6 +9,7 @@ import AcceptanceDocList from '@/components/AcceptanceDocList';
 import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
+import { trackStepOnce } from '@/lib/track';
 
 /* Before you book: the host step.
  *
@@ -64,6 +65,10 @@ export default function HostStepPage() {
       try { cart = JSON.parse(localStorage.getItem('tgs_cart') ?? 'null'); } catch { /* ignore */ }
       if (!cart) { router.replace('/booking'); return; }
 
+      /* Reported once the cart is confirmed present, not on mount: a
+         redirect straight back to /booking is not a visit to this step. */
+      trackStepOnce('host', 'view');
+
       const db = createClient();
       const resolved = await resolveSteps(db as never, cart);
       setSteps(resolved);
@@ -111,6 +116,7 @@ export default function HostStepPage() {
 
   const onwards = () => {
     recordAck('host');
+    trackStepOnce('host', 'complete');
     router.push(nextDestination(steps, { ...readAcks(), host: true }));
   };
 

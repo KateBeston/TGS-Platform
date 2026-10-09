@@ -38,7 +38,23 @@ export function trackOnce(event: string, payload: Payload = {}) {
  * only — never the financial record of a booking. Never throws or blocks. */
 
 export type CartEventType =
-  | 'add' | 'remove' | 'quantity_change' | 'cart_view' | 'checkout_start' | 'checkout_abandon' | 'book';
+  /* Building the cart */
+  | 'add' | 'remove' | 'quantity_change' | 'cart_view'
+  /* Leaving the cart for the steps */
+  | 'checkout_start' | 'checkout_abandon'
+  /* Each screen between the cart and payment; `step` says which */
+  | 'step_view' | 'step_complete' | 'step_back' | 'step_blocked'
+  /* The payment screen, which does not exist yet */
+  | 'payment_start' | 'payment_failed' | 'payment_success'
+  | 'book';
+
+/* The screens between the cart and the payment.
+ *
+ * Named after the routes rather than invented: host and health are what
+ * bookingSteps resolves from the database, checkout is the review, and
+ * payment is the screen still to be built. A loose string here would
+ * become four spellings of "health" and then the funnel is guesswork. */
+export type BookingStepName = 'host' | 'health' | 'checkout' | 'payment';
 
 /* Where an add came from.
  *
@@ -59,9 +75,14 @@ export type CartEvent = {
   eventType: CartEventType;
   /* Recorded in metadata, so no migration and no new column. */
   source?: CartSource;
+  /* Which screen, for the step_* and payment_* events. */
+  step?: BookingStepName | null;
   venueId?: number | null;
   itemType?: 'room' | 'space' | 'package' | 'exp' | 'extra' | 'buyout' | null;
   itemId?: number | null;
+  /* The catalogue code, so an abandoned cart can be read as "nobody
+     finishes when the sound bath is in it" rather than just a number. */
+  itemCode?: string | null;
   quantity?: number | null;
   unitPrice?: number | null;
   currency?: string | null;
@@ -90,4 +111,38 @@ export function trackCartEvent(e: CartEvent) {
       keepalive: true,
     }).catch(() => { /* silent */ });
   } catch { /* never break the page */ }
+}
+
+/** One screen of the booking flow, reported as it is reached and left.
+ *
+ *  Separate from trackCartEvent only for readability at the call site:
+ *  trackStep('health', 'view') reads as what it is, where
+ *  trackCartEvent({ eventType: 'step_view', step: 'health' }) does not.
+ */
+export function trackStep(
+  step: BookingStepName,
+  what: 'view' | 'complete' | 'back' | 'blocked',
+  metadata?: Record<string, unknown>,
+) {
+  trackCartEvent({
+    eventType: (`step_${what}` as CartEventType),
+    step,
+    metadata: metadata ?? null,
+  });
+}
+
+/* Fired once per step per session, so a screen that re-renders — and
+   these all do, on every field change — does not report itself twenty
+   times and turn one visit into twenty in the funnel. */
+const stepsSeen = new Set<string>();
+
+export function trackStepOnce(
+  step: BookingStepName,
+  what: 'view' | 'complete' | 'back' | 'blocked',
+  metadata?: Record<string, unknown>,
+) {
+  const key = `${step}:${what}`;
+  if (stepsSeen.has(key)) return;
+  stepsSeen.add(key);
+  trackStep(step, what, metadata);
 }
