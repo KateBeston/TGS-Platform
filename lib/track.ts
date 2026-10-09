@@ -40,8 +40,13 @@ export function trackOnce(event: string, payload: Payload = {}) {
 export type CartEventType =
   /* Building the cart */
   | 'add' | 'remove' | 'quantity_change' | 'cart_view'
+  /* Saving a venue for later, and changing their mind */
+  | 'favourite_add' | 'favourite_remove'
   /* Leaving the cart for the steps */
   | 'checkout_start' | 'checkout_abandon'
+  /* Which way they chose to check out, and whether the nudge worked */
+  | 'checkout_as_guest' | 'checkout_as_account'
+  | 'account_prompt_shown' | 'account_created_at_checkout'
   /* Each screen between the cart and payment; `step` says which */
   | 'step_view' | 'step_complete' | 'step_back' | 'step_blocked'
   /* The payment screen, which does not exist yet */

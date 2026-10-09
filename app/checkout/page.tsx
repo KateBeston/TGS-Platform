@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent, trackStepOnce } from '@/lib/track';
+import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
@@ -213,6 +214,11 @@ export default function CheckoutPage() {
 
       <div className="cart-cols">
         <div className="cart-main">
+          {/* Before the review, because which way they are checking out
+              changes nothing below it and everything about what the page
+              is asking of them. */}
+          <CheckoutIdentity email={contact?.email ?? null} />
+
           <section className="ck-sec">
             <h2 className="ck-h2">Review your booking</h2>
             {entries.map((v, i) => (

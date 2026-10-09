@@ -10,7 +10,10 @@ import { createClient } from '@/lib/supabase/server';
 
 const EVENT_TYPES = new Set([
   'add', 'remove', 'quantity_change', 'cart_view',
+  'favourite_add', 'favourite_remove',
   'checkout_start', 'checkout_abandon',
+  'checkout_as_guest', 'checkout_as_account',
+  'account_prompt_shown', 'account_created_at_checkout',
   'step_view', 'step_complete', 'step_back', 'step_blocked',
   'payment_start', 'payment_failed', 'payment_success',
   'book',

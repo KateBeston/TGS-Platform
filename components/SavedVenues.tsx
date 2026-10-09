@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthModal } from '@/components/AuthModal';
+import { trackCartEvent } from '@/lib/track';
 
 /* The saved-venues layer.
  *
@@ -37,6 +38,11 @@ export function SavedVenuesProvider({ children }: { children: ReactNode }) {
       setIds((p) => new Set(p).add(v));
       await supabase.from('profile_saved_venues')
         .upsert({ user_id: user.id, venue_id: v }, { onConflict: 'user_id,venue_id' });
+      /* The save that completed after signing in. Marked, because a
+         heart tapped while signed out and finished on the way back is a
+         different thing from one tapped by somebody already in. */
+      trackCartEvent({ eventType: 'favourite_add', venueId: v,
+                       metadata: { after_sign_in: true } });
     }
   };
 
@@ -48,14 +54,28 @@ export function SavedVenuesProvider({ children }: { children: ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = async (venueId: number) => {
-    if (!userId) { pending.current = venueId; authModal?.open('signup'); return; }
+    if (!userId) {
+      pending.current = venueId;
+      /* Recorded even though nothing is saved yet: a heart tapped while
+         signed out is interest, and whether those people come back is
+         the whole question the sign-in prompt exists to answer. */
+      trackCartEvent({ eventType: 'favourite_add', venueId,
+                       metadata: { signed_out: true, prompted: true } });
+      authModal?.open('signup');
+      return;
+    }
     const supabase = createClient();
     if (ids.has(venueId)) {
       setIds((p) => { const n = new Set(p); n.delete(venueId); return n; });
       await supabase.from('profile_saved_venues').delete().eq('user_id', userId).eq('venue_id', venueId);
+      /* profile_saved_venues records that a venue IS saved; it keeps no
+         trace of one that was saved and then dropped. That is the more
+         interesting signal, so it goes to cart_events. */
+      trackCartEvent({ eventType: 'favourite_remove', venueId });
     } else {
       setIds((p) => new Set(p).add(venueId));
       await supabase.from('profile_saved_venues').insert({ user_id: userId, venue_id: venueId });
+      trackCartEvent({ eventType: 'favourite_add', venueId });
     }
   };
 
