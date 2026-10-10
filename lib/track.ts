@@ -83,7 +83,7 @@ export type CartEvent = {
   /* Which screen, for the step_* and payment_* events. */
   step?: BookingStepName | null;
   venueId?: number | null;
-  itemType?: 'room' | 'space' | 'package' | 'exp' | 'extra' | 'buyout' | null;
+  itemType?: 'room' | 'space' | 'package' | 'exp' | 'extra' | 'svclen' | 'buyout' | null;
   itemId?: number | null;
   /* The catalogue code, so an abandoned cart can be read as "nobody
      finishes when the sound bath is in it" rather than just a number. */

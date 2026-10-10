@@ -23,7 +23,8 @@ const EVENT_TYPES = new Set([
    them, so every space and package added to a cart arrived with its
    item_type silently nulled — the row was stored and the one field that
    said what it was got thrown away. */
-const ITEM_TYPES = new Set(['room', 'space', 'package', 'exp', 'extra', 'buyout']);
+const ITEM_TYPES = new Set(['room', 'space', 'package', 'exp', 'extra',
+                            'svclen', 'buyout']);
 
 const STEPS = new Set(['host', 'health', 'checkout', 'payment']);
 
