@@ -28,10 +28,33 @@ export type Practice = {
   at_a_glance?: { label: string; value: string }[] | null;
 };
 
+/* ── when a category or practice exists on the marketplace ──────────
+ *
+ * When a live venue offers it. Nothing else: no second publish step and
+ * no flag to remember to set, because venue_count is already counted
+ * through venue_practices_public and venue_categories_public, both of
+ * which join published_venues. A venue going live therefore brings its
+ * practices with it, and a venue coming down takes them back.
+ *
+ * Until now nothing gated these at all. is_published is a column the
+ * experience_* views return rather than one they filter on, and every
+ * one of the 153 practices is a draft, so all 153 had a live page —
+ * 113 of them listing no venues, and 146 with no body copy. The
+ * sitemap already used this exact rule, so the pages and the sitemap
+ * disagreed about which of them existed.
+ *
+ * Deliberately not is_published. A practice nobody offers is an empty
+ * page whether or not somebody remembered to tick it, and a practice
+ * three live venues offer should not wait on a tick.
+ */
+function live<T>(query: T): T {
+  return (query as any).gt('venue_count', 0) as T;
+}
+
 export async function categories() {
   const supabase = await createClient();
-  const { data } = await supabase.from('experience_categories')
-    .select('*').order('display_order', { nullsFirst: false }).order('name');
+  const { data } = await live(supabase.from('experience_categories')
+    .select('*')).order('display_order', { nullsFirst: false }).order('name');
   return (data ?? []) as Category[];
 }
 
@@ -45,16 +68,36 @@ export async function practicesIn(categoryId: number) {
 
 export async function categoryBySlug(slug: string) {
   const supabase = await createClient();
-  const { data } = await supabase.from('experience_categories')
-    .select('*').eq('slug', slug).maybeSingle();
+  const { data } = await live(supabase.from('experience_categories')
+    .select('*').eq('slug', slug)).maybeSingle();
   return (data ?? null) as Category | null;
 }
 
 export async function practiceBySlug(categorySlug: string, slug: string) {
   const supabase = await createClient();
-  const { data } = await supabase.from('experience_practices')
-    .select('*').eq('category_slug', categorySlug).eq('slug', slug).maybeSingle();
+  const { data } = await live(supabase.from('experience_practices')
+    .select('*').eq('category_slug', categorySlug).eq('slug', slug)).maybeSingle();
   return (data ?? null) as Practice | null;
+}
+
+/** Every practice in a category that has a live venue, for the pills.
+ *
+ *  Used by the index grid and the home rail, where a pill is a link and
+ *  "+4 more" counts what is behind it. Both counted all 153 before, so
+ *  the number on the pill promised pages that turned out empty. */
+export async function livePracticesByCategory() {
+  const supabase = await createClient();
+  const { data } = await live(supabase.from('experience_practices')
+    .select('name,slug,category_slug,venue_count'))
+    .order('display_order', { nullsFirst: false }).order('name');
+
+  const byCategory = new Map<string, any[]>();
+  for (const p of (data ?? []) as any[]) {
+    const list = byCategory.get(p.category_slug) ?? [];
+    list.push(p);
+    byCategory.set(p.category_slug, list);
+  }
+  return byCategory;
 }
 
 /** Venues offering a category, or one practice within it. */

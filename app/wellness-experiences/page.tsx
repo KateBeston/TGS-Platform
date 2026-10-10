@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { categories } from '@/lib/experiences';
-import { createClient } from '@/lib/supabase/server';
+import { categories, livePracticesByCategory } from '@/lib/experiences';
 import ExperienceGrid from '@/components/ExperienceGrid';
 import PracticeEnquiry from '@/components/PracticeEnquiry';
 
@@ -41,22 +40,11 @@ const FALLBACK_TAG: Record<string, string> = {
 };
 
 export default async function ExperiencesPage() {
-  const supabase = await createClient();
-  const [cats, { data: allPractices }] = await Promise.all([
+  const [cats, byCategory] = await Promise.all([
     categories(),
-    supabase
-      .from('experience_practices')
-      .select('name,slug,category_slug,venue_count')
-      .order('display_order', { nullsFirst: false })
-      .order('name'),
+    livePracticesByCategory(),
   ]);
-
-  const byCategory = new Map<string, any[]>();
-  for (const p of (allPractices ?? []) as any[]) {
-    const list = byCategory.get(p.category_slug) ?? [];
-    list.push(p);
-    byCategory.set(p.category_slug, list);
-  }
+  const allPractices = [...byCategory.values()].flat();
 
   const withPractices = (cats as any[])
     .filter((c) => c.in_wellness)

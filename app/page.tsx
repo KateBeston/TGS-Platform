@@ -7,7 +7,7 @@ import { FavouriteButton } from '@/components/SavedVenues';
 import { placeOf, venueHref, type Card } from '@/lib/venues';
 import { articles, heroUrl } from '@/lib/sanity';
 import { createClient } from '@/lib/supabase/server';
-import { categories } from '@/lib/experiences';
+import { categories, livePracticesByCategory } from '@/lib/experiences';
 import HomeExperiences from '@/components/HomeExperiences';
 
 function fmtDate(iso: string | null) {
@@ -238,15 +238,10 @@ export default async function Home() {
     .slice(0, 4);
 
   // Wellness experience categories (+ their practices) for the home rail.
-  const [catList, { data: allPractices }] = await Promise.all([
+  const [catList, byCat] = await Promise.all([
     categories(),
-    supabase.from('experience_practices').select('name,slug,category_slug,venue_count')
-      .order('display_order', { nullsFirst: false }).order('name'),
+    livePracticesByCategory(),
   ]);
-  const byCat = new Map<string, any[]>();
-  for (const p of (allPractices ?? []) as any[]) {
-    const list = byCat.get(p.category_slug) ?? []; list.push(p); byCat.set(p.category_slug, list);
-  }
   const wxCategories = (catList as any[]).filter((c) => c.in_wellness).map((c) => ({
     name: c.name as string, slug: c.slug as string,
     image: (c.hero_image_url ?? WX_FALLBACK_IMG[c.slug] ?? null) as string | null,
