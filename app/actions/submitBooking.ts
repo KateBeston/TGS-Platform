@@ -32,7 +32,10 @@ type Cart = { venues?: Record<string, CartVenueSlice> };
 type Contact = { name?: string; email?: string; phone?: string };
 export type SubmitResult = { ok: true; orderReference: string } | { ok: false; error: string };
 
-const ITEM_TYPE: Record<string, string> = { room: 'Room', exp: 'Service', extra: 'Extra', buyout: 'Whole Venue' };
+const ITEM_TYPE: Record<string, string> = { room: 'Room', exp: 'Service',
+  /* Its own line type, so a 90-minute booking is told apart from the
+     advertised 60 in every report. */
+  svclen: 'Service length', extra: 'Extra', buyout: 'Whole Venue' };
 const num = (v: unknown): number => (typeof v === 'number' && isFinite(v) ? v : NaN);
 
 function orderRef(): string {
@@ -75,6 +78,11 @@ export async function submitBooking(
   // ── resolve the venue id for each slice, and server-side prices for services ──
   const venueNames = venues.map(([, v]) => v.venueName).filter(Boolean) as string[];
   const expIds = venues.flatMap(([, v]) => (v.items ?? []).filter((i) => i.kind === 'exp' || i.kind === 'extra').map((i) => i.id));
+  /* Kept apart from expIds and looked up in its own map: a duration id and
+     a service id are different rows that share numbers, so one map keyed
+     on id alone would price a length off whichever service matched. */
+  const lenIds = venues.flatMap(([, v]) =>
+    (v.items ?? []).filter((i) => i.kind === 'svclen').map((i) => i.id));
 
   // price map for services/experiences (base_price), from both sources
   const priceMap = new Map<number, { price: number | null; currency: string | null }>();
@@ -85,6 +93,15 @@ export async function submitBooking(
     ]);
     for (const r of exp ?? []) priceMap.set(r.id, { price: r.base_price, currency: r.currency });
     for (const r of svc ?? []) priceMap.set(r.id, { price: r.base_price, currency: r.currency }); // services authoritative
+  }
+
+  /* Lengths, priced from the row the guest actually chose. Server-side
+     like the rest: a price posted from a browser is a suggestion. */
+  const lenPrice = new Map<number, { price: number | null; currency: string | null }>();
+  if (lenIds.length) {
+    const { data: lens } = await db.from('venue_service_durations')
+      .select('id, price, currency').in('id', lenIds);
+    for (const r of lens ?? []) lenPrice.set(r.id, { price: r.price, currency: r.currency });
   }
 
   // venue ids + commission + cancellation policy, keyed by venue name
@@ -191,7 +208,8 @@ export async function submitBooking(
 
     for (const it of items) {
       const qty = Math.max(1, Math.floor(num(it.qty) || 1));
-      const priced = (it.kind === 'exp' || it.kind === 'extra') ? priceMap.get(it.id) : undefined;
+      const priced = it.kind === 'svclen' ? lenPrice.get(it.id)
+        : (it.kind === 'exp' || it.kind === 'extra') ? priceMap.get(it.id) : undefined;
       const unit = priced && priced.price != null ? Number(priced.price) : null; // rooms/buyout: null (no rates yet)
       const lineTotal = unit != null ? unit * qty : null;
       if (lineTotal != null) bookingSubtotal += lineTotal;
@@ -204,7 +222,78 @@ export async function submitBooking(
       });
     }
 
-    const commissionAmount = Math.round(bookingSubtotal * (commissionRate / 100) * 100) / 100;
+    /* ── discounts ──────────────────────────────────────────────────
+       Worked out by the database, not here. quote_discounts owns the
+       rules — exclusivity, conditions, the cap at the basket total — and
+       commission comes off the discounted price, so a second
+       implementation in this file would be a second answer to what TGS
+       earned.
+
+       Only the priced lines are sent: a room with no rate yet has a null
+       unit price and would make a nonsense of a percentage. */
+    let discountTotal = 0;
+    const discountNames: string[] = [];
+    const discountLines: any[] = [];
+
+    const pricedLines = lineRows
+      .filter((l) => l.unit_price != null && l.item_type !== 'Discount')
+      .map((l) => ({
+        item_type: l.item_type, item_id: l.item_id,
+        unit_price: Number(l.unit_price), quantity: l.quantity,
+      }));
+
+    if (pricedLines.length) {
+      const { data: offers, error: offerErr } = await db.rpc('quote_discounts', {
+        p_venue_id: venueId,
+        p_lines: pricedLines,
+        p_people: slice.guests ? Number(slice.guests) : null,
+        p_code: (cart as any)?.discountCode?.trim?.() || null,
+      });
+
+      /* A failure here must not silently charge full price on a booking
+         the guest was shown a discount for. It is recorded on the booking
+         so somebody can see it happened. */
+      if (offerErr) {
+        discountNames.push(`Discounts could not be applied: ${offerErr.message}`);
+      } else {
+        for (const o of (offers ?? []) as any[]) {
+          if (!o.applied || Number(o.saving) <= 0) continue;
+          const saving = Math.round(Number(o.saving) * 100) / 100;
+          discountTotal += saving;
+          discountNames.push(o.title);
+          discountLines.push({
+            item_type: 'Discount',
+            item_id: o.discount_id,
+            label: o.title,
+            quantity: 1,
+            /* Negative, so a subtotal built by summing the lines agrees
+               with the subtotal recorded on the booking. */
+            unit_price: -saving,
+            line_total: -saving,
+            date_from: slice.from || null, date_to: slice.to || null,
+            item_status: 'Requested', currency,
+          });
+        }
+      }
+    }
+
+    discountTotal = Math.min(Math.round(discountTotal * 100) / 100, bookingSubtotal);
+    const chargeable = Math.round((bookingSubtotal - discountTotal) * 100) / 100;
+    lineRows.push(...discountLines);
+
+    /* Commission on what the guest paid, by decision.
+       NOT computed here, despite appearances. apply_commission on bookings
+       overwrites commission_amount on every write from rate x basis, so
+       anything this file calculates is discarded. The way to make
+       commission follow the discount is to discount the subtotal itself:
+       every basis — Subtotal, Total, Accommodation only — then computes
+       off the discounted figure, and the handling of tourism tax and card
+       fees is untouched. Setting commission_basis to 'Total' instead would
+       also have stopped those being deducted, which is a different change
+       nobody asked for.
+       The gross is still recoverable: it is the sum of the non-Discount
+       lines, which is the reason the discount is its own line. */
+    const commissionAmount = Math.round(chargeable * (commissionRate / 100) * 100) / 100;
     const { data: booking, error: bErr } = await db.from('bookings').insert({
       order_id: order.id, venue_id: venueId,
       booked_by_type: 'Wellness Guest', status: 'Pending',
@@ -215,7 +304,13 @@ export async function submitBooking(
       wellness_guest_id: wellnessGuestId,
       cancellation_policy_id: policyId,
       commission_rate: commissionRate, commission_amount: commissionAmount,
-      subtotal: bookingSubtotal, total: bookingSubtotal, currency, is_primary_booking: true,
+      /* Net of discounts. A retail subtotal is after discounts, and this
+         is what commission is taken on. */
+      subtotal: chargeable, total: chargeable, currency, is_primary_booking: true,
+      discount_amount: discountTotal > 0 ? discountTotal : null,
+      discount_rate: discountTotal > 0 && bookingSubtotal > 0
+        ? Math.round((discountTotal / bookingSubtotal) * 10000) / 100 : null,
+      discount_reason: discountNames.length ? discountNames.join(' · ') : null,
     }).select('id').single();
     if (bErr || !booking) return { ok: false, error: bErr?.message ?? 'Could not create a booking.' };
 
@@ -224,7 +319,8 @@ export async function submitBooking(
       const { error: liErr } = await db.from('booking_items').insert(withBooking);
       if (liErr) return { ok: false, error: liErr.message };
     }
-    orderSubtotal += bookingSubtotal;
+    /* What the order is worth, which is what will be charged. */
+    orderSubtotal += chargeable;
   }
 
   await db.from('orders').update({ subtotal: orderSubtotal, total: orderSubtotal }).eq('id', order.id);

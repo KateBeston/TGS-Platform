@@ -51,7 +51,8 @@ export type Offer = {
      one length only, which is most services. Each carries its own id,
      because each is its own sellable item with its own code and goes in
      the cart as its own line. */
-  lengths?: { id: number; minutes: number; price: number | null; note: string | null }[];
+  lengths?: { id: number; minutes: number; price: number | null;
+              was?: number | null; note: string | null }[];
   /** The advertised length in minutes, for labelling the default choice
    *  beside the others. Carried as a number rather than read back out of
    *  the Duration fact's prose. */
@@ -70,6 +71,12 @@ export type Offer = {
   /** Whether anything here is serious enough to warrant the standing
    *  medical line beneath it. */
   seriousSafety?: boolean;
+  /* An offer that needs no conditions met, so the price shown is the
+     price paid. `was` is struck through. Conditional offers are not here
+     — they are on the banner and applied at checkout, never promised as
+     a price. */
+  offer?: { was: number; now: number; saving: number;
+            kind: string; value: number | null; title: string } | null;
 };
 
 const clean = (xs: (string | null | undefined)[]) =>
@@ -174,7 +181,10 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     description: s.description ?? null,
     tags: clean([...focusFor(focus, 'service_id', s.id), ...(s.treatment_tags ?? [])]).slice(0, 4),
     images: galleryFor(media, 'service_id', s.id, s.image_url),
-    price: s.base_price ?? null,
+    /* The discounted price where an unconditional offer applies, so the
+       figure on the card is the figure charged. `offer.was` carries the
+       original for the strike-through. */
+    price: s.offer ? Number(s.offer.now_price) : (s.base_price ?? null),
     currency: s.currency ?? null,
     priceFrom: !!s.price_is_from,
     priceBasis: s.price_basis ?? null,
@@ -198,10 +208,22 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     seriousSafety: (s.safety ?? []).some(
       (f: any) => f.severity === 'Critical' || f.severity === 'High')
       || !!s.requires_health_form,
+    offer: s.offer ? {
+      was: Number(s.offer.was), now: Number(s.offer.now_price),
+      saving: Number(s.offer.saving), kind: s.offer.kind,
+      value: s.offer.value == null ? null : Number(s.offer.value),
+      title: s.offer.title,
+    } : null,
     lengths: (s.lengths ?? [])
       .filter((d: any) => d.price != null)
-      .map((d: any) => ({ id: d.id, minutes: d.duration_minutes,
-                          price: Number(d.price), note: d.note ?? null })),
+      .map((d: any) => ({
+        id: d.id, minutes: d.duration_minutes,
+        /* The discounted price where there is one, so choosing a length
+           shows what it costs rather than what it used to. */
+        price: d.offer ? Number(d.offer.now_price) : Number(d.price),
+        was: d.offer ? Number(d.offer.was) : null,
+        note: d.note ?? null,
+      })),
     detail: hasDetail ? {
       whoFor: (s.expected_outcomes ?? []).length ? (s.expected_outcomes ?? []).join(', ') : null,
       whatToBring: s.what_to_bring ?? null,

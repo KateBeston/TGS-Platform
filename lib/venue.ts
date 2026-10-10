@@ -30,7 +30,8 @@ export async function loadVenue(marketplace: string, slug: string) {
   const id = (card as any).id as number;
 
   // Everything else at once. All tabs, one round trip.
-  const [venue, spaces, rooms, services, serviceLengths, serviceSafety, facilities, settings, categories, reviews,
+  const [venue, spaces, rooms, services, serviceLengths, serviceSafety,
+         itemOffers, liveOffers, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
          distances, locationHighlights, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
     await Promise.all([
@@ -50,6 +51,19 @@ export async function loadVenue(marketplace: string, slug: string) {
          behind it. The signs belong in the sauna, not at the front door. */
       supabase.from('published_service_safety').select('*').eq('venue_id', id)
         .order('severity_rank'),
+      /* The price a guest pays for one unit right now, for offers that
+         need no conditions met. Conditional offers are advertised on the
+         banner and applied at checkout, never struck through. */
+      supabase.from('published_item_offers').select('*').eq('venue_id', id),
+      /* Live offers, for the banner. Driven by venue_discounts rather
+         than the old venue_promotions banner table, so a banner can
+         never advertise something the checkout will not honour. */
+      supabase.from('venue_discounts')
+        .select('id,title,description,kind,value,code,applies_to,starts_on,'
+              + 'ends_on,days_of_week,min_items,min_people,min_spend,currency,'
+              + 'venue_discount_items(service_id,duration_id)')
+        .eq('venue_id', id).eq('status', 'Live')
+        .order('display_order', { nullsFirst: false }),
       supabase.from('venue_facilities_public').select('*').eq('venue_id', id),
       supabase.from('venue_settings_public').select('*').eq('venue_id', id),
       supabase.from('venue_categories_public').select('*').eq('venue_id', id),
@@ -239,10 +253,17 @@ export async function loadVenue(marketplace: string, slug: string) {
        them without a second lookup per service. */
     services: (services.data ?? []).map((sv: any) => ({
       ...sv,
-      lengths: (serviceLengths.data ?? [])
-        .filter((d: any) => d.service_id === sv.id),
       safety: (serviceSafety.data ?? [])
         .filter((f: any) => f.service_id === sv.id),
+      offer: (itemOffers.data ?? []).find(
+        (o: any) => o.item_type === 'Service' && o.item_id === sv.id) ?? null,
+      lengths: (serviceLengths.data ?? [])
+        .filter((d: any) => d.service_id === sv.id)
+        .map((d: any) => ({
+          ...d,
+          offer: (itemOffers.data ?? []).find(
+            (o: any) => o.item_type === 'Service length' && o.item_id === d.id) ?? null,
+        })),
     })),
     facilities: facilities.data ?? [],
     settings: settings.data ?? [],
@@ -267,6 +288,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     tab_content: tabContent.data ?? [],
     related: relatedCards,
     promotions: promotions.data ?? [],
+    offers: liveOffers.data ?? [],
     rate_plans: ratePlans.data ?? [],
     extras: extras.data ?? [],
     free_cancellation_days,

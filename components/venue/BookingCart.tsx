@@ -29,7 +29,12 @@ type Drawer = 'open' | 'min';
    Packages likewise. A package is a programme with its own price and its own
    inclusions, and folding it into 'extra' would put a three-night programme in
    the same group as yoga mats. */
-type Kind = 'room' | 'space' | 'exp' | 'extra' | 'package';
+/* 'svclen' is the same service at another length. Its own kind rather
+   than an 'exp' line pointing at a duration row: the cart keys on kind
+   plus id, and a duration id and a service id are different rows that
+   share numbers — routing one through 'exp' would add whichever service
+   happened to carry the same number. */
+type Kind = 'room' | 'space' | 'exp' | 'extra' | 'package' | 'svclen';
 
 type CartValue = {
   from: string; to: string; guests: string;
@@ -105,6 +110,7 @@ export function BookingCart({
      Accommodation opens first because it is the one that is required. */
   const [openStart, setOpenStart] = useState<string | null>('rooms');
   const [expQty, setExpQty] = useState<Record<number, number>>({});
+  const [lenQty, setLenQty] = useState<Record<number, number>>({});
   const [extraQty, setExtraQty] = useState<Record<number, number>>({});
   /* Always present, never tucked away.
      It used to default to a hidden state with a button bottom-right to summon
@@ -181,8 +187,8 @@ export function BookingCart({
   const guestN = Math.max(1, Number(guests) || 1);
 
 
-  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'space' ? spaceQty : k === 'package' ? pkgQty : k === 'exp' ? expQty : extraQty);
-  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'space' ? setSpaceQty : k === 'package' ? setPkgQty : k === 'exp' ? setExpQty : setExtraQty);
+  const bag = (k: Kind) => (k === 'room' ? roomQty : k === 'space' ? spaceQty : k === 'package' ? pkgQty : k === 'exp' ? expQty : k === 'svclen' ? lenQty : extraQty);
+  const setBag = (k: Kind) => (k === 'room' ? setRoomQty : k === 'space' ? setSpaceQty : k === 'package' ? setPkgQty : k === 'exp' ? setExpQty : k === 'svclen' ? setLenQty : setExtraQty);
 
   /* How many people the chosen rooms sleep, and how many still have nowhere.
      The whole point of the count beside each line: a host should never have to
@@ -314,8 +320,32 @@ export function BookingCart({
     }
     for (const s of services) {
       const q = expQty[s.id] ?? 0; if (!q) continue;
-      const unit = s.base_price != null ? Number(s.base_price) : null;
+      /* The discounted unit where an unconditional offer applies, so the
+         cart, the card and the charge all show the same figure.
+         Conditional offers are applied by quote_discounts at checkout and
+         deliberately not guessed at here. */
+      const unit = s.offer?.now_price != null ? Number(s.offer.now_price)
+        : s.base_price != null ? Number(s.base_price) : null;
       out.push({ key: `exp-${s.id}`, label: s.name, detail: [s.duration_label, s.service_category].filter(Boolean).join(' · ') || 'Wellness service', amount: unit != null ? unit * q : null, kind: 'exp', id: s.id, qty: q, max: 20, image: s.gallery_images?.[0] ?? venueImage, eyebrow: 'Wellness service', qtyLabel: 'Guests', unit });
+    }
+    /* A chosen length, labelled with its service so the cart does not read
+       "90 min" with nothing saying 90 minutes of what. */
+    for (const sv of services) {
+      for (const d of (sv.lengths ?? [])) {
+        const q = lenQty[d.id] ?? 0; if (!q) continue;
+        const unit = d.offer?.now_price != null ? Number(d.offer.now_price)
+          : d.price != null ? Number(d.price) : null;
+        out.push({
+          key: `svclen-${d.id}`,
+          label: `${sv.name} · ${d.duration_minutes} min`,
+          detail: [d.note, sv.service_category].filter(Boolean).join(' · ')
+                  || 'Wellness service',
+          amount: unit != null ? unit * q : null,
+          kind: 'svclen', id: d.id, qty: q, max: 20,
+          image: sv.gallery_images?.[0] ?? venueImage,
+          eyebrow: 'Wellness service', qtyLabel: 'Guests', unit,
+        });
+      }
     }
     for (const e of extras) {
       const q = extraQty[e.id] ?? 0; if (!q) continue;
@@ -344,7 +374,7 @@ export function BookingCart({
       });
     }
     return out;
-  }, [rooms, spaces, services, extras, packages, ratePlans, roomQty, spaceQty, pkgQty, expQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
+  }, [rooms, spaces, services, extras, packages, ratePlans, roomQty, spaceQty, pkgQty, expQty, lenQty, extraQty, nights, durationLabel, guestN, buyout, buyoutTotal, buyoutPlan, venueImage]);
 
   const total = lines.reduce((sum, l) => sum + (l.amount ?? 0), 0);
   const count = lines.reduce((sum, l) => sum + l.qty, 0);
@@ -392,15 +422,18 @@ export function BookingCart({
         if (slice.to) setTo(slice.to);
         if (slice.guests) setGuests(String(slice.guests));
         if (slice.buyout) setBuyout(true);
-        const rq: Record<number, number> = {}, eq: Record<number, number> = {}, xq: Record<number, number> = {};
+        const rq: Record<number, number> = {}, eq: Record<number, number> = {},
+              lq: Record<number, number> = {}, xq: Record<number, number> = {};
         for (const it of slice.items ?? []) {
           if (it.key === 'buyout' || it.id == null) continue;
           if (it.kind === 'room') rq[it.id] = it.qty;
           else if (it.kind === 'exp') eq[it.id] = it.qty;
+          else if (it.kind === 'svclen') lq[it.id] = it.qty;
           else if (it.kind === 'extra') xq[it.id] = it.qty;
         }
         if (Object.keys(rq).length) setRoomQty(rq);
         if (Object.keys(eq).length) setExpQty(eq);
+        if (Object.keys(lq).length) setLenQty(lq);
         if (Object.keys(xq).length) setExtraQty(xq);
       }
     } catch { /* ignore */ }
@@ -436,7 +469,7 @@ export function BookingCart({
   if (confirmation) features.push({ icon: <IcBolt />, label: confirmation });
 
   const GROUP_LABEL: Record<string, string> = { room: 'Accommodation', exp: 'Wellness services', extra: 'Room extras' };
-  const groups = (['room', 'exp', 'extra'] as Kind[])
+  const groups = (['room', 'exp', 'svclen', 'extra'] as Kind[])
     .map((k) => ({ key: k, label: GROUP_LABEL[k], items: lines.filter((l) => l.kind === k) }))
     .filter((g) => g.items.length > 0);
 

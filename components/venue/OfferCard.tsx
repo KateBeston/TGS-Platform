@@ -37,6 +37,25 @@ export default function OfferCard({ offer }: { offer: Offer }) {
     ? o.price
     : (o.lengths?.find((L) => L.id === chosen)?.price ?? o.price);
 
+  /* What it was before the offer, for the strike-through. Per length
+     where one is chosen, since each length carries its own offer. */
+  const wasPrice = chosen === null
+    ? (o.offer?.was ?? null)
+    : (o.lengths?.find((L) => L.id === chosen)?.was ?? null);
+
+  /* The offer in the venue's own words — "20% off" rather than a
+     calculated saving, because that is what was advertised. */
+  const savingLabel = (() => {
+    if (wasPrice == null || shownPrice == null || wasPrice <= shownPrice) return null;
+    if (chosen === null && o.offer) {
+      if (o.offer.kind === 'Percentage off' && o.offer.value != null) {
+        return `${o.offer.value}% off`;
+      }
+      return `${money(wasPrice - shownPrice, o.currency)} off`;
+    }
+    return `${money(wasPrice - shownPrice, o.currency)} off`;
+  })();
+
   const hasImages = o.images.length > 0;
   const thumbs = o.images.filter((_, i) => i !== main).slice(0, 3);
 
@@ -154,9 +173,17 @@ export default function OfferCard({ offer }: { offer: Offer }) {
               {/* "From" belongs to the advertised price. Once a length is
                   chosen the figure is that length's price exactly. */}
               {o.priceFrom && chosen === null && <small>From</small>}
+              {/* What it was, struck through, where this is a discounted
+                  price. Only ever shown for an offer with no conditions
+                  attached, so it cannot promise a price the checkout
+                  will not honour. */}
+              {wasPrice != null && wasPrice > (shownPrice ?? 0) && (
+                <s className="ofc-was">{money(wasPrice, o.currency)}</s>
+              )}
               {money(shownPrice, o.currency) ?? 'On request'}
             </span>
             {o.priceBasis && <span className="ofc-basis">{o.priceBasis}</span>}
+            {savingLabel && <span className="ofc-save">{savingLabel}</span>}
           </div>
           {o.priceAlt.length > 0 && <p className="ofc-alt">{o.priceAlt.join(' \u00b7 ')}</p>}
 

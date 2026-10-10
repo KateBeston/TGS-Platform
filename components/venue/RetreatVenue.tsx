@@ -2,6 +2,7 @@ import Link from 'next/link';
 import AmenityIcon from './AmenityIcon';
 import { FeaturedOffers, OfferList } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer, excursionToOffer } from '@/lib/offers';
+import OfferBanner from '@/components/venue/OfferBanner';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueTabs from '@/components/VenueTabs';
 import VenueMap, { venueAddressLine } from './VenueMap';
@@ -124,6 +125,15 @@ export default function RetreatVenue({ v }: { v: Record<string, any> }) {
       {/* ── overview ───────────────────────────────────────────────── */}
 
       <div id="panel-overview" className="vpanel">
+        {/* Overview only on a retreat venue, by decision: what is being
+            bought is the place, and its services are what the space can
+            support rather than a menu to shop. */}
+        {!!v.offers?.length && (
+          <Section tone="cream" label="Special" title="What is on offer">
+            <OfferBanner offers={v.offers} sectionHref="#panel-overview"
+              sectionLabel="Enquire" />
+          </Section>
+        )}
         {v.promotions?.length > 0 && (
           <Section tone="cream" label="Special" title="Exclusive rates available">
             <div className="promo-list">

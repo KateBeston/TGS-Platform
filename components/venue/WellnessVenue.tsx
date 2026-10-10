@@ -2,6 +2,7 @@ import VenueTabs from '@/components/VenueTabs';
 import AmenityIcon from './AmenityIcon';
 import { OfferList, FeaturedOffers } from '@/components/venue/OfferCard';
 import { serviceToOffer, extraToOffer } from '@/lib/offers';
+import OfferBanner from '@/components/venue/OfferBanner';
 import { stayRulesFrom } from '@/lib/stayRules';
 import VenueMap, { venueAddressLine } from './VenueMap';
 import { BookingCart, AddToCart } from './BookingCart';
@@ -105,6 +106,15 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
 
 
       <div id="panel-overview" className="vpanel">
+        {/* The real offers, from venue_discounts. Above the hand-written
+            promotions block, which stays for the editorial banners that
+            carry no price. */}
+        {!!v.offers?.length && (
+          <Section tone="cream" label="Special" title="What is on offer">
+            <OfferBanner offers={v.offers} sectionHref="#panel-experiences"
+              sectionLabel="See the services" />
+          </Section>
+        )}
         {v.promotions?.length > 0 && (
           <Section tone="cream" label="Special" title="Exclusive rates available">
             <div className="promo-list">
@@ -187,6 +197,15 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
           the thermal circuit to find it. */}
       {(!!v.services.length || !!v.extras?.length) && (
         <div id="panel-experiences" className="vpanel" hidden>
+          {/* Again here, because this is the page somebody is on when
+              they are choosing — and an offer announced only on the
+              overview is an offer most guests never see. */}
+          {!!v.offers?.length && (
+            <Section tone="cream" label="Special" title="What is on offer">
+              <OfferBanner offers={v.offers} sectionHref="#panel-experiences"
+                sectionLabel="See the services" />
+            </Section>
+          )}
           {!!v.extras?.length && (
             <Section tone="cream" label="Extras" title="Add to your stay">
               <OfferList offers={v.extras.map((e: any) => extraToOffer(e))} />

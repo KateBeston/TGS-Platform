@@ -4653,6 +4653,39 @@ img { max-width: 100%; height: auto; display: block; }
    somebody is choosing at all. The advertised length is first and
    selected, so a service with lengths looks like one without until it is
    touched. */
+/* A discounted price: what it was, struck through, then what it is. The
+   old figure is small and quiet — it is context, not the number anybody
+   is reading. */
+.ofc-was { font-size: 0.62em; color: var(--muted); margin-right: 6px;
+  font-weight: 400; text-decoration-thickness: 1px; }
+.ofc-save { display: block; font-family: var(--sans); font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--gold, #a8894f);
+  text-align: right; margin-top: 2px; }
+
+/* What is on offer. Conditions in words, because a conditional offer is
+   never struck through on a price — the cart applies it when the basket
+   qualifies, and until then this is where it is stated. */
+.offb { display: flex; flex-direction: column; gap: 10px; }
+.offb-h { font-family: var(--sans); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); }
+.offb-list { list-style: none; margin: 0; padding: 0; display: flex;
+  flex-direction: column; gap: 8px; }
+.offb-item { display: flex; gap: 14px; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+  padding: 12px 14px; background: var(--surface, #fff);
+  border: 1px solid var(--border); }
+.offb-main { flex: 1; min-width: 220px; }
+.offb-fig { font-family: var(--serif); font-size: 19px; margin-right: 8px; }
+.offb-title { font-size: 13.5px; }
+.offb-terms { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.offb-desc { font-size: 12.5px; line-height: 1.55; margin: 6px 0 0; }
+.offb-dates { font-size: 11px; color: var(--muted); margin: 4px 0 0; }
+.offb-cta { font-family: var(--sans); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  padding: 8px 14px; border: 1px solid var(--ink); color: var(--ink); }
+.offb-cta:hover { background: var(--ink); color: var(--surface, #fff); }
+@media (max-width: 560px) { .offb-cta { width: 100%; text-align: center; } }
+
 /* Contraindications. Legible rather than alarming: a guest who can safely
    have the treatment should not be frightened off it, and a guest who
    cannot must not be able to miss it. So it is set apart and quiet, not
