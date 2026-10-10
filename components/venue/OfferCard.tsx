@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AddToCart } from '@/components/venue/BookingCart';
+import { MEDICAL_NOTICE, SAFETY_HEADING } from '@/lib/safetyNotice';
 import type { Offer } from '@/lib/offers';
 
 /* One card for treatments, packages, excursions and room extras.
@@ -26,7 +27,16 @@ export default function OfferCard({ offer }: { offer: Offer }) {
   const [main, setMain] = useState(0);
   const [modalMain, setModalMain] = useState(0);
   const [open, setOpen] = useState(false);
+  /* Which length is selected. null is the advertised one, which is how a
+     card with lengths behaves identically to one without until somebody
+     chooses — and it is what goes in the cart if they never do. */
+  const [chosen, setChosen] = useState<number | null>(null);
   const o = offer;
+
+  const shownPrice = chosen === null
+    ? o.price
+    : (o.lengths?.find((L) => L.id === chosen)?.price ?? o.price);
+
   const hasImages = o.images.length > 0;
   const thumbs = o.images.filter((_, i) => i !== main).slice(0, 3);
 
@@ -90,10 +100,61 @@ export default function OfferCard({ offer }: { offer: Offer }) {
             </div>
           )}
 
+          {/* Contraindications, before the price rather than after it: a
+              guest who cannot safely have this should not first be sold
+              on it. The signs are in the sauna, not at the front door, so
+              these sit on the service they belong to. */}
+          {!!o.safety?.length && (
+            <div className="ofc-safety">
+              <div className="ofc-safety-h">{SAFETY_HEADING}</div>
+              <ul className="ofc-safety-list">
+                {o.safety.map((f, i) => (
+                  <li key={i}
+                      className={f.severity === 'Critical' ? 'is-critical' : undefined}>
+                    {f.label}
+                    {f.notSuitableIf && <span> — {f.notSuitableIf}</span>}
+                    {!f.notSuitableIf && f.note && <span> — {f.note}</span>}
+                    {f.requirement && <span> {f.requirement}</span>}
+                  </li>
+                ))}
+              </ul>
+              {o.seriousSafety && (
+                <p className="ofc-safety-note">{MEDICAL_NOTICE}</p>
+              )}
+            </div>
+          )}
+
+          {/* The same treatment at other lengths. The advertised one is
+              first and selected, so a card with lengths reads the same as
+              one without until somebody chooses. */}
+          {!!o.lengths?.length && (
+            <div className="ofc-lengths" role="group" aria-label="Length">
+              {[{ id: null as number | null, minutes: o.minutes ?? null,
+                  price: o.price, note: null as string | null },
+                ...o.lengths].map((L) => {
+                const on = chosen === L.id;
+                return (
+                  <button key={L.id ?? 'advertised'} type="button"
+                    className={`ofc-length${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
+                    title={L.note ?? undefined}
+                    onClick={() => setChosen(L.id)}>
+                    {L.minutes ? `${L.minutes} min` : 'Standard'}
+                    {L.price != null && (
+                      <small>{money(L.price, o.currency)}</small>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <div className="ofc-price">
             <span className="ofc-fig">
-              {o.priceFrom && <small>From</small>}
-              {money(o.price, o.currency) ?? 'On request'}
+              {/* "From" belongs to the advertised price. Once a length is
+                  chosen the figure is that length's price exactly. */}
+              {o.priceFrom && chosen === null && <small>From</small>}
+              {money(shownPrice, o.currency) ?? 'On request'}
             </span>
             {o.priceBasis && <span className="ofc-basis">{o.priceBasis}</span>}
           </div>
@@ -113,9 +174,14 @@ export default function OfferCard({ offer }: { offer: Offer }) {
             <a className="ofc-policies" href="#policies">Policies</a>
             <span className="ofc-foot-spacer" />
             {o.bookable
-              ? <AddToCart
-                  kind={o.kind === 'exp' ? 'exp' : o.kind === 'package' ? 'package' : 'extra'}
-                  id={o.id} max={o.maxQty} />
+              ? (chosen !== null
+                  /* A length is its own sellable item with its own code, so
+                     it goes in as its own line rather than as this service
+                     with a note on it. */
+                  ? <AddToCart kind="svclen" id={chosen} max={o.maxQty} />
+                  : <AddToCart
+                      kind={o.kind === 'exp' ? 'exp' : o.kind === 'package' ? 'package' : 'extra'}
+                      id={o.id} max={o.maxQty} />)
               : <a className="ofc-enquire" href="#enquire">Enquire</a>}
           </div>
         </div>

@@ -30,7 +30,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   const id = (card as any).id as number;
 
   // Everything else at once. All tabs, one round trip.
-  const [venue, spaces, rooms, services, facilities, settings, categories, reviews,
+  const [venue, spaces, rooms, services, serviceLengths, serviceSafety, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
          distances, locationHighlights, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
     await Promise.all([
@@ -41,6 +41,15 @@ export async function loadVenue(marketplace: string, slug: string) {
         .order('display_order', { nullsFirst: false }),
       supabase.from('published_venue_services').select('*').eq('venue_id', id)
         .order('display_order', { nullsFirst: false }),
+      /* The same service at other lengths, each with its own price and its
+         own item code. Gated in the view on both the length's switch and
+         the parent service's. */
+      supabase.from('published_venue_service_durations').select('*').eq('venue_id', id)
+        .order('duration_minutes'),
+      /* Contraindications and risks per service, authored on the practice
+         behind it. The signs belong in the sauna, not at the front door. */
+      supabase.from('published_service_safety').select('*').eq('venue_id', id)
+        .order('severity_rank'),
       supabase.from('venue_facilities_public').select('*').eq('venue_id', id),
       supabase.from('venue_settings_public').select('*').eq('venue_id', id),
       supabase.from('venue_categories_public').select('*').eq('venue_id', id),
@@ -226,7 +235,15 @@ export async function loadVenue(marketplace: string, slug: string) {
     amenity_spaces: spacesWithImages.filter((s2: any) =>
       s2.is_general_space && s2.space_purpose !== 'Dining'),
     rooms: roomsWithImages,
-    services: services.data ?? [],
+    /* Each service carries its own other lengths, so the card can offer
+       them without a second lookup per service. */
+    services: (services.data ?? []).map((sv: any) => ({
+      ...sv,
+      lengths: (serviceLengths.data ?? [])
+        .filter((d: any) => d.service_id === sv.id),
+      safety: (serviceSafety.data ?? [])
+        .filter((f: any) => f.service_id === sv.id),
+    })),
     facilities: facilities.data ?? [],
     settings: settings.data ?? [],
     categories: categories.data ?? [],

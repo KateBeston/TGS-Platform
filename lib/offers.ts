@@ -46,6 +46,30 @@ export type Offer = {
      cart and submitBooking learn about them as their own kinds. */
   bookable: boolean;
   detail: OfferDetail | null;
+  /* The same thing, running longer. The advertised length is not in here
+     — it is the card's own price and duration — so an empty list means
+     one length only, which is most services. Each carries its own id,
+     because each is its own sellable item with its own code and goes in
+     the cart as its own line. */
+  lengths?: { id: number; minutes: number; price: number | null; note: string | null }[];
+  /** The advertised length in minutes, for labelling the default choice
+   *  beside the others. Carried as a number rather than read back out of
+   *  the Duration fact's prose. */
+  minutes?: number | null;
+  /* Contraindications and risks, authored once on the practice behind
+     this service. Never written per venue: one reviewed sentence per kind
+     of risk, rather than six thousand venues each wording their own
+     medical caveat. */
+  safety?: {
+    label: string;
+    severity: string | null;
+    notSuitableIf: string | null;
+    note: string | null;
+    requirement: string | null;
+  }[];
+  /** Whether anything here is serious enough to warrant the standing
+   *  medical line beneath it. */
+  seriousSafety?: boolean;
 };
 
 const clean = (xs: (string | null | undefined)[]) =>
@@ -106,9 +130,32 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     });
   }
 
+  /* Three things the record has always held and the listing never showed.
+     How it is sold is the first thing a guest needs: a single treatment,
+     a course of six and a class pass are bought in completely different
+     ways, and the card described all three identically. */
+  if (s.service_type) facts.push({ label: 'How it is offered', value: s.service_type });
+  /* What it actually is, as against what this venue calls it. "Female
+     Wellness" says nothing; "Lymphatic drainage" does. */
+  if (s.practice && s.practice !== (s.website_display_name ?? s.name)) {
+    facts.push({ label: 'Type of therapy', value: s.practice });
+  }
+  /* Before booking, not after. Finding out at the health step that a form
+     is required is the kind of surprise that loses the booking. */
+  if (s.requires_health_form) {
+    facts.push({
+      label: 'Health form',
+      value: s.health_form_note?.trim() || 'Required before your appointment',
+    });
+  }
+
   const alt: string[] = [];
   if (s.group_price_per_person) alt.push(`${moneyPlain(s.group_price_per_person, s.currency)} per person in a group`);
-  if (s.price_range_high && s.price_range_high !== s.base_price) {
+  /* Only where no priced lengths exist. With them, the card lists the
+     actual lengths and their actual prices, and a vague "to $X for longer
+     sessions" beside that reads as a second, different answer. */
+  if (!(s.lengths ?? []).length
+      && s.price_range_high && s.price_range_high !== s.base_price) {
     alt.push(`to ${moneyPlain(s.price_range_high, s.currency)} for longer sessions`);
   }
 
@@ -136,6 +183,25 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     featured: !!s.is_featured,
     maxQty: 10,
     bookable: s.is_bookable !== false,
+    minutes: s.duration_minutes ?? null,
+    safety: (s.safety ?? []).map((f: any) => ({
+      label: f.guest_label,
+      severity: f.severity ?? null,
+      notSuitableIf: f.not_suitable_if ?? null,
+      note: f.guest_note ?? null,
+      requirement: f.requirement ?? null,
+    })),
+    /* The standing line is shown for the severities that mean a guest
+       could come to harm, and wherever the venue asks for a health form.
+       Not on a cultural protocol or an age restriction, which are real
+       but are not medical. */
+    seriousSafety: (s.safety ?? []).some(
+      (f: any) => f.severity === 'Critical' || f.severity === 'High')
+      || !!s.requires_health_form,
+    lengths: (s.lengths ?? [])
+      .filter((d: any) => d.price != null)
+      .map((d: any) => ({ id: d.id, minutes: d.duration_minutes,
+                          price: Number(d.price), note: d.note ?? null })),
     detail: hasDetail ? {
       whoFor: (s.expected_outcomes ?? []).length ? (s.expected_outcomes ?? []).join(', ') : null,
       whatToBring: s.what_to_bring ?? null,

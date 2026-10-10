@@ -4647,6 +4647,39 @@ img { max-width: 100%; height: auto; display: block; }
 .ofc-alt { font-size: 11px; color: var(--muted); line-height: 1.55; margin: 7px 0 0;
   padding-top: 7px; border-top: 1px solid var(--border); }
 
+/* The same treatment at other lengths.
+   A row of small buttons rather than a dropdown: there are rarely more
+   than three, and a dropdown hides the prices, which are the reason
+   somebody is choosing at all. The advertised length is first and
+   selected, so a service with lengths looks like one without until it is
+   touched. */
+/* Contraindications. Legible rather than alarming: a guest who can safely
+   have the treatment should not be frightened off it, and a guest who
+   cannot must not be able to miss it. So it is set apart and quiet, not
+   red — except Critical, which is allowed to be loud. */
+.ofc-safety { margin-top: 12px; padding: 10px 12px;
+  background: var(--warm-cream, #faf7f2); border-left: 2px solid var(--gold, #a8894f); }
+.ofc-safety-h { font-family: var(--sans); font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.ofc-safety-list { margin: 0; padding-left: 15px; }
+.ofc-safety-list li { font-size: 12px; line-height: 1.5; color: var(--ink); }
+.ofc-safety-list li span { color: var(--muted); }
+.ofc-safety-list li.is-critical { font-weight: 600; }
+.ofc-safety-note { font-size: 10.5px; line-height: 1.5; color: var(--muted);
+  margin: 7px 0 0; padding-top: 6px; border-top: 1px solid var(--border); }
+
+.ofc-lengths { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ofc-length { display: flex; flex-direction: column; align-items: flex-start;
+  gap: 1px; padding: 6px 10px; cursor: pointer; background: var(--surface, #fff);
+  border: 1px solid var(--border); border-radius: 2px;
+  font-family: var(--sans); font-size: 12px; color: var(--ink);
+  line-height: 1.2; transition: border-color .12s, background .12s; }
+.ofc-length small { font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+.ofc-length:hover { border-color: var(--ink); }
+.ofc-length.is-on { border-color: var(--gold, #a8894f); background: var(--warm-cream, #faf7f2); }
+.ofc-length.is-on small { color: var(--ink); }
+.ofc-length:focus-visible { outline: 2px solid var(--gold, #a8894f); outline-offset: 1px; }
+
 /* Detail and Policies sit left, the action right. The spacer does the
    separating so the two informational controls read as a pair rather than as
    three buttons competing. */

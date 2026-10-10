@@ -18,14 +18,15 @@ type Room = {
   bathroom_type?: string | null;
   room_size?: string | null;
   room_size_unit?: string | null;
-  outlook?: string | null;
+  /* A list: a room can face two ways. "Tower and City View" was one
+     value meaning two, because the record had nowhere to put both. */
+  outlooks?: string[] | null;
   primary_image_url?: string | null;
   room_amenities?: string[] | null;
   max_occupancy?: number | null;
   max_adults?: number | null;
   max_children?: number | null;
   children_permitted?: boolean | null;
-  rollaway_beds?: number | null;
   min_nights?: number | null;
   min_nights_note?: string | null;
   advance_notice_hours?: number | null;
@@ -68,12 +69,12 @@ export function RoomDetails({ room: r }: { room: Room }) {
     r.sleeps ? `Sleeps ${r.sleeps}` : null,
     r.bed_configuration, r.bathroom_type,
     r.room_size ? `${r.room_size} ${r.room_size_unit ?? 'sqm'}` : null,
-    r.outlook,
+    r.outlooks?.length ? r.outlooks.join(' and ') : null,
   ].filter(Boolean).join(' · ');
 
   const occ = occupancyLine(r);
   const minStay = minStayLine(r);
-  const hasBedding = r.bed_configuration || (r.rollaway_beds ?? 0) > 0;
+  const hasBedding = !!r.bed_configuration;
   const hasBooking = minStay || r.advance_notice_hours;
   const hasOccBed = occ || hasBedding || r.children_permitted != null;
 
@@ -103,7 +104,9 @@ export function RoomDetails({ room: r }: { room: Room }) {
                   {r.room_size && <div><dt>Room size</dt><dd>{r.room_size} {r.room_size_unit ?? 'sqm'}</dd></div>}
                   {r.bed_configuration && <div><dt>Bed</dt><dd>{r.bed_configuration}</dd></div>}
                   {r.bathroom_type && <div><dt>Bathroom</dt><dd>{r.bathroom_type}</dd></div>}
-                  {r.outlook && <div><dt>Outlook</dt><dd>{r.outlook}</dd></div>}
+                  {!!r.outlooks?.length && (
+                    <div><dt>Outlook</dt><dd>{r.outlooks.join(', ')}</dd></div>
+                  )}
                   {r.sleeps && <div><dt>Sleeps</dt><dd>{r.sleeps} guest{r.sleeps === 1 ? '' : 's'}</dd></div>}
                 </dl>
               </div>
@@ -125,7 +128,6 @@ export function RoomDetails({ room: r }: { room: Room }) {
                   <dl className="rm-spec">
                     {occ && <div><dt>Maximum occupancy</dt><dd>{occ}</dd></div>}
                     {r.bed_configuration && <div><dt>Bedding</dt><dd>{r.bed_configuration}</dd></div>}
-                    {(r.rollaway_beds ?? 0) > 0 && <div><dt>Rollaway</dt><dd>Available on request</dd></div>}
                     {r.children_permitted != null && <div><dt>Children</dt><dd>{r.children_permitted ? 'Welcome' : 'Not suited to children'}</dd></div>}
                   </dl>
                 </div>
