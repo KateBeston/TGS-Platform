@@ -136,6 +136,10 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
    *
    * They sit after the link rather than inside it: a button nested in an
    * anchor is invalid and a nested click target behaves unpredictably. */
+  /* Sizes 1–3 render the actions row below the body; the essentials card
+     at size 4 does not. */
+  const hasActions = size <= 3;
+
   const actions = (
     <div className="card-actions">
       <Link href={href} className="card-book">Book venue</Link>
@@ -162,7 +166,13 @@ export default function VenueCard({ card, size }: { card: Card; size: 1 | 2 | 3 
           {badges.slice(0, 3).map((b) => <span key={b} className="card-badge">{b}</span>)}
         </div>
       )}
-      <FavouriteButton venueId={card.id} variant="card" />
+      {/* Only where the card has no actions row to hold it.
+          Premium, featured and standard cards all render `actions`, which
+          carries its own favourite button, so these cards were drawing two
+          hearts — one pinned to the image and one to the card. The
+          essentials card has no actions row, and this is the only way to
+          save from it. */}
+      {!hasActions && <FavouriteButton venueId={card.id} variant="card" />}
     </div>
   );
 
