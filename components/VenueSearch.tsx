@@ -4,11 +4,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 
 type Option = { id?: number; name: string; slug?: string; applies_to?: string;
-                in_retreat?: boolean; in_wellness?: boolean; count?: number };
+                in_retreat?: boolean; in_wellness?: boolean; count?: number;
+                /* The same count, split by marketplace, so a list scoped
+                   to one shows the number that list will return. */
+                wellnessCount?: number; retreatCount?: number };
 
 /* The progressive search bar, above the results.
  *
- * One segmented control — Where, Venue Type, Setting, Modality — and a
+ * One segmented control — Where, Venue Type, Setting, Category — and a
  * Search button, matching tgs_venues_v2. Each segment opens a panel of
  * real, database-backed options with counts; the lists are never written
  * into the page. "Venue Type" is the marketplace (Retreat vs Wellness),
@@ -65,13 +68,24 @@ export default function VenueSearch({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qs]);
 
-  // Modality is scoped to the marketplace, because a retreat host and a
-  // wellness guest are not looking for the same practices.
-  const practices = f.marketplace === 'Wellness'
+  /* Scoped to the marketplace, because a retreat host and a wellness
+     guest are not looking for the same thing — and the count has to be
+     scoped with it. Showing the all-marketplaces total next to a list
+     that is already narrowed to wellness promised venues the search
+     could not return: "Indigenous & Earth Traditions 2" on wellness,
+     where both of those venues are retreats, gave nothing. */
+  const scoped = (c: Option) => ({
+    ...c,
+    count: f.marketplace === 'Wellness' ? c.wellnessCount
+      : f.marketplace === 'Retreat' ? c.retreatCount
+        : c.count,
+  });
+  const practices = (f.marketplace === 'Wellness'
     ? categories.filter((c) => c.in_wellness)
     : f.marketplace === 'Retreat'
       ? categories.filter((c) => c.in_retreat)
-      : categories.filter((c) => c.in_wellness || c.in_retreat);
+      : categories.filter((c) => c.in_wellness || c.in_retreat)
+  ).map(scoped);
 
   const segments: {
     key: SegKey; label: string; placeholder: string; title: string; options: Option[];
@@ -79,7 +93,10 @@ export default function VenueSearch({
     { key: 'country',     label: 'Where',      placeholder: 'Anywhere',       title: 'Where to?',           options: countries },
     { key: 'marketplace', label: 'Venue Type', placeholder: 'All venues',     title: 'What kind of venue?', options: MARKETS },
     { key: 'setting',     label: 'Setting',    placeholder: 'All settings',   title: 'Setting',             options: settings },
-    { key: 'practice',    label: 'Modality',   placeholder: 'All modalities', title: 'Modality',            options: practices },
+    /* "Category", matching the wellness-experiences pages. These are
+       modality_categories in both places; calling them modalities here
+       and categories there made one list look like two things. */
+    { key: 'practice',    label: 'Category',   placeholder: 'All categories', title: 'Category',            options: practices },
   ];
 
   const nameFor = (key: SegKey) => {

@@ -87,11 +87,13 @@ export async function filterOptions() {
     // How many published venues sit behind each. A filter that returns
     // nothing is worse than one that is not offered, so the count is
     // shown and the empty ones are pushed down.
-    supabase.from('filter_counts').select('kind,slug,venues'),
+    supabase.from('filter_counts')
+      .select('kind,slug,venues,wellness_venues,retreat_venues'),
   ]);
 
-  const countFor = (kind: string, slug: string) =>
-    (counts.data ?? []).find((c: any) => c.kind === kind && c.slug === slug)?.venues ?? 0;
+  const row = (kind: string, slug: string) =>
+    (counts.data ?? []).find((c: any) => c.kind === kind && c.slug === slug);
+  const countFor = (kind: string, slug: string) => row(kind, slug)?.venues ?? 0;
 
   const seen = new Map<string, { name: string; slug: string; count: number }>();
   for (const r of countries.data ?? []) {
@@ -112,8 +114,16 @@ export async function filterOptions() {
     settings: (settings.data ?? []).map((s: any) => ({
       ...s, count: countFor('setting', s.slug),
     })).sort((a: any, b: any) => b.count - a.count),
+    /* Three counts, because the dropdown is scoped to a marketplace and
+       the number has to be the one that search will actually return.
+       Offering "Indigenous & Earth Traditions 2" to somebody browsing
+       wellness venues and then showing nothing is the count lying about
+       its own filter — both of those venues are retreats. */
     categories: (categories.data ?? []).map((c: any) => ({
-      ...c, count: countFor('category', c.slug),
+      ...c,
+      count: countFor('category', c.slug),
+      wellnessCount: row('category', c.slug)?.wellness_venues ?? 0,
+      retreatCount: row('category', c.slug)?.retreat_venues ?? 0,
     })),
   };
 }

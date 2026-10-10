@@ -165,7 +165,7 @@ export default function VenueAdvancedSearch({
             </div>
 
             <div className="modal-section">
-              <div className="modal-section-title">Modality</div>
+              <div className="modal-section-title">Category</div>
               {catsFor.map((c) => {
                 const ps = pracsIn(c.slug);
                 if (!ps.length) return null;
