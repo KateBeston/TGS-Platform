@@ -97,9 +97,22 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
   const [token, setToken] = useState('');
   useSuccess(state?.ok, onSuccess);
   if (state?.sent) {
+    /* Supabase will not say whether an address is already registered, and
+       it is right not to: a sign-up form that distinguishes the two is a
+       way of finding out who has an account here. It returns the same
+       empty success either way and sends nothing to an address that is
+       already confirmed.
+
+       So this message has to cover both outcomes honestly rather than
+       promise an email that may never come. Somebody who already has an
+       account waits for a link that was never sent, concludes the site is
+       broken, and is right to. */
     return (
       <div className="auth-sent">
-        <p>Check your email to confirm your account, then sign in.</p>
+        <p>If that address is new to us, a confirmation link is on its way — check
+          your inbox and your spam folder.</p>
+        <p>Already have an account? Nothing was sent. Sign in below, or reset your
+          password if you have forgotten it.</p>
         <button type="button" className="auth-textlink" onClick={() => setMode('login')}>Back to sign in</button>
       </div>
     );
@@ -136,7 +149,7 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
         </select></label>
       <label className="auth-check">
         <input type="checkbox" name="marketing_opt_in" />
-        <span>Send me the Sanctum Journal and occasional wellness discoveries.</span>
+        <span>Send me the Sanctum Journal, new venues and occasional offers.</span>
       </label>
       <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setToken} />
       <input type="hidden" name="cf-turnstile-response" value={token} />
