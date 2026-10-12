@@ -43,6 +43,10 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
   });
   if (error) return { error: error.message };
   if (!data.session) return { sent: true };
+  /* Confirmation is off, or already satisfied, so they are signed in here
+     and now. The same call the confirmation link makes, so the contact
+     record and the role follow from the form either way. */
+  await supabase.rpc('ensure_platform_profile');
   return { ok: true };
 }
 
