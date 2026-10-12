@@ -3871,10 +3871,17 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-title{font-family:var(--serif);font-weight:300;font-size:34px;color:var(--charcoal);margin:0 0 8px}
 .auth-sub{font-size:14px;color:var(--muted);margin:0 0 28px}
 .auth-form{display:flex;flex-direction:column;gap:16px;text-align:left}
-.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* minmax(0,1fr) rather than 1fr: a grid column's default minimum is the
+   content's own intrinsic width, and an input asks for about twenty
+   characters whatever you set. Two of them refused to shrink and pushed the
+   form sideways. */
+.auth-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .auth-field{display:flex;flex-direction:column;gap:6px}
 .auth-field>span{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.auth-field input,.auth-field select{border:1px solid var(--border);background:var(--warm-white);padding:11px 12px;font-size:15px;color:var(--charcoal);font-family:inherit}
+/* width and min-width together. Without min-width:0 a flex or grid child
+   can still refuse to go below its intrinsic size, and width:100% alone
+   does not override that. */
+.auth-field input,.auth-field select{width:100%;min-width:0;max-width:100%;border:1px solid var(--border);background:var(--warm-white);padding:11px 12px;font-size:15px;color:var(--charcoal);font-family:inherit}
 .auth-field input:focus,.auth-field select:focus{outline:none;border-color:var(--gold-dark)}
 .auth-field small{font-size:11.5px;color:var(--muted)}
 .auth-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.5}
@@ -3898,7 +3905,10 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-textlink{border:none;background:none;cursor:pointer;font-family:inherit;color:var(--gold-dark);font-size:12.5px;padding:0}
 .auth-textlink:hover{text-decoration:underline}
 .auth-modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(49,49,49,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:auth-fade .2s ease}
-.auth-modal{position:relative;width:100%;max-width:452px;max-height:92vh;overflow-y:auto;background:var(--warm-white);border:1px solid var(--border);box-shadow:0 24px 70px rgba(49,49,49,.28);animation:auth-rise .25s cubic-bezier(.4,0,.2,1)}
+/* Wider, and explicitly no sideways scroll. overflow-y:auto on its own is
+   not enough: when one axis is set to anything but visible the other
+   computes to auto, so the old rule was quietly allowing a horizontal bar. */
+.auth-modal{position:relative;width:100%;max-width:560px;max-height:92vh;overflow-x:hidden;overflow-y:auto;background:var(--warm-white);border:1px solid var(--border);box-shadow:0 24px 70px rgba(49,49,49,.28);animation:auth-rise .25s cubic-bezier(.4,0,.2,1)}
 .auth-modal-inner{padding:44px 40px;text-align:center}
 .auth-modal-close{position:absolute;top:14px;right:16px;border:none;background:none;font-size:26px;line-height:1;color:var(--muted);cursor:pointer;font-family:inherit}
 .auth-modal-close:hover{color:var(--charcoal)}
