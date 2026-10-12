@@ -61,3 +61,61 @@ export function notify(input: SendRequest): void {
 
 /* Where internal alerts go. One place, so it changes once. */
 export const INTERNAL = process.env.INTERNAL_ALERT_EMAIL ?? 'hello@theglobalsanctum.com';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TELLING THE PORTAL SOMETHING HAPPENED
+
+   Separate from requestSend because they are different acts. One asks for
+   an email to go to a customer; this one raises an alert inside TGS — a
+   push notification, folded and filtered by the portal's own rules about
+   who wants telling and when.
+
+   The portal is the system of record. Something that happens on the
+   platform and is never reported to it is something nobody finds out
+   about until they go looking.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+type PortalEvent = {
+  /** A key the portal knows. An unknown one is refused and named. */
+  event: string;
+  title?: string;
+  body?: string;
+  /** Where tapping the notification should land, as a portal path. */
+  url?: string;
+  amount?: number;
+};
+
+export async function tellPortal(input: PortalEvent): Promise<{ ok: boolean; error?: string }> {
+  const secret = process.env.EVENTS_SHARED_SECRET;
+  if (!secret) {
+    console.error('[events] EVENTS_SHARED_SECRET is not set; nothing reported.');
+    return { ok: false, error: 'No events secret configured.' };
+  }
+
+  try {
+    const res = await fetch(`${PORTAL}/api/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify(input),
+      /* Shorter than the send timeout. An alert is worth less than the
+         thing that caused it, and must never hold up a page. */
+      signal: AbortSignal.timeout(4000),
+    });
+    const json = await res.json().catch(() => ({ ok: false, error: 'Unreadable reply' }));
+    if (!json.ok) console.error('[events] portal refused:', input.event, json.error);
+    return json;
+  } catch (e) {
+    console.error('[events] could not reach the portal:', e);
+    return { ok: false, error: String(e) };
+  }
+}
+
+/* Fire and forget, for the same reason as notify above: the thing that
+   happened already happened, and a person should not see an error for it
+   because an alert could not be delivered. */
+export function report(input: PortalEvent): void {
+  tellPortal(input).catch((e) => console.error('[events] unhandled:', e));
+}

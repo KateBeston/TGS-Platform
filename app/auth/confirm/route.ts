@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { notify, report } from '@/lib/notify';
 
 /* ═══════════════════════════════════════════════════════════════════════
    REDEEMING A LINK THE PORTAL SENT
@@ -50,6 +51,50 @@ export async function GET(request: Request) {
      can be written on their behalf. This is what turns the sign-up into a
      contact record with the role they chose. */
   await supabase.rpc('ensure_platform_profile');
+
+  /* A new account, once only.
+   *
+   * Hung off signup rather than every confirmation: recovery and email
+   * change come through here too, and neither is a new person. The portal
+   * is told so it can raise the alert, and asked to send the welcome from
+   * its own library — the platform names the template and nothing more.
+   *
+   * Both are fire and forget. The account exists either way, and somebody
+   * who has just confirmed their email should not be shown an error
+   * because a notification could not be delivered. */
+  if (type === 'signup') {
+    const { data: { user } } = await supabase.auth.getUser();
+    const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+    const first = String(meta.first_name ?? '').trim();
+    const full = [first, String(meta.surname ?? '').trim()].filter(Boolean).join(' ');
+    const choice = String(meta.primary_audience ?? 'guest');
+
+    /* What their account opens, in their words rather than ours. One
+       template serves all three because only this line differs. */
+    const audienceLine = choice === 'host'
+      ? 'You told us you are here mainly to host retreats, so we will point you at venues that take them and the people who run them.'
+      : choice === 'owner'
+        ? 'You told us you are here mainly as a venue owner. If you have a venue to list, we can take you through it whenever you are ready.'
+        : 'You told us you are here mainly for wellness experiences, so we will keep you to places and practitioners worth the trip.';
+
+    notify({
+      slug: 'account-welcome',
+      to: String(user?.email ?? ''),
+      extra: {
+        first_name: first || 'there',
+        audience_line: audienceLine,
+        account_url: new URL('/account', url.origin).toString(),
+      },
+    });
+
+    report({
+      event: 'user.created',
+      title: 'A new user account',
+      body: `${full || String(user?.email ?? 'Someone')} confirmed their email`
+        + ` as a ${choice === 'host' ? 'retreat host' : choice === 'owner' ? 'venue owner' : 'wellness guest'}.`,
+      url: '/contacts',
+    });
+  }
 
   /* A recovery link goes to the account page whatever the email asked
      for, because that is where the change-password form is. /reset is the

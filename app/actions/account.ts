@@ -30,10 +30,23 @@ export async function updatePreferences(_prev: State, formData: FormData): Promi
   const { supabase, user } = await me();
   if (!user) return { error: 'Please sign in again.' };
   const audience = String(formData.get('primary_audience') ?? '');
+  const isHost = audience === 'host';
   const { error } = await supabase.from('profiles').update({
-    primary_audience: (audience === 'host' ? 'host' : 'guest'),
+    primary_audience: isHost ? 'host' : 'guest',
   }).eq('id', user.id);
   if (error) return { error: error.message };
+
+  /* Changing what they are here adds the role rather than swapping it.
+     Somebody who starts booking sessions and later hosts a retreat is
+     both, and taking the first role away because they picked the second
+     would lose the history and the marketing that goes with it. Roles are
+     removed deliberately, never as a side effect of choosing another. */
+  await supabase.rpc('claim_contact_role', {
+    p_role_key: isHost ? 'retreat_host' : 'wellness_guest',
+    p_on: true,
+    p_via: 'Account preferences',
+  });
+
   revalidatePath('/account');
   return { ok: true };
 }
@@ -41,10 +54,26 @@ export async function updatePreferences(_prev: State, formData: FormData): Promi
 export async function updateComms(_prev: State, formData: FormData): Promise<State> {
   const { supabase, user } = await me();
   if (!user) return { error: 'Please sign in again.' };
+  const on = formData.get('marketing_opt_in') != null;
   const { error } = await supabase.from('profiles').update({
-    marketing_opt_in: formData.get('marketing_opt_in') != null,
+    marketing_opt_in: on,
   }).eq('id', user.id);
   if (error) return { error: error.message };
+
+  /* Two different things, both needed.
+   *
+   * The profile tick is consent, and a database trigger carries it to the
+   * contact record. The newsletter ROLE is what puts them on the Journal
+   * audience, and marketing follows the role — so a tick with no role
+   * means somebody who said yes and hears nothing.
+   *
+   * claim_contact_role reaches only this person's own record and only
+   * roles a person is allowed to choose, so this cannot touch anybody
+   * else however it is called. */
+  await supabase.rpc('claim_contact_role', {
+    p_role_key: 'newsletter', p_on: on, p_via: 'Account preferences',
+  });
+
   revalidatePath('/account');
   return { ok: true };
 }
