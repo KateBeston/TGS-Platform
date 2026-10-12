@@ -1,0 +1,123 @@
+<!--
+  ═══════════════════════════════════════════════════════════════════════
+  CONFIRM YOUR EMAIL — Supabase Auth template
+
+  This file is not sent by the application. It is the source of truth for
+  the template pasted into Supabase → Authentication → Emails → Confirm
+  signup, kept in the repo so it is versioned and can be re-pasted rather
+  than rewritten.
+
+  Supabase sends auth mail itself, so this cannot go through sendTemplate
+  and will not appear in the email library or in sent_emails. That is the
+  trade for letting Supabase own the token, which is the right way round:
+  a confirmation link is a credential.
+
+  Variables are Go template syntax, filled by Supabase:
+    {{ .ConfirmationURL }}  the signed link — never alter or shorten it
+    {{ .Email }}            the address it went to
+    {{ .Data.first_name }}  from the sign-up form's metadata
+
+  The image URLs are absolute and point at the platform deployment. When
+  the site moves to its own domain these two URLs must be changed here and
+  re-pasted, or the masthead breaks.
+  ═══════════════════════════════════════════════════════════════════════
+-->
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confirm your email</title>
+</head>
+<body style="margin:0;padding:0;background:#F2EEE7;-webkit-text-size-adjust:100%">
+
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">One tap confirms your email and opens your account.</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2EEE7;padding:36px 18px">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FDFCF9;border:1px solid #E0D8CC">
+
+  <!-- Masthead. The wordmark beneath is text, so a client that blocks
+       images still opens on our name rather than a grey box. -->
+  <tr><td style="padding:0">
+    <img src="https://tgs-platform.vercel.app/brand/email/tgs-email-hero-600.jpg" width="600"
+         alt="The Global Sanctum — retreat spaces, wellness experiences, globally curated"
+         style="display:block;width:100%;height:auto;border:0">
+  </td></tr>
+  <tr><td style="padding:26px 40px 0;text-align:center">
+    <div style="font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-size:17px;letter-spacing:5px;text-transform:uppercase;color:#313131;line-height:1.4">The Global Sanctum</div>
+    <div style="font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:7.5px;letter-spacing:2.4px;text-transform:uppercase;color:#7A644F;line-height:1.7;padding-top:7px">Your account</div>
+    <div style="width:44px;height:1px;background:#C4A265;margin:14px auto 0;font-size:0;line-height:0">&nbsp;</div>
+  </td></tr>
+
+  <tr><td style="padding:30px 40px 34px;font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-size:16px;line-height:1.72;color:#313131">
+
+    <h1 style="font-family:'Cormorant Garamond',Georgia,'Times New Roman',serif;font-weight:300;font-size:30px;line-height:1.2;color:#313131;margin:0 0 18px;text-align:center">
+      Confirm your email
+    </h1>
+
+    <p style="margin:0 0 16px">Welcome{{ if .Data.first_name }}, {{ .Data.first_name }}{{ end }}.</p>
+
+    <p style="margin:0 0 16px">
+      One tap confirms <strong>{{ .Email }}</strong> and opens your account. From there you
+      can save venues to your own collection, keep your bookings, quotes and enquiries in
+      one place, and hear first about new venues.
+    </p>
+
+    <!-- Bulletproof-ish button: a table rather than a styled anchor, so
+         Outlook renders the whole block rather than a bare link. -->
+    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:28px auto 24px">
+      <tr><td align="center" style="background:#313131;border:1px solid #313131">
+        <a href="{{ .ConfirmationURL }}"
+           style="display:inline-block;padding:14px 34px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:#FDFCF9;text-decoration:none">
+          Confirm my email
+        </a>
+      </td></tr>
+    </table>
+
+    <p style="margin:0 0 16px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:#4A443B;text-align:center">
+      The link works once and expires in 24&nbsp;hours. If it has run out, sign in and we
+      will send a fresh one.
+    </p>
+
+    <!-- The raw URL, because some clients strip the button and some people
+         paste rather than tap. -->
+    <div style="border-top:1px solid #E0D8CC;margin-top:26px;padding-top:18px">
+      <p style="margin:0 0 6px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:#8A8781">
+        Or paste this into your browser
+      </p>
+      <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:11px;line-height:1.6;word-break:break-all">
+        <a href="{{ .ConfirmationURL }}" style="color:#7A644F;text-decoration:underline">{{ .ConfirmationURL }}</a>
+      </p>
+    </div>
+
+    <p style="margin:24px 0 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.7;color:#8A8781">
+      If you did not create an account with us, nothing has been set up and you can ignore
+      this message. Nobody can use the link but you.
+    </p>
+
+  </td></tr>
+
+  <tr><td style="height:1px;border-top:1px solid #E0D8CC;background:#F7F5F1;font-size:0;line-height:0">&nbsp;</td></tr>
+  <tr><td style="background:#F7F5F1;padding:22px 0 26px;text-align:center">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td style="padding:0 40px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.4px;line-height:1.9;color:#4A443B">
+        <a href="https://tgs-platform.vercel.app" style="color:#7A644F;text-decoration:none">theglobalsanctum.com</a>
+        <span style="color:#D0CBC2">&nbsp;&middot;&nbsp;</span>+61 7 3521 8067
+      </td></tr>
+      <tr><td style="padding:14px 40px 0">
+        <div style="border-top:1px solid #E8E3DA;padding-top:12px;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:8.5px;line-height:1.75;color:#A8A49D">
+          <span>The Global Sanctum &middot; Aurella Group Pty Ltd &middot; ABN&nbsp;70&nbsp;649&nbsp;742&nbsp;423</span><br>
+          <span>58 Wellington Street, Virginia QLD 4014, Australia</span><br>
+          <span>Sent to {{ .Email }}. This is a service message about your account, so it carries no unsubscribe.</span>
+        </div>
+      </td></tr>
+    </table>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+
+</body>
+</html>
