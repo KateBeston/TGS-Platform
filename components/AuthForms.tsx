@@ -14,9 +14,17 @@ type Mode = 'login' | 'signup' | 'reset';
  * close. On a page with no onSuccess, it sends them to their account. */
 
 export function AuthPanel({
-  mode, setMode, onSuccess,
-}: { mode: Mode; setMode: (m: Mode) => void; onSuccess?: () => void }) {
-  if (mode === 'signup') return <SignupView setMode={setMode} onSuccess={onSuccess} />;
+  mode, setMode, onSuccess, showBenefits = true,
+}: {
+  mode: Mode; setMode: (m: Mode) => void; onSuccess?: () => void;
+  /* The wide modal shows the reasons in its own left-hand pane, so the
+     form must not repeat them. The standalone /signup page has no second
+     pane and keeps them. */
+  showBenefits?: boolean;
+}) {
+  if (mode === 'signup') {
+    return <SignupView setMode={setMode} onSuccess={onSuccess} showBenefits={showBenefits} />;
+  }
   if (mode === 'reset') return <ResetView setMode={setMode} />;
   return <LoginView setMode={setMode} onSuccess={onSuccess} />;
 }
@@ -92,7 +100,9 @@ function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucce
   );
 }
 
-function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSuccess?: () => void }) {
+function SignupView({
+  setMode, onSuccess, showBenefits = true,
+}: { setMode: (m: Mode) => void; onSuccess?: () => void; showBenefits?: boolean }) {
   const [state, action, pending] = useActionState(signUp, null);
   const [token, setToken] = useState('');
   useSuccess(state?.ok, onSuccess);
@@ -123,11 +133,13 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
         <input type="text" name="hp_field" tabIndex={-1} autoComplete="off"
           data-1p-ignore="true" data-lpignore="true" data-form-type="other" />
       </div>
-      <ul className="auth-benefits">
-        <li>Save venues to your own collection</li>
-        <li>Keep your bookings, quotes and enquiries in one place</li>
-        <li>Early access to new venues and member offers</li>
-      </ul>
+      {showBenefits && (
+        <ul className="auth-benefits">
+          <li>Save venues to your own collection</li>
+          <li>Keep your bookings, quotes and enquiries in one place</li>
+          <li>Early access to new venues and member offers</li>
+        </ul>
+      )}
       <div className="auth-row">
         <label className="auth-field"><span>First name</span>
           <input type="text" name="first_name" autoComplete="given-name" /></label>
@@ -136,11 +148,16 @@ function SignupView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucc
       </div>
       <label className="auth-field"><span>Email</span>
         <input type="email" name="email" autoComplete="email" required /></label>
-      <label className="auth-field"><span>Password</span>
-        <input type="password" name="password" autoComplete="new-password" minLength={8} required />
-        <small>At least 8 characters.</small></label>
-      <label className="auth-field"><span>Confirm password</span>
-        <input type="password" name="confirm_password" autoComplete="new-password" minLength={8} required /></label>
+      {/* Paired, like the names above. Two stacked password boxes were
+          two of the eight rows that made this form taller than a laptop
+          screen, and they are the same question asked twice. */}
+      <div className="auth-row">
+        <label className="auth-field"><span>Password</span>
+          <input type="password" name="password" autoComplete="new-password" minLength={8} required />
+          <small>At least 8 characters.</small></label>
+        <label className="auth-field"><span>Confirm password</span>
+          <input type="password" name="confirm_password" autoComplete="new-password" minLength={8} required /></label>
+      </div>
       <label className="auth-field"><span>I&rsquo;m here mainly as a</span>
         <select name="primary_audience" defaultValue="guest">
           <option value="guest">Wellness guest</option>

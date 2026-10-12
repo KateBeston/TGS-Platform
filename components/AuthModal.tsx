@@ -27,17 +27,49 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
       {children}
       {isOpen && (
         <div className="auth-modal-overlay" onClick={close}>
-          <div className="auth-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          {/* Sign-up is the only one of the three that is too tall for a
+              single column. Signing in is two fields and a button, and a
+              wide two-pane box around that would look like a mistake, so
+              the wide layout is signup's alone. */}
+          <div className={`auth-modal${mode === 'signup' ? ' auth-modal-wide' : ''}`}
+               role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="auth-modal-close" onClick={close} aria-label="Close">&times;</button>
             <div className="auth-modal-inner">
-              <div className="auth-eyebrow">The Global Sanctum</div>
-              <h2 className="auth-title">{HEADINGS[mode].title}</h2>
-              <p className="auth-sub">{HEADINGS[mode].sub}</p>
-              <AuthPanel mode={mode} setMode={setMode} onSuccess={close} />
-              <p className="auth-legal">
-                By continuing you agree to our <Link href="/legal#terms-and-conditions" onClick={close}>Terms</Link> and{' '}
-                <Link href="/legal#privacy-policy" onClick={close}>Privacy&nbsp;Policy</Link>.
-              </p>
+              {mode === 'signup' ? (
+                <div className="auth-split">
+                  {/* Why bother, on the left. The reasons do not change
+                      while you type, so they have no business taking up
+                      room above the fields. */}
+                  <div className="auth-split-pitch">
+                    <div className="auth-eyebrow">The Global Sanctum</div>
+                    <h2 className="auth-title">{HEADINGS[mode].title}</h2>
+                    <p className="auth-sub">{HEADINGS[mode].sub}</p>
+                    <ul className="auth-benefits">
+                      <li>Save venues to your own collection</li>
+                      <li>Keep your bookings, quotes and enquiries in one place</li>
+                      <li>Early access to new venues and member offers</li>
+                    </ul>
+                    <p className="auth-legal auth-legal-pitch">
+                      By continuing you agree to our <Link href="/legal#terms-and-conditions" onClick={close}>Terms</Link> and{' '}
+                      <Link href="/legal#privacy-policy" onClick={close}>Privacy&nbsp;Policy</Link>.
+                    </p>
+                  </div>
+                  <div className="auth-split-form">
+                    <AuthPanel mode={mode} setMode={setMode} onSuccess={close} showBenefits={false} />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="auth-eyebrow">The Global Sanctum</div>
+                  <h2 className="auth-title">{HEADINGS[mode].title}</h2>
+                  <p className="auth-sub">{HEADINGS[mode].sub}</p>
+                  <AuthPanel mode={mode} setMode={setMode} onSuccess={close} />
+                  <p className="auth-legal">
+                    By continuing you agree to our <Link href="/legal#terms-and-conditions" onClick={close}>Terms</Link> and{' '}
+                    <Link href="/legal#privacy-policy" onClick={close}>Privacy&nbsp;Policy</Link>.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

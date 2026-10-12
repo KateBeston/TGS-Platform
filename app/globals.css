@@ -3912,9 +3912,44 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-modal-inner{padding:44px 40px;text-align:center}
 .auth-modal-close{position:absolute;top:14px;right:16px;border:none;background:none;font-size:26px;line-height:1;color:var(--muted);cursor:pointer;font-family:inherit}
 .auth-modal-close:hover{color:var(--charcoal)}
+/* ── Sign-up, side by side ──────────────────────────────────────────
+   Eleven rows stacked in one column is taller than a laptop screen, so
+   the box scrolled and the submit button sat below the fold. The reasons
+   to bother do not change while you type, so they move to their own pane
+   and stop pushing the form down.
+
+   Signing in keeps the narrow box. Two fields in a 900px-wide dialog
+   would read as a mistake. */
+.auth-modal-wide{max-width:920px}
+.auth-modal-wide .auth-modal-inner{padding:40px 44px;text-align:left}
+.auth-split{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1fr);gap:44px;align-items:start}
+.auth-split-pitch{display:flex;flex-direction:column;gap:0;padding-top:4px}
+/* The title is centred in the narrow box and must not be here: a centred
+   heading over a left-aligned list reads as two unrelated things. */
+.auth-split .auth-eyebrow,.auth-split .auth-title,.auth-split .auth-sub{text-align:left}
+.auth-split .auth-title{font-size:30px;line-height:1.15}
+.auth-split .auth-sub{margin-bottom:22px}
+.auth-split .auth-benefits{margin:0}
+.auth-legal-pitch{margin-top:20px;text-align:left}
+.auth-split-form{min-width:0}
+/* Below this the two panes are narrower than the form needs, so they
+   stack — the pitch still reads first, which is the right order. */
+@media (max-width:820px){
+  .auth-modal-wide{max-width:452px}
+  .auth-modal-wide .auth-modal-inner{padding:44px 40px;text-align:center}
+  .auth-split{grid-template-columns:minmax(0,1fr);gap:22px}
+  .auth-split .auth-eyebrow,.auth-split .auth-title,.auth-split .auth-sub{text-align:center}
+  .auth-split .auth-title{font-size:34px}
+  /* Stays visible when stacked. The form no longer carries its own copy
+     of this, so hiding it here would mean no terms notice at all on a
+     phone — which is the one place it must not go missing. */
+  .auth-legal-pitch{text-align:center;margin-top:14px}
+}
+
 @keyframes auth-fade{from{opacity:0}to{opacity:1}}
 @keyframes auth-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media (max-width:520px){.auth-modal-inner{padding:38px 24px}}
+@media (max-width:520px){.auth-modal-wide .auth-modal-inner{padding:38px 24px}}
 
 /* ── Favourite (heart) ──────────────────────────────────────────── */
 .premium-card-image,.featured-card-image,.standard-card-image,.essentials-card-image{position:relative}
