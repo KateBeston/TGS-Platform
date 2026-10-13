@@ -5,8 +5,15 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { verifyTurnstile } from '@/lib/turnstile';
 
-// State carries ok / error / sent / needsMfa across auth actions
-type State = { error?: string; sent?: boolean; ok?: boolean; needsMfa?: boolean } | null;
+// State carries ok / error / sent / needsMfa / exists across auth actions
+type State = {
+  error?: string; sent?: boolean; ok?: boolean; needsMfa?: boolean;
+  /* The address already has an account. Kept separate from error so the
+     form can hand them to sign-in with it filled in rather than printing
+     a sentence they have to act on themselves. */
+  exists?: boolean;
+  email?: string;
+} | null;
 
 const siteUrl = () =>
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theglobalsanctum.com';
@@ -32,6 +39,28 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
   const ip = (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || null;
   const challenge = await verifyTurnstile(String(formData.get('cf-turnstile-response') ?? ''), ip);
   if (!challenge.ok) return { error: challenge.reason };
+
+  /* Already registered?
+   *
+   * Supabase will not say. It answers a repeat sign-up with the same
+   * empty success as a real one and sends nothing, which leaves somebody
+   * who already has an account waiting for a link that was never sent.
+   *
+   * Asked here rather than from the browser, and only once the Turnstile
+   * challenge above has passed, so the question cannot be put to the
+   * database in a loop. The function itself is revoked from the
+   * publishable key, so this server is the only thing that can ask it.
+   *
+   * A failure to answer is not a failure to sign up: if the check itself
+   * breaks, the sign-up carries on as it did before. */
+  try {
+    const { createAdminClient } = await import('@/lib/supabase/admin');
+    const { data: known } = await createAdminClient()
+      .rpc('email_is_registered', { p_email: email });
+    if (known === true) return { exists: true, email };
+  } catch (e) {
+    console.error('[signUp] could not check whether the address is known:', e);
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({

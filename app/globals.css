@@ -3887,6 +3887,10 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-check{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.5}
 .auth-check input{margin-top:3px}
 .auth-error{color:#a3402f;font-size:13.5px;margin:0}
+/* Not an error. Somebody who already has an account has done nothing
+   wrong, so this is stated in the body colour on cream rather than in
+   the red reserved for something that failed. */
+.auth-notice{font-size:13px;line-height:1.6;color:var(--charcoal);background:var(--warm-cream);padding:12px 14px;margin:0;border-left:2px solid var(--gold)}
 .auth-submit{border:1px solid var(--charcoal);background:var(--charcoal);color:var(--warm-white);padding:13px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;margin-top:4px}
 .auth-submit:hover:not(:disabled){background:var(--gold-dark);border-color:var(--gold-dark)}
 .auth-submit:disabled{opacity:.55;cursor:default}

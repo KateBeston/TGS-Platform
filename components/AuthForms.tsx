@@ -22,11 +22,24 @@ export function AuthPanel({
      pane and keeps them. */
   showBenefits?: boolean;
 }) {
+  /* Carried from sign-up to sign-in when the address turns out to be
+     known: the address itself, so it does not have to be typed twice,
+     and the reason they were moved, so the switch is not mysterious. */
+  const [handoff, setHandoff] = useState<string | null>(null);
+
   if (mode === 'signup') {
-    return <SignupView setMode={setMode} onSuccess={onSuccess} showBenefits={showBenefits} />;
+    return (
+      <SignupView setMode={setMode} onSuccess={onSuccess} showBenefits={showBenefits}
+        onKnownAddress={(email) => { setHandoff(email); setMode('login'); }} />
+    );
   }
-  if (mode === 'reset') return <ResetView setMode={setMode} />;
-  return <LoginView setMode={setMode} onSuccess={onSuccess} />;
+  if (mode === 'reset') return <ResetView setMode={setMode} prefillEmail={handoff} />;
+  return (
+    <LoginView setMode={setMode} onSuccess={onSuccess} prefillEmail={handoff}
+      notice={handoff
+        ? `${handoff} is already registered. Sign in below, or reset your password if you have forgotten it.`
+        : null} />
+  );
 }
 
 function useSuccess(ok: boolean | undefined, onSuccess?: () => void) {
@@ -43,7 +56,12 @@ function useSuccess(ok: boolean | undefined, onSuccess?: () => void) {
   }, [ok]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSuccess?: () => void }) {
+function LoginView({
+  setMode, onSuccess, prefillEmail = null, notice = null,
+}: {
+  setMode: (m: Mode) => void; onSuccess?: () => void;
+  prefillEmail?: string | null; notice?: string | null;
+}) {
   const [state, action, pending] = useActionState(signIn, null);
   const [mfaCode, setMfaCode] = useState('');
   const [mfaError, setMfaError] = useState('');
@@ -82,10 +100,16 @@ function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucce
 
   return (
     <form action={action} className="auth-form">
+      {notice && <p className="auth-notice">{notice}</p>}
       <label className="auth-field"><span>Email</span>
-        <input type="email" name="email" autoComplete="email" required /></label>
+        <input type="email" name="email" autoComplete="email" required
+          defaultValue={prefillEmail ?? undefined}
+          /* Straight to the password when the address came across with
+             them, because the address is the part they have settled. */
+          autoFocus={!prefillEmail ? undefined : false} /></label>
       <label className="auth-field"><span>Password</span>
-        <input type="password" name="password" autoComplete="current-password" required /></label>
+        <input type="password" name="password" autoComplete="current-password" required
+          autoFocus={prefillEmail ? true : undefined} /></label>
       <label className="auth-remember">
         <input type="checkbox" name="remember" defaultChecked />
         <span>Keep me signed in</span>
@@ -101,28 +125,32 @@ function LoginView({ setMode, onSuccess }: { setMode: (m: Mode) => void; onSucce
 }
 
 function SignupView({
-  setMode, onSuccess, showBenefits = true,
-}: { setMode: (m: Mode) => void; onSuccess?: () => void; showBenefits?: boolean }) {
+  setMode, onSuccess, showBenefits = true, onKnownAddress,
+}: {
+  setMode: (m: Mode) => void; onSuccess?: () => void; showBenefits?: boolean;
+  onKnownAddress?: (email: string) => void;
+}) {
   const [state, action, pending] = useActionState(signUp, null);
   const [token, setToken] = useState('');
   useSuccess(state?.ok, onSuccess);
-  if (state?.sent) {
-    /* Supabase will not say whether an address is already registered, and
-       it is right not to: a sign-up form that distinguishes the two is a
-       way of finding out who has an account here. It returns the same
-       empty success either way and sends nothing to an address that is
-       already confirmed.
 
-       So this message has to cover both outcomes honestly rather than
-       promise an email that may never come. Somebody who already has an
-       account waits for a link that was never sent, concludes the site is
-       broken, and is right to. */
+  /* A known address is not an error to read, it is a wrong turn to be
+     walked back from. Hand them to sign-in with the address already in
+     it rather than printing a sentence and leaving them to act on it. */
+  useEffect(() => {
+    if (state?.exists && state.email && onKnownAddress) onKnownAddress(state.email);
+  }, [state?.exists, state?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (state?.sent) {
+    /* Unambiguous again. This used to have to hedge, because Supabase
+       answers a repeat sign-up with the same empty success as a real one
+       and somebody who already had an account would wait for a link that
+       was never sent. The server now checks first and sends them to
+       sign-in, so anything reaching this point really is new and the
+       email really is on its way. */
     return (
       <div className="auth-sent">
-        <p>If that address is new to us, a confirmation link is on its way — check
-          your inbox and your spam folder.</p>
-        <p>Already have an account? Nothing was sent. Sign in below, or reset your
-          password if you have forgotten it.</p>
+        <p>Your confirmation link is on its way. Check your inbox, and your spam
+          folder if it is not there.</p>
         <button type="button" className="auth-textlink" onClick={() => setMode('login')}>Back to sign in</button>
       </div>
     );
@@ -179,7 +207,9 @@ function SignupView({
   );
 }
 
-function ResetView({ setMode }: { setMode: (m: Mode) => void }) {
+function ResetView({
+  setMode, prefillEmail = null,
+}: { setMode: (m: Mode) => void; prefillEmail?: string | null }) {
   const [state, action, pending] = useActionState(requestReset, null);
   if (state?.sent) {
     return (
@@ -192,7 +222,8 @@ function ResetView({ setMode }: { setMode: (m: Mode) => void }) {
   return (
     <form action={action} className="auth-form">
       <label className="auth-field"><span>Email</span>
-        <input type="email" name="email" autoComplete="email" required /></label>
+        <input type="email" name="email" autoComplete="email" required
+          defaultValue={prefillEmail ?? undefined} /></label>
       {state?.error && <p className="auth-error">{state.error}</p>}
       <button type="submit" className="auth-submit" disabled={pending}>{pending ? 'Sending…' : 'Send reset link'}</button>
       <div className="auth-links">
