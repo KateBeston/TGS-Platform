@@ -10,10 +10,28 @@ type State = {
   error?: string; sent?: boolean; ok?: boolean; needsMfa?: boolean;
   /* The address already has an account. Kept separate from error so the
      form can hand them to sign-in with it filled in rather than printing
-     a sentence they have to act on themselves. */
+     a sentence they have to act on themselves.
+
+     The kind matters, because the two cases are nothing alike to the
+     person reading them. 'platform' is somebody who has done this
+     before and forgotten. 'vms' is somebody who registered a venue
+     months ago and has never had a marketplace account in their life:
+     telling them they already have one would be wrong, and telling them
+     to "use your existing login" would be baffling. */
   exists?: boolean;
+  kind?: 'platform' | 'vms';
   email?: string;
 } | null;
+
+/* Carried from the sign-up form across the sign-in it is interrupted by.
+ *
+ * Somebody with a VMS login cannot be given a second password, so they
+ * have to sign in with the one they have — but they chose an audience
+ * and ticked or did not tick the newsletter before that happened, and
+ * making them answer twice would be the rudeness the sign-in was
+ * already at risk of. Short-lived, http-only, and cleared the moment it
+ * is used. */
+const PENDING = 'tgs_pending_signup';
 
 const siteUrl = () =>
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.theglobalsanctum.com';
@@ -56,8 +74,46 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin');
     const { data: known } = await createAdminClient()
-      .rpc('email_is_registered', { p_email: email });
-    if (known === true) return { exists: true, email };
+      .rpc('signup_address_state', { p_email: email });
+    const state = String((known as any)?.state ?? 'new');
+
+    /* Somebody who registered a venue months ago, signing up for a
+       marketplace account they have never had.
+     *
+     * They go through sign-up, because that is what they are doing. The
+     * form is the same, the confirmation email is the same, and the
+     * screen afterwards is the same. What cannot happen underneath is a
+     * second auth row — TGS keeps one sign-in per address — so the
+     * account is added to the one they have.
+     *
+     * The password they typed is deliberately discarded rather than
+     * stored anywhere until they confirm. That address already protects
+     * live venue access, and anyone can type anyone's address into a
+     * sign-up form; a password that took effect before the mailbox was
+     * proven would hand over a venue. They set it on the other side of
+     * the link instead, which is the same strength as the password
+     * reset that already exists.
+     *
+     * The link is a recovery link because that is the mechanism for
+     * proving a mailbox on an account that exists. What arrives is not
+     * a reset email: the portal picks the template from the redirect
+     * below, so it reads as the confirmation it is. */
+    if (state === 'vms') {
+      (await cookies()).set(PENDING, JSON.stringify({ primary_audience, marketing_opt_in }), {
+        path: '/', httpOnly: true, sameSite: 'lax', maxAge: 60 * 60,
+        secure: process.env.NODE_ENV === 'production',
+      });
+      const supabaseAnon = await createClient();
+      const { error: linkErr } = await supabaseAnon.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl()}/welcome/finish`,
+      });
+      if (linkErr) return { error: linkErr.message };
+      return { sent: true };
+    }
+
+    if (state === 'platform') {
+      return { exists: true, kind: 'platform', email };
+    }
   } catch (e) {
     console.error('[signUp] could not check whether the address is known:', e);
   }
@@ -102,6 +158,32 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
     }
     return { error: 'That email and password do not match an account.' };
   }
+  /* Finish a sign-up that was interrupted by this sign-in.
+   *
+   * Somebody who registered a venue months ago has a login but has
+   * never had a marketplace account. They filled in the sign-up form,
+   * were asked to sign in because a second password cannot be issued
+   * for one address, and are now here. Their answers are written to the
+   * account before the profile is built from it, so the audience they
+   * chose is the one they get rather than the default. */
+  const jar2 = await cookies();
+  const pending = jar2.get(PENDING)?.value;
+  if (pending) {
+    try {
+      const choice = JSON.parse(pending) as
+        { primary_audience?: string; marketing_opt_in?: boolean };
+      await supabase.auth.updateUser({
+        data: {
+          primary_audience: choice.primary_audience ?? 'guest',
+          marketing_opt_in: !!choice.marketing_opt_in,
+        },
+      });
+    } catch (e) {
+      console.error('[signIn] could not apply the pending sign-up choices:', e);
+    }
+    jar2.delete(PENDING);
+  }
+
   // Ensure a platform profile exists — covers an owner-first person signing in to
   // browse as a guest (no-op if they already have one).
   await supabase.rpc('ensure_platform_profile');

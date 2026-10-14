@@ -24,21 +24,27 @@ export function AuthPanel({
 }) {
   /* Carried from sign-up to sign-in when the address turns out to be
      known: the address itself, so it does not have to be typed twice,
-     and the reason they were moved, so the switch is not mysterious. */
-  const [handoff, setHandoff] = useState<string | null>(null);
+     and which of the two situations it is, because they read nothing
+     alike to the person in front of them. */
+  const [handoff, setHandoff] = useState<{ email: string; kind: 'platform' | 'vms' } | null>(null);
 
   if (mode === 'signup') {
     return (
       <SignupView setMode={setMode} onSuccess={onSuccess} showBenefits={showBenefits}
-        onKnownAddress={(email) => { setHandoff(email); setMode('login'); }} />
+        onKnownAddress={(email, kind) => { setHandoff({ email, kind }); setMode('login'); }} />
     );
   }
-  if (mode === 'reset') return <ResetView setMode={setMode} prefillEmail={handoff} />;
+  if (mode === 'reset') {
+    return <ResetView setMode={setMode} prefillEmail={handoff?.email ?? null} />;
+  }
   return (
-    <LoginView setMode={setMode} onSuccess={onSuccess} prefillEmail={handoff}
-      notice={handoff
-        ? `${handoff} is already registered. Sign in below, or reset your password if you have forgotten it.`
-        : null} />
+    <LoginView setMode={setMode} onSuccess={onSuccess} prefillEmail={handoff?.email ?? null}
+      notice={!handoff ? null : handoff.kind === 'vms'
+        /* Never "you already have an account" — they do not, and being
+           told they do is how somebody decides the site is broken.
+           What is shared is the sign-in, not the account. */
+        ? `You already sign in to Sanctum VMS with ${handoff.email}, and one sign-in covers everything at The Global Sanctum. Sign in with it once and your guest account is set up straight away, with the choices you just made. Forgotten the password? Reset it below.`
+        : `${handoff.email} is already registered. Sign in below, or reset your password if you have forgotten it.`} />
   );
 }
 
@@ -128,7 +134,7 @@ function SignupView({
   setMode, onSuccess, showBenefits = true, onKnownAddress,
 }: {
   setMode: (m: Mode) => void; onSuccess?: () => void; showBenefits?: boolean;
-  onKnownAddress?: (email: string) => void;
+  onKnownAddress?: (email: string, kind: 'platform' | 'vms') => void;
 }) {
   const [state, action, pending] = useActionState(signUp, null);
   const [token, setToken] = useState('');
@@ -138,8 +144,10 @@ function SignupView({
      walked back from. Hand them to sign-in with the address already in
      it rather than printing a sentence and leaving them to act on it. */
   useEffect(() => {
-    if (state?.exists && state.email && onKnownAddress) onKnownAddress(state.email);
-  }, [state?.exists, state?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (state?.exists && state.email && onKnownAddress) {
+      onKnownAddress(state.email, state.kind ?? 'platform');
+    }
+  }, [state?.exists, state?.email, state?.kind]); // eslint-disable-line react-hooks/exhaustive-deps
   if (state?.sent) {
     /* Unambiguous again. This used to have to hedge, because Supabase
        answers a repeat sign-up with the same empty success as a real one

@@ -25,9 +25,23 @@ export async function GET(request: Request) {
 
   /* Only ever a path on this site. A redirect target taken whole from the
      query string is an open redirect, and an open redirect on a page that
-     has just signed somebody in is worth more to an attacker than most. */
+     has just signed somebody in is worth more to an attacker than most.
+
+     A full URL is accepted only when it is this origin, and reduced to
+     its path before use: Supabase hands the hook an absolute redirect_to
+     and the portal passes it straight through, so rejecting absolutes
+     outright sent everybody to /account regardless of where they were
+     going. Anything else falls back. */
   const asked = url.searchParams.get('next') ?? '/account';
-  const next = asked.startsWith('/') && !asked.startsWith('//') ? asked : '/account';
+  let next = '/account';
+  if (asked.startsWith('/') && !asked.startsWith('//')) {
+    next = asked;
+  } else {
+    try {
+      const parsed = new URL(asked);
+      if (parsed.origin === url.origin) next = parsed.pathname + parsed.search + parsed.hash;
+    } catch { /* not a URL at all; the fallback stands */ }
+  }
 
   if (!tokenHash || !TYPES.has(type)) {
     return NextResponse.redirect(new URL('/login?error=link', url.origin));
@@ -96,11 +110,15 @@ export async function GET(request: Request) {
     });
   }
 
-  /* A recovery link goes to the account page whatever the email asked
-     for, because that is where the change-password form is. /reset is the
-     form that *requests* a link, so sending them back there after they
-     followed one would be a loop. */
-  if (type === 'recovery') {
+  /* A recovery link goes to the account page, because that is where the
+     change-password form is. /reset is the form that *requests* a link,
+     so sending them back there after they followed one would be a loop.
+
+     Unless the link named somewhere else: a marketplace sign-up by
+     somebody who already had a VMS login arrives as a recovery link by
+     mechanism, but it is a sign-up by intent and finishes on its own
+     page. The named destination wins. */
+  if (type === 'recovery' && next === '/account') {
     return NextResponse.redirect(new URL('/account#password', url.origin));
   }
   return NextResponse.redirect(new URL(next, url.origin));
