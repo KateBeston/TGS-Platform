@@ -190,8 +190,21 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
     jar2.delete(PENDING);
   }
 
-  // Ensure a platform profile exists — covers an owner-first person signing in to
-  // browse as a guest (no-op if they already have one).
+  /* SIGNING IN DOES NOT OPEN AN ACCOUNT.
+   *
+   * This used to create a profile, a platform role and a contact role for
+   * whoever had just signed in — "covers an owner-first person signing in
+   * to browse as a guest". For an address registered with Sanctum VMS
+   * that produced a loop with no way out of it: close the marketplace
+   * account, sign in, and the account is back a second later; the address
+   * then reads as already registered at sign-up and is sent to sign in,
+   * which creates it again.
+   *
+   * The call stays, because a marketplace member whose profile row went
+   * missing should still get one. What changed is the function: it now
+   * refuses to open an account for a venue-owner registration that has
+   * never had one. Opening that account is the sign-up's job, and
+   * finishSignup calls open_platform_account to do it. */
   await supabase.rpc('ensure_platform_profile');
 
   /* NO SECOND FACTOR ON THE MARKETPLACE.

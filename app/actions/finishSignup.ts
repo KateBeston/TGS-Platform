@@ -128,8 +128,16 @@ async function openAccount(password: string | null): Promise<State> {
 
   /* Profile, platform role and contact link, from the metadata just
      written. The venue side is untouched: this opens a marketplace
-     account, it does not convert anything. */
-  await supabase.rpc('ensure_platform_profile');
+     account, it does not convert anything.
+
+     open_platform_account, not ensure_platform_profile. This is the one
+     place a marketplace account is created, and it is the only caller
+     allowed to create one for an address registered with Sanctum VMS —
+     because here they have asked for it. ensure_platform_profile now
+     refuses that case, which is what stops signing in, confirming a link
+     or opening /account from quietly manufacturing an account for a venue
+     owner and putting a closed one straight back. */
+  await supabase.rpc('open_platform_account');
 
   /* The audience is applied after, because ensure_platform_profile inserts
      the profile and leaves an existing row alone — and for an address that
