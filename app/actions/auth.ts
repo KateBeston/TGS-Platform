@@ -8,18 +8,17 @@ import { verifyTurnstile } from '@/lib/turnstile';
 // State carries ok / error / sent / needsMfa / exists across auth actions
 type State = {
   error?: string; sent?: boolean; ok?: boolean; needsMfa?: boolean;
-  /* The address already has an account. Kept separate from error so the
-     form can hand them to sign-in with it filled in rather than printing
-     a sentence they have to act on themselves.
+  /* The address already has a MARKETPLACE account. Kept separate from
+     error so the form can hand them to sign-in with it filled in rather
+     than printing a sentence they have to act on themselves.
 
-     The kind matters, because the two cases are nothing alike to the
-     person reading them. 'platform' is somebody who has done this
-     before and forgotten. 'vms' is somebody who registered a venue
-     months ago and has never had a marketplace account in their life:
-     telling them they already have one would be wrong, and telling them
-     to "use your existing login" would be baffling. */
+     Only a marketplace account counts. An address known to Sanctum VMS
+     and nothing else belongs to somebody who has never had a marketplace
+     account in their life, and they are sent through sign-up like anyone
+     else: Sanctum VMS and a marketplace account are separate products
+     with separate purposes, and nothing user-facing treats one as the
+     other or mentions the two in the same breath. */
   exists?: boolean;
-  kind?: 'platform' | 'vms';
   email?: string;
 } | null;
 
@@ -80,11 +79,16 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
     /* Somebody who registered a venue months ago, signing up for a
        marketplace account they have never had.
      *
-     * They go through sign-up, because that is what they are doing. The
-     * form is the same, the confirmation email is the same, and the
-     * screen afterwards is the same. What cannot happen underneath is a
-     * second auth row — TGS keeps one sign-in per address — so the
-     * account is added to the one they have.
+     * They go through sign-up, because that is what they are doing, and
+     * nothing they see says otherwise. The form is the same, the
+     * confirmation email is the same one every new member gets, and the
+     * screen afterwards is the same. Sanctum VMS is other software for
+     * another purpose: it is not named, not referred to, and not offered
+     * as a way in.
+     *
+     * What cannot happen underneath is a second auth row — Supabase
+     * permits one per address — but that is a fact about our plumbing
+     * and is never surfaced as a fact about their account.
      *
      * The password they typed is deliberately discarded rather than
      * stored anywhere until they confirm. That address already protects
@@ -95,9 +99,10 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
      * reset that already exists.
      *
      * The link is a recovery link because that is the mechanism for
-     * proving a mailbox on an account that exists. What arrives is not
-     * a reset email: the portal picks the template from the redirect
-     * below, so it reads as the confirmation it is. */
+     * proving a mailbox Supabase has already seen. What arrives is not a
+     * reset email and not a "welcome back" either: the portal picks the
+     * template from the redirect below, and it picks the ordinary
+     * confirmation one, so this reads as the sign-up it is. */
     if (state === 'vms') {
       (await cookies()).set(PENDING, JSON.stringify({ primary_audience, marketing_opt_in }), {
         path: '/', httpOnly: true, sameSite: 'lax', maxAge: 60 * 60,
@@ -112,7 +117,7 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
     }
 
     if (state === 'platform') {
-      return { exists: true, kind: 'platform', email };
+      return { exists: true, email };
     }
   } catch (e) {
     console.error('[signUp] could not check whether the address is known:', e);

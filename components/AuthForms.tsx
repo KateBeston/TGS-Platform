@@ -22,16 +22,23 @@ export function AuthPanel({
      pane and keeps them. */
   showBenefits?: boolean;
 }) {
-  /* Carried from sign-up to sign-in when the address turns out to be
-     known: the address itself, so it does not have to be typed twice,
-     and which of the two situations it is, because they read nothing
-     alike to the person in front of them. */
-  const [handoff, setHandoff] = useState<{ email: string; kind: 'platform' | 'vms' } | null>(null);
+  /* Carried from sign-up to sign-in when the address already has a
+     marketplace account: the address itself, so it does not have to be
+     typed twice.
+
+     Only that case is handed over. Somebody whose address is known to
+     Sanctum VMS but has never had a marketplace account is signing up,
+     and is sent through sign-up — they are not told about the VMS, asked
+     to sign in to it, or shown anything that treats the two as one
+     account. They are separate products with separate purposes; what
+     they happen to share underneath is ours to know, not theirs to
+     read about. */
+  const [handoff, setHandoff] = useState<{ email: string } | null>(null);
 
   if (mode === 'signup') {
     return (
       <SignupView setMode={setMode} onSuccess={onSuccess} showBenefits={showBenefits}
-        onKnownAddress={(email, kind) => { setHandoff({ email, kind }); setMode('login'); }} />
+        onKnownAddress={(email) => { setHandoff({ email }); setMode('login'); }} />
     );
   }
   if (mode === 'reset') {
@@ -39,11 +46,7 @@ export function AuthPanel({
   }
   return (
     <LoginView setMode={setMode} onSuccess={onSuccess} prefillEmail={handoff?.email ?? null}
-      notice={!handoff ? null : handoff.kind === 'vms'
-        /* Never "you already have an account" — they do not, and being
-           told they do is how somebody decides the site is broken.
-           What is shared is the sign-in, not the account. */
-        ? `You already sign in to Sanctum VMS with ${handoff.email}, and one sign-in covers everything at The Global Sanctum. Sign in with it once and your guest account is set up straight away, with the choices you just made. Forgotten the password? Reset it below.`
+      notice={!handoff ? null
         : `${handoff.email} is already registered. Sign in below, or reset your password if you have forgotten it.`} />
   );
 }
@@ -134,20 +137,21 @@ function SignupView({
   setMode, onSuccess, showBenefits = true, onKnownAddress,
 }: {
   setMode: (m: Mode) => void; onSuccess?: () => void; showBenefits?: boolean;
-  onKnownAddress?: (email: string, kind: 'platform' | 'vms') => void;
+  onKnownAddress?: (email: string) => void;
 }) {
   const [state, action, pending] = useActionState(signUp, null);
   const [token, setToken] = useState('');
   useSuccess(state?.ok, onSuccess);
 
-  /* A known address is not an error to read, it is a wrong turn to be
-     walked back from. Hand them to sign-in with the address already in
-     it rather than printing a sentence and leaving them to act on it. */
+  /* An address that already has a marketplace account is not an error to
+     read, it is a wrong turn to be walked back from. Hand them to
+     sign-in with the address already in it rather than printing a
+     sentence and leaving them to act on it. */
   useEffect(() => {
     if (state?.exists && state.email && onKnownAddress) {
-      onKnownAddress(state.email, state.kind ?? 'platform');
+      onKnownAddress(state.email);
     }
-  }, [state?.exists, state?.email, state?.kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state?.exists, state?.email]); // eslint-disable-line react-hooks/exhaustive-deps
   if (state?.sent) {
     /* Unambiguous again. This used to have to hedge, because Supabase
        answers a repeat sign-up with the same empty success as a real one
