@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { updateSession, endUnfinishedSession } from '@/lib/supabase/middleware';
 import { DEFAULT_LOCALE, LOCALES, localeFromPath, stripLocale } from '@/lib/i18n/config';
+import { FINISHING_COOKIE, finishingMayVisit } from '@/lib/finishing';
 
 // Renamed from middleware.ts per Next.js 16 (the middleware file convention is
 // deprecated and renamed to proxy). Refreshes the Supabase auth session on each
@@ -15,6 +16,29 @@ import { DEFAULT_LOCALE, LOCALES, localeFromPath, stripLocale } from '@/lib/i18n
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const prefix = localeFromPath(pathname);
+
+  /* A SESSION THAT WALKED AWAY FROM FINISHING ITS SIGN-UP IS ENDED.
+   *
+   * Clicking a confirmation link signs you in — that is what redeeming the
+   * token does — so /welcome/finish renders with a live session for an
+   * account that has not been opened yet. Leaving that page by the TGS
+   * mark in the header, the back button, or the address bar therefore put
+   * somebody into the marketplace signed in, with no password set and no
+   * decision made about the one they already had.
+   *
+   * Checked before the locale rewrite and before the session refresh, so
+   * it catches /fr/… as readily as /…, and so nothing downstream gets to
+   * treat the session as live first. The cookie is set by /auth/confirm
+   * and cleared when the account is opened; see lib/finishing.ts. */
+  if (request.cookies.has(FINISHING_COOKIE)
+      && !finishingMayVisit(stripLocale(pathname))) {
+    const home = request.nextUrl.clone();
+    home.pathname = prefix ? `/${prefix}` : '/';
+    home.search = '';
+    const out = NextResponse.redirect(home);
+    out.cookies.delete(FINISHING_COOKIE);
+    return endUnfinishedSession(request, out);
+  }
 
   if (prefix) {
     const enabled = LOCALES.find((l) => l.code === prefix)?.enabled;

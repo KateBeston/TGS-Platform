@@ -48,3 +48,43 @@ export async function updateSession(
   await supabase.auth.getUser();
   return response;
 }
+
+/** Ends a session that walked away from finishing its sign-up.
+ *
+ *  A real sign-out rather than deleting the cookies by hand: the refresh
+ *  token is revoked at Supabase, so the session cannot be resumed from a
+ *  copy of the cookie. The deletions Supabase emits are written onto the
+ *  response we hand back, which is the redirect.
+ *
+ *  Never throws. Somebody clicking the logo must end up on the home page
+ *  whatever the network did, and signed out is the safe failure either
+ *  way — the cookies are cleared below regardless. */
+export async function endUnfinishedSession(
+  request: NextRequest,
+  response: NextResponse,
+): Promise<NextResponse> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (url && key) {
+    const supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() { return request.cookies.getAll(); },
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    });
+    try { await supabase.auth.signOut(); } catch { /* cleared below anyway */ }
+  }
+
+  /* Belt and braces. If the sign-out could not be reached, the browser
+     still leaves holding nothing. */
+  for (const c of request.cookies.getAll()) {
+    if (c.name.startsWith('sb-')) response.cookies.delete(c.name);
+  }
+
+  return response;
+}

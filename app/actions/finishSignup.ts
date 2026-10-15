@@ -1,8 +1,10 @@
 'use server';
 
 import { cookies, headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { notify, report } from '@/lib/notify';
+import { FINISHING_COOKIE } from '@/lib/finishing';
 
 /* ═══════════════════════════════════════════════════════════════════════
    THE FAR SIDE OF THE CONFIRMATION LINK
@@ -243,7 +245,31 @@ async function openAccount(password: string | null): Promise<State> {
         url: '/contacts',
       });
 
+  /* Finished. The session is a signed-in member now rather than a link
+     half way through being redeemed, so the mark comes off and the rest
+     of the site stops being out of bounds. */
+  (await cookies()).delete(FINISHING_COOKIE);
+
   return { ok: true };
+}
+
+/** Leaving without opening the account.
+ *
+ *  The link signed them in, and nothing they have done yet says they want
+ *  the account — so they leave the way they arrived, as a visitor. Signed
+ *  out here rather than only being redirected, because a session that has
+ *  not finished signing up should not be browsing the marketplace.
+ *
+ *  Their link is spent, but the account is untouched: signing up again
+ *  sends a fresh one and this page is waiting where they left it. */
+export async function leaveWithoutFinishing(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  const jar = await cookies();
+  jar.delete(FINISHING_COOKIE);
+  jar.delete(PENDING);
+  jar.delete('tgs_remember');
+  redirect('/');
 }
 
 /** With a password — required for an account that has none, optional for

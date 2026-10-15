@@ -3900,6 +3900,10 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-links a{color:var(--gold-dark)}
 .auth-legal{font-size:11.5px;color:var(--muted);margin-top:24px;line-height:1.6}
 .auth-legal a{color:var(--gold-dark)}
+/* The way off the finish page, which is a form rather than a link because
+   it has to sign them out on the way. Said quietly under it, so nobody
+   clicks it expecting to stay where they are. */
+.auth-legal-note{font-size:11.5px;color:var(--muted);margin:6px 0 0;line-height:1.6}
 .auth-sent{text-align:center;font-size:15px;color:var(--charcoal);line-height:1.6}
 .account-card{text-align:left}
 .account-note{font-size:14px;color:var(--muted);line-height:1.6;margin:20px 0 28px}

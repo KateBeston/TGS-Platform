@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { notify, report } from '@/lib/notify';
+import { FINISHING_COOKIE, FINISHING_MAX_AGE } from '@/lib/finishing';
 
 /* ═══════════════════════════════════════════════════════════════════════
    REDEEMING A LINK THE PORTAL SENT
@@ -134,5 +135,19 @@ export async function GET(request: Request) {
   if (type === 'recovery' && next === '/account') {
     return NextResponse.redirect(new URL('/account#password', url.origin));
   }
-  return NextResponse.redirect(new URL(next, url.origin));
+
+  const out = NextResponse.redirect(new URL(next, url.origin));
+
+  /* This link has signed them in, and if it is on its way to the finish
+     page the account it signs them into has not been opened yet. Mark the
+     session so the proxy ends it the moment they go anywhere but that
+     page — see lib/finishing.ts. Cleared when the account is opened. */
+  if (finishing) {
+    out.cookies.set(FINISHING_COOKIE, '1', {
+      path: '/', httpOnly: true, sameSite: 'lax', maxAge: FINISHING_MAX_AGE,
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }
+
+  return out;
 }

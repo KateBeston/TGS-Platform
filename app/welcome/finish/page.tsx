@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import FinishSignupForm from '@/components/FinishSignupForm';
-import { signupShape } from '@/app/actions/finishSignup';
+import { signupShape, leaveWithoutFinishing } from '@/app/actions/finishSignup';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -59,7 +58,24 @@ export default async function FinishSignupPage() {
         </p>
         <FinishSignupForm needsPassword={needs} reinstating={reinstating}
           dormant={shape.dormant} />
-        <p className="auth-legal"><Link href="/">Back to the marketplace</Link></p>
+
+        {/* Not a link.
+         *
+         * Following the confirmation link signed them in, so a plain link
+         * back to the marketplace handed somebody a signed-in session for
+         * an account that had not been opened — no password set, and no
+         * decision made about the one they already had. This signs them
+         * out on the way, and the proxy does the same for the header mark,
+         * the back button and the address bar. */}
+        <form action={leaveWithoutFinishing} className="auth-legal">
+          <button type="submit" className="auth-textlink">
+            Not now — back to the marketplace
+          </button>
+        </form>
+        <p className="auth-legal-note">
+          You will be signed out. Your account is untouched, and signing up again
+          sends a fresh link.
+        </p>
       </div>
     </main>
   );
