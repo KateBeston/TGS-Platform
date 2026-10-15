@@ -5,89 +5,107 @@ import { createClient } from '@/lib/supabase/server';
 import { notify, report } from '@/lib/notify';
 
 /* ═══════════════════════════════════════════════════════════════════════
-   THE OTHER SIDE OF A SIGN-UP THAT COULD NOT ISSUE A SECOND LOGIN
+   THE FAR SIDE OF THE CONFIRMATION LINK
 
-   Somebody who registered a venue months ago, signing up for a
-   marketplace account they have never had. They filled in the sign-up
-   form and confirmed by email, which is the only thing that proves the
-   mailbox is theirs — and it has to be proven, because that address
-   already protects live venue access and anyone can type anyone's
-   address into a sign-up form.
+   The sign-up form takes no password, so everything that makes an account
+   happens here, once the link has proven the mailbox belongs to them.
 
-   They arrive here with a session from the link. Setting the password
-   here rather than taking the one from the form is the whole point: a
-   password that took effect before the mailbox was proven would hand a
-   stranger somebody's venue.
+   Two shapes, and the difference is invisible unless you are looking for
+   it:
 
-   This is a sign-up finishing, not a reset completing, so it ends the
-   way every other sign-up ends: the welcome email from the portal's own
-   library, and the portal told a new account exists. Those two steps
-   used to hang off `type === 'signup'` in /auth/confirm alone, and this
-   path arrives as a recovery — so a person who came this way got a
-   marketplace account, no welcome, and no alert to anybody at TGS. The
-   mechanism differing is ours to deal with; the experience should not
-   differ at all.
+     an address with no password yet   chooses one here
+     an address that already has one   does not, and theirs is untouched
+
+   The second case is a venue owner who signed up to Sanctum VMS at some
+   point. Supabase keeps one password per address, so writing a new one
+   would replace the password that opens their VMS — they would find out
+   days later, locked out, with nothing connecting the two events. The
+   products are separate and the password store underneath is not, so the
+   only safe answer is to leave an existing password alone. They are
+   signed in by the link either way, and nothing on screen mentions the
+   VMS or an account elsewhere.
    ═══════════════════════════════════════════════════════════════════════ */
 
 type State = { error?: string; ok?: boolean } | null;
 
 const PENDING = 'tgs_pending_signup';
 
-export async function finishSignup(_prev: State, formData: FormData): Promise<State> {
-  const password = String(formData.get('password') ?? '');
-  const confirm = String(formData.get('confirm_password') ?? '');
+type Answers = {
+  first_name?: string; surname?: string;
+  primary_audience?: string; marketing_opt_in?: boolean;
+};
 
-  if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
-  if (password !== confirm) return { error: 'The two passwords don’t match.' };
+/** The answers from the sign-up form, carried across the email.
+ *
+ *  Supabase applies `options.data` only when it creates a row, so for an
+ *  address it had already seen the answers arrive only in this cookie. */
+async function pendingAnswers(): Promise<Answers> {
+  const jar = await cookies();
+  const raw = jar.get(PENDING)?.value;
+  if (!raw) return {};
+  try { return JSON.parse(raw) as Answers; } catch { return {}; }
+}
 
+/** Does this account still need a password? Read on the server so the
+ *  answer cannot be spoofed by the page that asks. */
+export async function needsPassword(): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data, error } = await supabase.rpc('account_has_password');
+  /* If the question cannot be answered, offer the step. Asking for a
+     password that turns out to be unnecessary is a wasted field; skipping
+     one that was necessary leaves an account nobody can sign in to. */
+  if (error) return true;
+  return data === false;
+}
+
+/* Everything after the password decision, shared by both shapes. */
+async function openAccount(password: string | null): Promise<State> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return { error: 'That link has expired. Start the sign-up again and we will send a fresh one.' };
   }
 
-  /* The choices they made on the sign-up form, carried across the
-     confirmation. Applied to the account before the profile is built
-     from it, so the audience they picked is the one they get. */
-  const jar = await cookies();
-  const pending = jar.get(PENDING)?.value;
-  let audience = 'guest';
-  let marketing = false;
-  if (pending) {
-    try {
-      const c = JSON.parse(pending) as { primary_audience?: string; marketing_opt_in?: boolean };
-      audience = c.primary_audience ?? 'guest';
-      marketing = !!c.marketing_opt_in;
-    } catch { /* the defaults stand */ }
-  }
+  const a = await pendingAnswers();
+  const audience = a.primary_audience ?? String(user.user_metadata?.primary_audience ?? 'guest');
+  const marketing = a.marketing_opt_in ?? !!user.user_metadata?.marketing_opt_in;
+  const first = (a.first_name ?? String(user.user_metadata?.first_name ?? '')).trim();
+  const surname = (a.surname ?? String(user.user_metadata?.surname ?? '')).trim();
 
+  /* The metadata first, because ensure_platform_profile builds the profile
+     and the contact role from it. Password only when there is one to set:
+     passing it for an account that already has one is the overwrite this
+     whole shape exists to avoid. */
   const { error } = await supabase.auth.updateUser({
-    password,
-    data: { primary_audience: audience, marketing_opt_in: marketing },
+    ...(password ? { password } : {}),
+    data: { first_name: first, surname, primary_audience: audience, marketing_opt_in: marketing },
   });
   if (error) return { error: error.message };
 
-  jar.delete(PENDING);
+  (await cookies()).delete(PENDING);
 
-  /* Builds the profile, the platform role and the contact link from the
-     metadata just written. The venue side is untouched: this opens a
-     marketplace account, it does not convert anything. */
+  /* Profile, platform role and contact link, from the metadata just
+     written. The venue side is untouched: this opens a marketplace
+     account, it does not convert anything. */
   await supabase.rpc('ensure_platform_profile');
 
-  /* The same two things every other sign-up does on confirmation.
-   *
-   * The line about what their account opens is chosen the same way and
-   * from the same template, so this email is indistinguishable from the
-   * one a brand new address receives. Nothing here refers to Sanctum
-   * VMS: a member reading their inbox has signed up for a marketplace
-   * account, and that is all this is.
-   *
-   * Fire and forget, both of them. The account is open either way, and
-   * somebody who has just set their password should not be shown an
-   * error because a notification could not be delivered. */
-  const first = String(user.user_metadata?.first_name ?? '').trim();
-  const full = [first, String(user.user_metadata?.surname ?? '').trim()]
-    .filter(Boolean).join(' ');
+  /* The audience is applied after, because ensure_platform_profile inserts
+     the profile and leaves an existing row alone — and for an address that
+     had been here before, a row may already exist carrying the default. */
+  await supabase.from('profiles').update({
+    primary_audience: audience === 'host' ? 'host' : 'guest',
+    marketing_opt_in: marketing,
+    ...(first ? { first_name: first } : {}),
+    ...(surname ? { surname } : {}),
+  }).eq('id', user.id);
+
+  /* The welcome, and the portal told a new account exists. Both fire and
+     forget: the account is open either way, and somebody who has just
+     finished signing up should not be shown an error because a
+     notification could not be delivered. */
+  const full = [first, surname].filter(Boolean).join(' ');
   const origin = (await headers()).get('origin')
     ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
@@ -116,4 +134,25 @@ export async function finishSignup(_prev: State, formData: FormData): Promise<St
   });
 
   return { ok: true };
+}
+
+/** With a password, for an account that does not have one yet. */
+export async function finishSignup(_prev: State, formData: FormData): Promise<State> {
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm_password') ?? '');
+
+  if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
+  if (password !== confirm) return { error: 'The two passwords don’t match.' };
+
+  /* Checked again on the server rather than trusted from the form. A
+     password posted here for an account that already has one would be the
+     overwrite, however the page was reached. */
+  if (!(await needsPassword())) return openAccount(null);
+
+  return openAccount(password);
+}
+
+/** Without one, for an account that already has a password. */
+export async function finishSignupNoPassword(_prev: State): Promise<State> {
+  return openAccount(null);
 }

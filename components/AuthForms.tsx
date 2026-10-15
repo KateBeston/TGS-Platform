@@ -187,17 +187,12 @@ function SignupView({
           <input type="text" name="surname" autoComplete="family-name" /></label>
       </div>
       <label className="auth-field"><span>Email</span>
-        <input type="email" name="email" autoComplete="email" required /></label>
-      {/* Paired, like the names above. Two stacked password boxes were
-          two of the eight rows that made this form taller than a laptop
-          screen, and they are the same question asked twice. */}
-      <div className="auth-row">
-        <label className="auth-field"><span>Password</span>
-          <input type="password" name="password" autoComplete="new-password" minLength={8} required />
-          <small>At least 8 characters.</small></label>
-        <label className="auth-field"><span>Confirm password</span>
-          <input type="password" name="confirm_password" autoComplete="new-password" minLength={8} required /></label>
-      </div>
+        <input type="email" name="email" autoComplete="email" required />
+        {/* No password here, deliberately. It is chosen on the far side of
+            the confirmation link, once the mailbox has been proven — see
+            the note in signUp. Asking for one here and then not being able
+            to use it was the confusion this removes. */}
+        <small>We&rsquo;ll email you a link to confirm it and set your password.</small></label>
       <label className="auth-field"><span>I&rsquo;m here mainly as a</span>
         <select name="primary_audience" defaultValue="guest">
           <option value="guest">Wellness guest</option>
@@ -211,7 +206,7 @@ function SignupView({
       <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} onToken={setToken} />
       <input type="hidden" name="cf-turnstile-response" value={token} />
       {state?.error && <p className="auth-error">{state.error}</p>}
-      <button type="submit" className="auth-submit" disabled={pending}>{pending ? 'Creating your account…' : 'Create account'}</button>
+      <button type="submit" className="auth-submit" disabled={pending}>{pending ? 'Sending your link…' : 'Create account'}</button>
       <div className="auth-links">
         <button type="button" className="auth-textlink" onClick={() => setMode('login')}>Already have an account? Sign in</button>
       </div>

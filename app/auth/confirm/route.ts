@@ -63,8 +63,16 @@ export async function GET(request: Request) {
 
   /* They are confirmed and signed in, which is the first moment anything
      can be written on their behalf. This is what turns the sign-up into a
-     contact record with the role they chose. */
-  await supabase.rpc('ensure_platform_profile');
+     contact record with the role they chose.
+
+     Skipped when the link is on its way to /welcome/finish. That page
+     completes the sign-up itself, and it has to: the answers from the form
+     arrive in a cookie, and the profile must be built from them rather
+     than from metadata that may not have been applied yet. Calling it here
+     first would insert a profile carrying the defaults, and the insert
+     leaves an existing row alone, so the real answers would never land. */
+  const finishing = next.startsWith('/welcome/finish');
+  if (!finishing) await supabase.rpc('ensure_platform_profile');
 
   /* A new account, once only.
    *

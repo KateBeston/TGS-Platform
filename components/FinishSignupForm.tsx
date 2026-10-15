@@ -1,17 +1,17 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { finishSignup } from '@/app/actions/finishSignup';
+import { finishSignup, finishSignupNoPassword } from '@/app/actions/finishSignup';
 
-/* Setting the password on the far side of the confirmation link.
+/* The last step of a sign-up, in whichever of its two shapes applies.
  *
- * The password typed on the sign-up form was deliberately not kept. It
- * is asked for again here, once the mailbox has been proven, because
- * this address may already protect live venue access and a password
- * that took effect before that proof would hand it to whoever typed the
- * address in. */
-export default function FinishSignupForm() {
+ * `needsPassword` is decided on the server from the account itself, never
+ * from anything the browser says. An account that already has a password
+ * is not asked for one and does not have one written: see the note in
+ * app/actions/finishSignup.ts for why that matters.
+ */
+export default function FinishSignupForm({ needsPassword }: { needsPassword: boolean }) {
   const [state, action, pending] = useActionState(finishSignup, null);
   const router = useRouter();
 
@@ -27,6 +27,8 @@ export default function FinishSignupForm() {
     );
   }
 
+  if (!needsPassword) return <OpenStraightAway />;
+
   return (
     <form action={action} className="auth-form">
       <label className="auth-field"><span>Password</span>
@@ -41,5 +43,41 @@ export default function FinishSignupForm() {
         {pending ? 'Opening your account…' : 'Open my account'}
       </button>
     </form>
+  );
+}
+
+/* Nothing left to ask. The account is opened on arrival and they are sent
+ * to it — no button to press, because there is no decision to make.
+ *
+ * Run once: a server action in an effect will fire twice under React's
+ * development double-render, and the second call would send a second
+ * welcome email. */
+function OpenStraightAway() {
+  const [state, action, pending] = useActionState(finishSignupNoPassword, null);
+  const router = useRouter();
+  const fired = useRef(false);
+
+  useEffect(() => {
+    if (fired.current) return;
+    fired.current = true;
+    action();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (state?.ok) { router.refresh(); router.push('/account'); }
+  }, [state?.ok]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (state?.error) {
+    return (
+      <div className="auth-sent">
+        <p className="auth-error">{state.error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-sent">
+      <p>{pending ? 'Opening your account…' : 'One moment.'}</p>
+    </div>
   );
 }
