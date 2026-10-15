@@ -23,7 +23,15 @@ import { checkStay, stayRulesFrom } from '@/lib/stayRules';
    from the client payload.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-type CartItem = { kind: string; id: number; label?: string; qty?: number; detail?: string };
+type CartItem = {
+  kind: string; id: number; label?: string; qty?: number; detail?: string;
+  /* Set only where the guest chose a real time from the venue's
+     availability. The cart is the guest's own browser storage and cannot be
+     trusted on price — but a time is re-checked against free_slots before
+     it is filed, below. */
+  slotDate?: string; startsLocal?: string; endsLocal?: string;
+  startsUtc?: string; slotTz?: string; slotId?: number | null;
+};
 type CartVenueSlice = {
   venueName?: string; currency?: string | null; from?: string; to?: string;
   guests?: string; items?: CartItem[];
@@ -254,12 +262,46 @@ export async function submitBooking(
       const unit = priced && priced.price != null ? Number(priced.price) : null; // rooms/buyout: null (no rates yet)
       const lineTotal = unit != null ? unit * qty : null;
       if (lineTotal != null) bookingSubtotal += lineTotal;
+
+      /* ── the booked time, re-checked ───────────────────────────────
+         A service booked by time carries its own date and clock time,
+         which the venue reads instead of "Morning". The cart said so, and
+         the cart is the guest's own browser storage — so the time is
+         asked of free_slots again here before it is filed. A time that is
+         no longer offered (somebody else took it, the venue closed the
+         day, the party grew past the capacity) is dropped to a date-only
+         request rather than booked anyway. */
+      let timing: Record<string, unknown> = {};
+      if (it.kind === 'exp' && it.slotDate && it.startsLocal) {
+        const { data: free } = await db.rpc('free_slots', {
+          p_venue_id: venueId,
+          p_service_id: it.id,
+          p_from: it.slotDate,
+          p_to: it.slotDate,
+          p_people: qty,
+        });
+        const match = (free as any[] | null)?.find(
+          (s) => String(s.on_date) === it.slotDate
+              && String(s.starts_local).slice(0, 5) === it.startsLocal);
+        if (match) {
+          timing = {
+            date_from: it.slotDate, date_to: it.slotDate,
+            start_time: String(match.starts_local).slice(0, 8),
+            end_time: String(match.ends_local).slice(0, 8),
+            scheduled_at: new Date(match.starts_utc).toISOString(),
+            session_slot_id: match.slot_id ?? null,
+            person_count: qty,
+          };
+        }
+      }
+
       lineRows.push({
         item_type: ITEM_TYPE[it.kind] ?? 'Add-on',
         item_id: it.id, label: it.label ?? null,
         quantity: qty, unit_price: unit, line_total: lineTotal,
         date_from: slice.from || null, date_to: slice.to || null,
         item_status: 'Requested', currency,
+        ...timing,
       });
     }
 
@@ -335,11 +377,25 @@ export async function submitBooking(
        The gross is still recoverable: it is the sum of the non-Discount
        lines, which is the reason the discount is its own line. */
     const commissionAmount = Math.round(chargeable * (commissionRate / 100) * 100) / 100;
+
+    /* A booking of nothing but wellness services had no dates at all: the
+       slice's from/to belong to a stay, and a guest booking a single
+       massage never sets them. So the booking was filed with date_from
+       null, which is unreportable and unanswerable — the venue could not
+       be asked to confirm a date nobody had recorded. Where the lines
+       carry their own booked dates, the booking spans them. */
+    const lineDates = lineRows
+      .map((l) => l.date_from)
+      .filter((d): d is string => typeof d === 'string' && !!d)
+      .sort();
+    const bookingFrom = slice.from || lineDates[0] || null;
+    const bookingTo = slice.to || lineDates[lineDates.length - 1] || null;
+
     const { data: booking, error: bErr } = await db.from('bookings').insert({
       order_id: order.id, venue_id: venueId,
       booked_by_type: 'Wellness Guest', status: 'Pending',
       created_by_type: 'Guest self-serve', created_via: 'Booked on the site',
-      date_from: slice.from || null, date_to: slice.to || null,
+      date_from: bookingFrom, date_to: bookingTo,
       guest_count: slice.guests ? Number(slice.guests) : null,
       guest_name: name, guest_email: linkEmail, guest_phone: contact?.phone?.trim() || null,
       wellness_guest_id: wellnessGuestId,

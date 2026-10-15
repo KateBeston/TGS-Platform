@@ -5551,3 +5551,49 @@ img { max-width: 100%; height: auto; display: block; }
 @media (max-width: 380px) {
   .drawer-brand-text { font-size: 16px; }
 }
+
+/* ── Slot picker: real dates and times on an experience ─────────────────
+   Lives beside the .xb- controls on the experience page and borrows their
+   tokens, so a venue with live availability and one without look like the
+   same card rather than two different products. */
+.sp { display: flex; flex-direction: column; gap: 6px; }
+.sp-loading { font-size: 12.5px; color: var(--muted, #4A4238); margin: 2px 0 0; }
+
+.sp-days {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+  scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+}
+.sp-day {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;
+  min-width: 78px; padding: 8px 10px; cursor: pointer;
+  border: 1px solid var(--border, #E0D8CC); background: var(--warm-white, #FDFCF9);
+  font-family: inherit; text-align: left; color: var(--charcoal, #313131);
+  transition: border-color .15s, background .15s;
+}
+.sp-day:hover { border-color: var(--gold, #C4A265); }
+.sp-day-on {
+  border-color: var(--charcoal, #313131); background: var(--charcoal, #313131);
+  color: var(--warm-white, #FDFCF9);
+}
+.sp-day-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.sp-day-count { font-size: 10.5px; letter-spacing: .02em; opacity: .7; white-space: nowrap; }
+
+.sp-times-label { margin-top: 6px; }
+.sp-times { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp-time {
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: 8px 11px; cursor: pointer; font-family: inherit;
+  border: 1px solid var(--border, #E0D8CC); background: var(--warm-white, #FDFCF9);
+  color: var(--charcoal, #313131); transition: border-color .15s, background .15s;
+}
+.sp-time:hover { border-color: var(--gold, #C4A265); }
+.sp-time-on {
+  border-color: var(--charcoal, #313131); background: var(--charcoal, #313131);
+  color: var(--warm-white, #FDFCF9);
+}
+.sp-time-at { font-size: 14px; font-variant-numeric: tabular-nums; }
+.sp-time-mine { font-size: 10px; letter-spacing: .02em; opacity: .7; white-space: nowrap; }
+.sp-time-left { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: var(--gold-dark, #7A644F); }
+.sp-time-on .sp-time-left { color: var(--gold, #C4A265); }
+
+.sp-note { font-size: 11.5px; line-height: 1.5; color: var(--muted, #4A4238); margin: 2px 0 0; }
