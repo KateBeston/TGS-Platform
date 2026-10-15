@@ -174,12 +174,27 @@ export async function signIn(_prev: State, formData: FormData): Promise<State> {
   // Ensure a platform profile exists — covers an owner-first person signing in to
   // browse as a guest (no-op if they already have one).
   await supabase.rpc('ensure_platform_profile');
-  // If the account has two-factor enabled, the session is only aal1 until they
-  // complete the code challenge — signal the client to prompt for it.
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal && aal.currentLevel === 'aal1' && aal.nextLevel === 'aal2') {
-    return { needsMfa: true };
-  }
+
+  /* NO SECOND FACTOR ON THE MARKETPLACE.
+   *
+   * This used to read the assurance level and prompt for a code whenever
+   * it could reach aal2 — which is whenever the account has a verified
+   * factor, wherever that factor was enrolled. One auth row per address
+   * means a venue owner who set up an authenticator for Sanctum VMS was
+   * challenged for it to look at saved venues on the marketplace, which
+   * is not what a second factor was attached for.
+   *
+   * Two-factor is a requirement of the internal portal, and the portal
+   * enforces it for itself: lib/supabase/middleware.ts checks the level
+   * on every request and refuses anything below aal2. So a session minted
+   * here at aal1 cannot reach the portal, whatever this function does.
+   *
+   * Sanctum VMS does NOT check the level per request. A venue owner with
+   * a factor can therefore reach the VMS from a marketplace sign-in
+   * without entering a code. That is a gap in the VMS rather than
+   * something to fix by challenging marketplace members — the same check
+   * the portal already makes belongs in the VMS middleware.
+   */
   return { ok: true };
 }
 

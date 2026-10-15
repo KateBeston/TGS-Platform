@@ -93,6 +93,12 @@ function LoginView({
     router.refresh(); router.push('/account');
   };
 
+  /* Unreachable today, and kept on purpose. signIn no longer returns
+     needsMfa: a second factor is a requirement of the internal portal,
+     which enforces it for itself on every request, and challenging a
+     marketplace member for an authenticator they attached to Sanctum VMS
+     was the wrong end of a one-auth-row-per-address design. If the
+     marketplace ever should challenge, this is the screen. */
   if (state?.needsMfa) {
     return (
       <div className="auth-form">
