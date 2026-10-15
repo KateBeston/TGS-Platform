@@ -57,7 +57,8 @@ export default async function FinishSignupPage() {
               ? 'Your email is confirmed. Choose a password and your account is open.'
               : 'Your email is confirmed and your account is open.'}
         </p>
-        <FinishSignupForm needsPassword={needs} reinstating={reinstating} />
+        <FinishSignupForm needsPassword={needs} reinstating={reinstating}
+          dormant={shape.dormant} />
         <p className="auth-legal"><Link href="/">Back to the marketplace</Link></p>
       </div>
     </main>

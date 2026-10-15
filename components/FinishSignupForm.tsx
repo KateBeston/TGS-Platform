@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { finishSignup, finishSignupNoPassword } from '@/app/actions/finishSignup';
 
@@ -12,14 +12,13 @@ import { finishSignup, finishSignupNoPassword } from '@/app/actions/finishSignup
  * app/actions/finishSignup.ts for why that matters.
  *
  *   needsPassword              choose one, required
- *   reinstating                reopening a closed account; the password is
- *                              optional when there already is one, so they
- *                              may keep it or set a new one here
+ *   reinstating                reopening a closed account that already has
+ *                              a password — keep it, or replace it
  *   neither                    opened on arrival, nothing to ask
  */
 export default function FinishSignupForm({
-  needsPassword, reinstating = false,
-}: { needsPassword: boolean; reinstating?: boolean }) {
+  needsPassword, reinstating = false, dormant = false,
+}: { needsPassword: boolean; reinstating?: boolean; dormant?: boolean }) {
   const [state, action, pending] = useActionState(finishSignup, null);
   const router = useRouter();
 
@@ -39,29 +38,109 @@ export default function FinishSignupForm({
 
   /* Nothing to decide only when there is nothing to decide. Somebody
      reopening an account is shown the form even if a password exists,
-     because choosing a new one is part of coming back. */
+     because what happens to that password is a decision. */
   if (!needsPassword && !reinstating) return <OpenStraightAway />;
 
-  const optional = reinstating && !needsPassword;
+  if (reinstating && !needsPassword) {
+    return <ReturningPassword action={action} pending={pending}
+      error={state?.error ?? null} dormant={dormant} />;
+  }
 
   return (
     <form action={action} className="auth-form">
-      <label className="auth-field">
-        <span>{optional ? 'New password (optional)' : 'Password'}</span>
+      <input type="hidden" name="password_choice" value="new" />
+      <label className="auth-field"><span>Password</span>
         <input type="password" name="password" autoComplete="new-password"
-               minLength={8} required={!optional} autoFocus />
-        <small>{optional
-          ? 'Leave this blank to keep the password you had, or set a new one.'
-          : 'At least 8 characters.'}</small></label>
-      <label className="auth-field">
-        <span>{optional ? 'Confirm new password' : 'Confirm password'}</span>
+               minLength={8} required autoFocus />
+        <small>At least 8 characters.</small></label>
+      <label className="auth-field"><span>Confirm password</span>
         <input type="password" name="confirm_password" autoComplete="new-password"
-               minLength={8} required={!optional} /></label>
+               minLength={8} required /></label>
       {state?.error && <p className="auth-error">{state.error}</p>}
       <button type="submit" className="auth-submit" disabled={pending}>
-        {pending
-          ? (reinstating ? 'Reopening your account…' : 'Opening your account…')
-          : (reinstating ? 'Reopen my account' : 'Open my account')}
+        {pending ? 'Opening your account…' : 'Open my account'}
+      </button>
+    </form>
+  );
+}
+
+/* KEEPING A PASSWORD IS A CHOICE, NOT AN EMPTY FIELD.
+ *
+ * This used to be one optional field whose help text said that leaving it
+ * blank kept the old password. Nobody reads a blank field as a decision.
+ * Somebody who could not remember their password skipped it, was told
+ * their account was open, and found out at the next sign-in that they
+ * were locked out — a usability failure before it is a security one.
+ *
+ * So it is two choices, both visible. Choosing to keep is a claim that
+ * they remember it.
+ *
+ * Neither is forced. They reached this page by clicking a link sent to
+ * their mailbox, which is the same proof a password reset rests on, so
+ * compelling a change here adds friction without adding a factor — and
+ * does it at the moment somebody is coming back, which is the worst
+ * moment to ask for admin.
+ *
+ * What is said instead is the one fact that lets them decide for
+ * themselves: the password is the one they had before they closed the
+ * account. Somebody who reused it somewhere that has since been breached
+ * knows what to do with that, and no generic security nag would have told
+ * them.
+ */
+function ReturningPassword({
+  action, pending, error, dormant,
+}: {
+  action: (fd: FormData) => void; pending: boolean;
+  error: string | null; dormant: boolean;
+}) {
+  /* Pre-selected by how long it has been. A year-old password is worth
+     replacing; last month's is not, and nagging about the second teaches
+     people to ignore the nag about the first. */
+  const [choice, setChoice] = useState<'keep' | 'new'>(dormant ? 'new' : 'keep');
+
+  return (
+    <form action={action} className="auth-form">
+      <p className="auth-pw-note">
+        Your password is the same one you had before you closed your account. It is the
+        password for this email address wherever you sign in with it.
+      </p>
+
+      <div className="auth-choice">
+        <label className={`auth-choice-opt${choice === 'keep' ? ' on' : ''}`}>
+          <input type="radio" name="password_choice" value="keep"
+            checked={choice === 'keep'} onChange={() => setChoice('keep')} />
+          <span>
+            <strong>Keep my current password</strong>
+            <small>Use the one you had before. Choose this only if you remember it.</small>
+          </span>
+        </label>
+        <label className={`auth-choice-opt${choice === 'new' ? ' on' : ''}`}>
+          <input type="radio" name="password_choice" value="new"
+            checked={choice === 'new'} onChange={() => setChoice('new')} />
+          <span>
+            <strong>Set a new password</strong>
+            <small>{dormant
+              ? 'Recommended — it has been a while, so the old one is likely stale.'
+              : 'Recommended if you are not sure you remember the old one.'}</small>
+          </span>
+        </label>
+      </div>
+
+      {choice === 'new' && (
+        <>
+          <label className="auth-field"><span>New password</span>
+            <input type="password" name="password" autoComplete="new-password"
+                   minLength={8} required autoFocus />
+            <small>At least 8 characters.</small></label>
+          <label className="auth-field"><span>Confirm new password</span>
+            <input type="password" name="confirm_password" autoComplete="new-password"
+                   minLength={8} required /></label>
+        </>
+      )}
+
+      {error && <p className="auth-error">{error}</p>}
+      <button type="submit" className="auth-submit" disabled={pending}>
+        {pending ? 'Reopening your account…' : 'Reopen my account'}
       </button>
     </form>
   );

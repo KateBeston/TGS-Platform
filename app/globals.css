@@ -4026,6 +4026,20 @@ img { max-width: 100%; height: auto; display: block; }
 .auth-remember{display:flex;align-items:center;gap:9px;margin:2px 0;font-size:13px;color:var(--charcoal);cursor:pointer}
 .auth-remember input{width:16px;height:16px;accent-color:var(--gold);cursor:pointer}
 
+/* Keeping a password, or replacing it, on the way back into a reopened
+   account. Two boxes rather than two bare radios: the choice carries a
+   line of explanation each, and a radio with a paragraph beside it reads
+   as a footnote rather than a decision. */
+.auth-pw-note{font-size:13px;line-height:1.65;color:var(--muted);margin:0 0 4px}
+.auth-choice{display:flex;flex-direction:column;gap:8px}
+.auth-choice-opt{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;border:1px solid var(--border);background:var(--warm-white);cursor:pointer;transition:border-color .15s,background .15s}
+.auth-choice-opt:hover{border-color:var(--gold-dark)}
+.auth-choice-opt.on{border-color:var(--gold);background:var(--warm-cream)}
+.auth-choice-opt input{width:16px;height:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.auth-choice-opt>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.auth-choice-opt strong{font-size:14px;font-weight:500;color:var(--charcoal)}
+.auth-choice-opt small{font-size:12px;line-height:1.5;color:var(--muted)}
+
 /* Small helper statement inside a form field */
 .f-hint{font-size:12.5px;line-height:1.5;color:var(--muted);margin:0 0 10px}
 

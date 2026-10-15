@@ -66,7 +66,17 @@ export type SignupShape = {
   reinstating: boolean;
   firstName: string | null;
   closedAt: string | null;
+  /* Closed long enough ago that the password they had is stale. It only
+     changes which choice is pre-selected, never what is allowed: a
+     password that has sat unused for a year is worth replacing, one from
+     last month is not, and nagging about the second teaches people to
+     ignore the nag about the first. */
+  dormant: boolean;
 };
+
+/* Twelve months. Long enough that a password is genuinely old, short
+   enough to catch the accounts that actually went cold. */
+const DORMANT_AFTER_MS = 365 * 24 * 60 * 60 * 1000;
 
 /** Which of the three shapes this last step takes, decided on the server.
  *
@@ -81,7 +91,10 @@ export type SignupShape = {
 export async function signupShape(): Promise<SignupShape> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsPassword: false, reinstating: false, firstName: null, closedAt: null };
+  if (!user) {
+    return { needsPassword: false, reinstating: false, firstName: null,
+             closedAt: null, dormant: false };
+  }
 
   const needs = await needsPassword();
 
@@ -92,11 +105,16 @@ export async function signupShape(): Promise<SignupShape> {
     .order('archived_at', { ascending: false })
     .limit(1).maybeSingle();
 
+  const closedAt = ((row as any)?.archived_at as string) ?? null;
+
   return {
     needsPassword: needs,
     reinstating: !!row,
     firstName: ((row as any)?.first_name as string) ?? null,
-    closedAt: ((row as any)?.archived_at as string) ?? null,
+    closedAt,
+    dormant: closedAt
+      ? (Date.now() - new Date(closedAt).getTime()) > DORMANT_AFTER_MS
+      : false,
   };
 }
 
@@ -240,17 +258,26 @@ async function openAccount(password: string | null): Promise<State> {
 export async function finishSignup(_prev: State, formData: FormData): Promise<State> {
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm_password') ?? '');
+  /* 'keep' or 'new', from somebody reopening an account that already has a
+     password. An empty string is how a blank field used to say "keep",
+     which is not an answer anybody gives on purpose — see the note in
+     FinishSignupForm. */
+  const choice = String(formData.get('password_choice') ?? '');
   const shape = await signupShape();
 
-  const wants = password.length > 0;
   const must = shape.needsPassword;
+  const wants = must || choice === 'new';
 
-  if (must && !wants) return { error: 'Please choose a password.' };
   if (wants) {
+    if (!password) return { error: 'Please choose a password.' };
     if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
     if (password !== confirm) return { error: 'The two passwords don’t match.' };
   }
 
+  /* A password is written when the account has none, or when somebody
+     reopening their own account deliberately asked to replace it. Anywhere
+     else it is dropped: see the note at the top of this file for why an
+     address that already has a password must keep it. */
   const write = wants && (must || shape.reinstating);
   return openAccount(write ? password : null);
 }
