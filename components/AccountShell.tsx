@@ -1,8 +1,10 @@
 'use client';
 
-import { useActionState, useState, type ReactNode } from 'react';
+import { useActionState, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { signOut } from '@/app/actions/auth';
+import { closeMyAccount } from '@/app/actions/accountClosure';
 import PhoneField from '@/components/PhoneField';
 import { updateProfile, updateComms, changeEmail, changePassword, setOrientation } from '@/app/actions/account';
 import HostProfile from '@/components/HostProfile';
@@ -304,7 +306,79 @@ function SettingsPanel({ email }: { email: string }) {
         <h3 className="acct-sec-h">Two-factor authentication</h3>
         <TwoFactorSetup />
       </div>
+      <CloseAccountSection />
     </section>
+  );
+}
+
+/* Closing an account, said plainly.
+ *
+ * What closing does and does not do is on the page rather than in a
+ * confirmation nobody reads, because the two things people assume — that
+ * their bookings vanish, and that the address can never be used again —
+ * are both wrong, and being wrong about either is a reason not to close
+ * or a reason to regret closing.
+ *
+ * The word is typed rather than a box ticked. A tick beside a button is
+ * one slip away from a closed account.
+ */
+function CloseAccountSection() {
+  const [state, action, pending] = useActionState(closeMyAccount, null);
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.ok) { router.refresh(); router.push('/?closed=1'); }
+  }, [state?.ok]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (state?.ok) {
+    return (
+      <div className="acct-close-sec">
+        <h3 className="acct-sec-h">Close your account</h3>
+        <p className="acct-msg">Your account is closed. Taking you back to the marketplace.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="acct-close-sec">
+      <h3 className="acct-sec-h">Close your account</h3>
+      <p className="acct-close-lead">
+        Closing removes your profile, your saved venues and your marketing preferences,
+        and ends your membership. Your bookings, enquiries and invoices stay on our
+        records — we are required to keep them, and they are yours to ask for.
+      </p>
+      <p className="acct-close-lead">
+        If you come back later, sign up with this same email address and we will
+        recognise it and offer to reopen this account rather than start you again.
+      </p>
+
+      {!open ? (
+        <div className="acct-actions">
+          <button type="button" className="acct-ghost-btn" onClick={() => setOpen(true)}>
+            Close my account
+          </button>
+        </div>
+      ) : (
+        <form action={action} className="acct-form acct-close-form">
+          <label className="acct-f"><span>Why are you leaving? (optional)</span>
+            <textarea name="reason" rows={3} maxLength={500}
+              placeholder="Anything you tell us here goes to us, not to a venue." />
+          </label>
+          <label className="acct-f"><span>Type <strong>close</strong> to confirm</span>
+            <input name="confirm" autoComplete="off" placeholder="close" autoFocus />
+          </label>
+          {state?.error && <p className="acct-err">{state.error}</p>}
+          <div className="acct-actions">
+            <button className="acct-btn" disabled={pending}>
+              {pending ? 'Closing…' : 'Close my account'}
+            </button>
+            <button type="button" className="acct-ghost-btn" disabled={pending}
+              onClick={() => setOpen(false)}>Keep my account</button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
 

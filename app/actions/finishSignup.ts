@@ -60,6 +60,46 @@ export async function needsPassword(): Promise<boolean> {
   return data === false;
 }
 
+export type SignupShape = {
+  needsPassword: boolean;
+  /* Reopening an account they closed, rather than opening a new one. */
+  reinstating: boolean;
+  firstName: string | null;
+  closedAt: string | null;
+};
+
+/** Which of the three shapes this last step takes, decided on the server.
+ *
+ *  needsPassword      an address with no password chooses one
+ *  reinstating        an account that was closed, offered back, with the
+ *                     password optional if there is already one
+ *  neither            signed in by the link, nothing left to ask
+ *
+ *  The closure is read from the archive row rather than from a cookie, so
+ *  it is the database that decides whether an account is being reopened.
+ *  Row security confines the read to this person's own address. */
+export async function signupShape(): Promise<SignupShape> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { needsPassword: false, reinstating: false, firstName: null, closedAt: null };
+
+  const needs = await needsPassword();
+
+  const { data: row } = await supabase.from('account_archive')
+    .select('first_name, archived_at')
+    .eq('outcome', 'Closed')
+    .is('returned_at', null)
+    .order('archived_at', { ascending: false })
+    .limit(1).maybeSingle();
+
+  return {
+    needsPassword: needs,
+    reinstating: !!row,
+    firstName: ((row as any)?.first_name as string) ?? null,
+    closedAt: ((row as any)?.archived_at as string) ?? null,
+  };
+}
+
 /* Everything after the password decision, shared by both shapes. */
 async function openAccount(password: string | null): Promise<State> {
   const supabase = await createClient();
@@ -100,6 +140,19 @@ async function openAccount(password: string | null): Promise<State> {
     ...(first ? { first_name: first } : {}),
     ...(surname ? { surname } : {}),
   }).eq('id', user.id);
+
+  /* Coming back, and the record saying so.
+   *
+   * Called after the profile and the contact link exist, because the
+   * function restores the roles they held when they closed it and needs
+   * the contact to restore them to. It stamps returned_at on the archive
+   * row rather than removing it, so the history reads "closed on the 15th,
+   * reinstated on the 20th" — both events, not the latest one.
+   *
+   * No-op for anybody who has not closed an account, so it is called
+   * unconditionally rather than behind a flag the page could get wrong. */
+  const { data: back } = await supabase.rpc('reinstate_marketplace_account');
+  const reinstated = !!(back as any)?.reinstated;
 
   /* What they agreed to, recorded.
    *
@@ -143,31 +196,52 @@ async function openAccount(password: string | null): Promise<State> {
     },
   });
 
-  report({
-    event: 'user.created',
-    title: 'A new user account',
-    body: `${full || String(user.email ?? 'Someone')} confirmed their email`
-      + ` as a ${audience === 'host' ? 'retreat host' : audience === 'owner' ? 'venue owner' : 'wellness guest'}.`,
-    url: '/contacts',
-  });
+  const asA = audience === 'host' ? 'retreat host'
+    : audience === 'owner' ? 'venue owner' : 'wellness guest';
+
+  report(reinstated
+    ? {
+        event: 'user.reinstated',
+        title: 'A member reopened their account',
+        body: `${full || String(user.email ?? 'Someone')} came back to an account they`
+          + ` had closed, and reopened it as a ${asA}.`,
+        url: '/contacts',
+      }
+    : {
+        event: 'user.created',
+        title: 'A new user account',
+        body: `${full || String(user.email ?? 'Someone')} confirmed their email as a ${asA}.`,
+        url: '/contacts',
+      });
 
   return { ok: true };
 }
 
-/** With a password, for an account that does not have one yet. */
+/** With a password — required for an account that has none, optional for
+ *  one being reopened.
+ *
+ *  The server decides which, not the form. A password posted for an
+ *  account that already has one is normally the overwrite this whole
+ *  shape exists to avoid, and is dropped. The single exception is
+ *  reinstatement: somebody deliberately reopening their own account and
+ *  choosing a new password has asked for exactly that, on their own
+ *  login, in the one place where it is their decision to make. */
 export async function finishSignup(_prev: State, formData: FormData): Promise<State> {
   const password = String(formData.get('password') ?? '');
   const confirm = String(formData.get('confirm_password') ?? '');
+  const shape = await signupShape();
 
-  if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
-  if (password !== confirm) return { error: 'The two passwords don’t match.' };
+  const wants = password.length > 0;
+  const must = shape.needsPassword;
 
-  /* Checked again on the server rather than trusted from the form. A
-     password posted here for an account that already has one would be the
-     overwrite, however the page was reached. */
-  if (!(await needsPassword())) return openAccount(null);
+  if (must && !wants) return { error: 'Please choose a password.' };
+  if (wants) {
+    if (password.length < 8) return { error: 'Please use at least 8 characters for your password.' };
+    if (password !== confirm) return { error: 'The two passwords don’t match.' };
+  }
 
-  return openAccount(password);
+  const write = wants && (must || shape.reinstating);
+  return openAccount(write ? password : null);
 }
 
 /** Without one, for an account that already has a password. */

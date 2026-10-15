@@ -20,6 +20,12 @@ type State = {
      other or mentions the two in the same breath. */
   exists?: boolean;
   email?: string;
+  /* The address had a marketplace account and closed it. Not an error and
+     not a redirect: the link goes out as it would for anybody, and the far
+     side offers to reopen the same account rather than build a new one.
+     Only the wording of the "check your email" panel changes. */
+  reinstating?: boolean;
+  firstName?: string | null;
 } | null;
 
 /* Carried from the sign-up form across the email that confirms it.
@@ -71,15 +77,28 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
    * A failure to answer is not a failure to sign up: if the check breaks,
    * the sign-up carries on and the worst case is a confirmation email to
    * somebody who already had an account. */
+  let reinstating = false;
+  let knownFirstName: string | null = null;
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin');
     const { data: known } = await createAdminClient()
       .rpc('signup_address_state', { p_email: email });
 
+    const state = String((known as any)?.state ?? 'new');
+
     /* Already a member: hand them to sign-in with the address filled in.
        This is the one and only case that redirects. */
-    if (String((known as any)?.state ?? 'new') === 'platform') {
+    if (state === 'platform') {
       return { exists: true, email };
+    }
+
+    /* Been here before and closed it. They are signing up, which is the
+       right instinct — they want back in — so the link goes out exactly as
+       it would for a new address. The difference is on the far side, where
+       they are offered the account they had rather than a fresh one. */
+    if (state === 'closed') {
+      reinstating = true;
+      knownFirstName = ((known as any)?.first_name as string) ?? null;
     }
   } catch (e) {
     console.error('[signUp] could not check whether the address is known:', e);
@@ -119,7 +138,7 @@ export async function signUp(_prev: State, formData: FormData): Promise<State> {
     },
   });
   if (error) return { error: error.message };
-  return { sent: true };
+  return { sent: true, reinstating, firstName: knownFirstName };
 }
 
 export async function signIn(_prev: State, formData: FormData): Promise<State> {

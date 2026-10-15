@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import FinishSignupForm from '@/components/FinishSignupForm';
-import { needsPassword } from '@/app/actions/finishSignup';
+import { signupShape } from '@/app/actions/finishSignup';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -19,8 +19,10 @@ export const metadata = {
  * concerned they are signing up, and they are — the marketplace account
  * they are making did not exist an hour ago.
  *
- * Whether a password is asked for depends on the account, not on how it
- * got here, and the question is answered on the server.
+ * Unless they have been here before and closed it, in which case this is
+ * where they are offered the same account back. Which of the three shapes
+ * applies is answered on the server, from the account and the archive
+ * rather than from the link or a cookie.
  */
 export default async function FinishSignupPage() {
   const supabase = await createClient();
@@ -29,19 +31,33 @@ export default async function FinishSignupPage() {
      on this page works without one. */
   if (!user) redirect('/login?error=link');
 
-  const needs = await needsPassword();
+  const shape = await signupShape();
+  const { needsPassword: needs, reinstating } = shape;
+
+  const closed = shape.closedAt
+    ? new Date(shape.closedAt).toLocaleDateString('en-AU',
+        { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+
+  const title = reinstating
+    ? (shape.firstName ? `Welcome back, ${shape.firstName}` : 'Welcome back')
+    : needs ? 'One last step' : 'You’re all set';
 
   return (
     <main id="main" className="auth-page">
       <div className="auth-card">
         <div className="auth-eyebrow">The Global Sanctum</div>
-        <h1 className="auth-title">{needs ? 'One last step' : 'You’re all set'}</h1>
+        <h1 className="auth-title">{title}</h1>
         <p className="auth-sub">
-          {needs
-            ? 'Your email is confirmed. Choose a password and your account is open.'
-            : 'Your email is confirmed and your account is open.'}
+          {reinstating
+            ? <>This address belonged to an account you closed{closed ? ` on ${closed}` : ''}.
+                Reopen it and your bookings, enquiries and history come back with it
+                {needs ? ', once you choose a password' : ''}.</>
+            : needs
+              ? 'Your email is confirmed. Choose a password and your account is open.'
+              : 'Your email is confirmed and your account is open.'}
         </p>
-        <FinishSignupForm needsPassword={needs} />
+        <FinishSignupForm needsPassword={needs} reinstating={reinstating} />
         <p className="auth-legal"><Link href="/">Back to the marketplace</Link></p>
       </div>
     </main>

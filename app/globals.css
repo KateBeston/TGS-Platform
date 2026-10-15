@@ -4167,6 +4167,16 @@ img { max-width: 100%; height: auto; display: block; }
 
 .acct-sec-h{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark);margin:0 0 14px}
 
+/* Closing an account. Same rule and spacing as the two-factor section
+   above it, so it reads as the last section of Settings rather than a
+   warning panel bolted on — closing is an ordinary thing to want. */
+.acct-close-sec{margin-top:32px;padding-top:28px;border-top:1px solid var(--border);max-width:560px}
+.acct-close-lead{font-size:13.5px;line-height:1.7;color:var(--muted);margin:0 0 10px}
+.acct-close-form{margin-top:18px}
+.acct-close-form textarea{font-family:var(--sans);font-size:14px;color:var(--charcoal);background:var(--warm-white);border:1px solid var(--border-input);padding:10px 12px;width:100%;resize:vertical}
+.acct-close-form textarea:focus{outline:none;border-color:var(--gold-dark)}
+.acct-close-form .acct-f strong{font-weight:600;color:var(--charcoal)}
+
 /* Retreat venues by style — modality map */
 .style-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin:var(--s5) 0 var(--s7)}
 .style-card{display:flex;flex-direction:column;gap:8px;border:1px solid var(--border);background:var(--warm-white);padding:26px 24px;text-decoration:none;transition:border-color .2s,background .2s}

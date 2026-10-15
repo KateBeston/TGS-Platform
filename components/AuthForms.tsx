@@ -164,11 +164,22 @@ function SignupView({
        and somebody who already had an account would wait for a link that
        was never sent. The server now checks first and sends them to
        sign-in, so anything reaching this point really is new and the
-       email really is on its way. */
+       email really is on its way.
+
+       Or it is somebody coming back to an account they closed, who is
+       told so here rather than being surprised by it on the far side of
+       the link. */
     return (
       <div className="auth-sent">
-        <p>Your confirmation link is on its way. Check your inbox, and your spam
-          folder if it is not there.</p>
+        {state.reinstating ? (
+          <p>Welcome back{state.firstName ? `, ${state.firstName}` : ''}. We recognise
+            this address from an account you closed — your link is on its way, and
+            it will offer to reopen that same account. Check your inbox, and your
+            spam folder if it is not there.</p>
+        ) : (
+          <p>Your confirmation link is on its way. Check your inbox, and your spam
+            folder if it is not there.</p>
+        )}
         <button type="button" className="auth-textlink" onClick={() => setMode('login')}>Back to sign in</button>
       </div>
     );
