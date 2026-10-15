@@ -35,7 +35,14 @@ export type SubmitResult = { ok: true; orderReference: string } | { ok: false; e
 const ITEM_TYPE: Record<string, string> = { room: 'Room', exp: 'Service',
   /* Its own line type, so a 90-minute booking is told apart from the
      advertised 60 in every report. */
-  svclen: 'Service length', extra: 'Extra', buyout: 'Whole Venue' };
+  svclen: 'Service length', extra: 'Extra', buyout: 'Whole Venue',
+  /* Both were missing, and both are real line types the database has
+     always permitted. Without a key here they fell through to 'Add-on',
+     and the price lookup below had no branch for them either — so a guest
+     who added a shala hire saw a price in the cart and the order was
+     recorded without it. The booking total was short by exactly that
+     amount, on every booking that included one. */
+  space: 'Space', package: 'Package' };
 const num = (v: unknown): number => (typeof v === 'number' && isFinite(v) ? v : NaN);
 
 function orderRef(): string {
@@ -102,6 +109,38 @@ export async function submitBooking(
     const { data: lens } = await db.from('venue_service_durations')
       .select('id, price, currency').in('id', lenIds);
     for (const r of lens ?? []) lenPrice.set(r.id, { price: r.price, currency: r.currency });
+  }
+
+  /* Spaces and packages, in their own maps for the same reason the
+     lengths have one: these are different tables whose ids share numbers,
+     and one map keyed on id alone would price a shala off whichever
+     package happened to match.
+
+     The cart prices both on the client — a space from hire_price, a
+     package from price_per_person — and neither was re-read here, so
+     neither reached the order. Re-read from the venue's own row like
+     everything else, because a price posted from a browser is a
+     suggestion. */
+  const spaceIds = venues.flatMap(([, v]) =>
+    (v.items ?? []).filter((i) => i.kind === 'space').map((i) => i.id));
+  const spacePrice = new Map<number, { price: number | null; currency: string | null }>();
+  if (spaceIds.length) {
+    const { data: rows } = await db.from('venue_spaces')
+      .select('id, hire_price, currency').in('id', spaceIds);
+    for (const r of rows ?? []) spacePrice.set(r.id, { price: r.hire_price, currency: r.currency });
+  }
+
+  const pkgIds = venues.flatMap(([, v]) =>
+    (v.items ?? []).filter((i) => i.kind === 'package').map((i) => i.id));
+  const pkgPrice = new Map<number, { price: number | null; currency: string | null }>();
+  if (pkgIds.length) {
+    const { data: rows } = await db.from('venue_packages')
+      .select('id, price, price_per_person, currency').in('id', pkgIds);
+    /* price is the whole-package figure where a venue set one; otherwise
+       per person, which the quantity below multiplies. */
+    for (const r of rows ?? []) {
+      pkgPrice.set(r.id, { price: r.price ?? r.price_per_person, currency: r.currency });
+    }
   }
 
   // venue ids + commission + cancellation policy, keyed by venue name
@@ -209,6 +248,8 @@ export async function submitBooking(
     for (const it of items) {
       const qty = Math.max(1, Math.floor(num(it.qty) || 1));
       const priced = it.kind === 'svclen' ? lenPrice.get(it.id)
+        : it.kind === 'space' ? spacePrice.get(it.id)
+        : it.kind === 'package' ? pkgPrice.get(it.id)
         : (it.kind === 'exp' || it.kind === 'extra') ? priceMap.get(it.id) : undefined;
       const unit = priced && priced.price != null ? Number(priced.price) : null; // rooms/buyout: null (no rates yet)
       const lineTotal = unit != null ? unit * qty : null;
