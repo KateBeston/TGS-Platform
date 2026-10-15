@@ -75,7 +75,6 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     <AccountShell
       email={user.email ?? ''}
       profile={profile ?? {}}
-      isOwner={roleSet.has('venue_owner')}
       isHost={isHost}
       savedNode={savedNode}
       activity={activity ?? []}

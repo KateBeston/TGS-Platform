@@ -188,11 +188,15 @@ async function openAccount(password: string | null): Promise<State> {
   const full = [first, surname].filter(Boolean).join(' ');
   const origin = h.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
+  /* Two lines, not three. The third answered somebody who had chosen
+     "Venue owner" on the sign-up form by offering to take them through
+     listing a venue — a welcome to a marketplace account that pointed at
+     the venue funnel instead. That option is gone from the form, and an
+     older account whose metadata still says 'owner' is welcomed as what
+     their marketplace account actually makes them. */
   const audienceLine = audience === 'host'
     ? 'You told us you are here mainly to host retreats, so we will point you at venues that take them and the people who run them.'
-    : audience === 'owner'
-      ? 'You told us you are here mainly as a venue owner. If you have a venue to list, we can take you through it whenever you are ready.'
-      : 'You told us you are here mainly for wellness experiences, so we will keep you to places and practitioners worth the trip.';
+    : 'You told us you are here mainly for wellness experiences, so we will keep you to places and practitioners worth the trip.';
 
   notify({
     slug: 'account-welcome',
@@ -204,8 +208,7 @@ async function openAccount(password: string | null): Promise<State> {
     },
   });
 
-  const asA = audience === 'host' ? 'retreat host'
-    : audience === 'owner' ? 'venue owner' : 'wellness guest';
+  const asA = audience === 'host' ? 'retreat host' : 'wellness guest';
 
   report(reinstated
     ? {

@@ -210,11 +210,17 @@ function SignupView({
             the note in signUp. Asking for one here and then not being able
             to use it was the confusion this removes. */}
         <small>We&rsquo;ll email you a link to confirm it and set your password.</small></label>
+      {/* Two answers, not three. "Venue owner" was the third, and choosing
+          it granted the venue_owner role from a marketplace sign-up — the
+          same role Sanctum VMS grants, written as though the marketplace
+          had granted it. A venue owner registers through their own flow,
+          which is not this form and not this account, so the option has
+          no meaning here. The database refuses that role on this path too,
+          because a form is not the place to enforce it. */}
       <label className="auth-field"><span>I&rsquo;m here mainly as a</span>
         <select name="primary_audience" defaultValue="guest">
           <option value="guest">Wellness guest</option>
           <option value="host">Retreat host</option>
-          <option value="owner">Venue owner</option>
         </select></label>
       <label className="auth-check">
         <input type="checkbox" name="marketing_opt_in" />

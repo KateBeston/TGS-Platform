@@ -11,10 +11,13 @@ import HostProfile from '@/components/HostProfile';
 import TwoFactorSetup from '@/components/TwoFactorSetup';
 import type { HostData } from '@/app/actions/host';
 
-const VMS_URL = 'https://vms.theglobalsanctum.com';
 /* Venue management was here. It is not a tab any more — see the note in the
    component — so it is removed from the list rather than filtered out of it,
-   because a filtered tab is still a route somebody can reach by typing. */
+   because a filtered tab is still a route somebody can reach by typing.
+
+   The VMS address was still declared above this line, unused, left behind
+   when that tab went. A marketplace account has no link to the VMS and no
+   reason to know where it lives. */
 const TABS = ['Profile', 'Bookings', 'Saved venues', 'Preferences', 'Communications', 'Settings'] as const;
 type Tab = (typeof TABS)[number];
 
@@ -50,8 +53,11 @@ type Profile = {
 type Country = { id: number; name: string; iso_code: string; dialling_code: string };
 
 export default function AccountShell({
-  email, profile, isOwner, isHost, savedNode, activity, bookings, bookingItems = [], hostData, countries, initialTab,
-}: { email: string; profile: Profile; isOwner: boolean; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; bookingItems?: BookingItem[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
+  /* No isOwner. It was computed from the venue_owner role, passed in here
+     and never read — so the account page was asking whether somebody runs
+     a venue in order to render a marketplace account that does not care. */
+  email, profile, isHost, savedNode, activity, bookings, bookingItems = [], hostData, countries, initialTab,
+}: { email: string; profile: Profile; isHost: boolean; savedNode: ReactNode; activity: Activity[]; bookings: MyBooking[]; bookingItems?: BookingItem[]; hostData: HostData | null; countries: Country[]; initialTab?: Tab }) {
   const safeInitial = initialTab ?? 'Profile';
   const [tab, setTab] = useState<Tab>(safeInitial);
   /* The VMS is a separate account type by design — account_kind='venue_owner'

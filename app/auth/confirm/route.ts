@@ -92,12 +92,17 @@ export async function GET(request: Request) {
     const choice = String(meta.primary_audience ?? 'guest');
 
     /* What their account opens, in their words rather than ours. One
-       template serves all three because only this line differs. */
+       template serves both because only this line differs.
+
+       There were three. The third welcomed somebody who had chosen
+       "Venue owner" on the sign-up form by offering to walk them through
+       listing a venue, which pointed a marketplace welcome at the venue
+       funnel. That option is gone from the form, and an older account
+       whose metadata still says 'owner' is welcomed as what their
+       marketplace account makes them. */
     const audienceLine = choice === 'host'
       ? 'You told us you are here mainly to host retreats, so we will point you at venues that take them and the people who run them.'
-      : choice === 'owner'
-        ? 'You told us you are here mainly as a venue owner. If you have a venue to list, we can take you through it whenever you are ready.'
-        : 'You told us you are here mainly for wellness experiences, so we will keep you to places and practitioners worth the trip.';
+      : 'You told us you are here mainly for wellness experiences, so we will keep you to places and practitioners worth the trip.';
 
     notify({
       slug: 'account-welcome',
@@ -113,7 +118,7 @@ export async function GET(request: Request) {
       event: 'user.created',
       title: 'A new user account',
       body: `${full || String(user?.email ?? 'Someone')} confirmed their email`
-        + ` as a ${choice === 'host' ? 'retreat host' : choice === 'owner' ? 'venue owner' : 'wellness guest'}.`,
+        + ` as a ${choice === 'host' ? 'retreat host' : 'wellness guest'}.`,
       url: '/contacts',
     });
   }
