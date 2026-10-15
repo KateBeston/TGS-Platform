@@ -101,13 +101,31 @@ async function openAccount(password: string | null): Promise<State> {
     ...(surname ? { surname } : {}),
   }).eq('id', user.id);
 
+  /* What they agreed to, recorded.
+   *
+   * The sign-up form says "by continuing you agree to our Terms and
+   * Privacy Policy", and until now that was the whole of it: a sentence
+   * shown, nothing kept. This writes a row per document with the version,
+   * the SHA-256 of the exact body, the IP and the user agent — the same
+   * evidence the venue application has always captured, and the only thing
+   * that answers "which wording did they accept" a year later.
+   *
+   * Recorded here rather than on the form, because this is the first
+   * moment the address is known to belong to them. The document list lives
+   * in the function, so the User Account Agreement starts being recorded
+   * the day it is published without anything shipping. */
+  const h = await headers();
+  await supabase.rpc('record_signup_agreements', {
+    p_ip: (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || null,
+    p_user_agent: h.get('user-agent') ?? null,
+  });
+
   /* The welcome, and the portal told a new account exists. Both fire and
      forget: the account is open either way, and somebody who has just
      finished signing up should not be shown an error because a
      notification could not be delivered. */
   const full = [first, surname].filter(Boolean).join(' ');
-  const origin = (await headers()).get('origin')
-    ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
+  const origin = h.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
   const audienceLine = audience === 'host'
     ? 'You told us you are here mainly to host retreats, so we will point you at venues that take them and the people who run them.'
