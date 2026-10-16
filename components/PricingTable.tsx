@@ -129,9 +129,17 @@ export default function PricingTable({
 
               <div className="pricing-commission">
                 <span className="pricing-rate">{Number(r.commission_rate)}%</span>
+                {/* No processing line. Card surcharging on debit and credit
+                    ended in Australia on 1 October 2026, and TGS adds no
+                    processing fee to any payment — the venue's own merchant
+                    costs are its own, built into its price like any other cost.
+                    The guard here used to be `r.processing_rate &&`, which read
+                    the rate as a string: once the rate was zeroed it rendered
+                    "0% processing" rather than disappearing, because "0" is
+                    truthy. Removed outright rather than re-guarded, so there is
+                    nothing to render wrongly. */}
                 <span className="pricing-rate-note">
                   commission on bookings
-                  {r.processing_rate && ` · ${Number(r.processing_rate)}% processing`}
                 </span>
               </div>
 
