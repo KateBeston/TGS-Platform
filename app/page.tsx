@@ -290,8 +290,13 @@ export default async function Home() {
               The spaces where wellness happens. The venues where retreats come to
               life. <em>Curated and connected worldwide.</em>
             </h2>
+            {/* "the world's first" was a factual superlative rather than
+                positioning, and it is the one claim on the site that would
+                have to be provable. Everything else — curated, curated
+                collection, globally curated — is positioning and stands.
+                The sentence is otherwise unchanged. */}
             <p className="intro-text">
-              We are the world&rsquo;s first curated platform dedicated exclusively to
+              We are a curated platform dedicated exclusively to
               transformative wellness venues and retreat spaces.
             </p>
             <p className="intro-text">
