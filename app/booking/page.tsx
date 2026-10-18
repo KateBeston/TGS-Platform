@@ -6,9 +6,10 @@ import { resolveSteps, readAcks, nextDestination } from '@/lib/bookingSteps';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trackCartEvent } from '@/lib/track';
+import { stayAvailability, type Unavailable } from '@/app/actions/availability';
 
 type Item = { key: string; kind: string; id: number; label: string; detail: string; qty: number; max: number; amount: number | null; unit: number | null; image: string | null; eyebrow: string; qtyLabel: string };
-type VenueSlice = { venueName: string; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
+type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 
 /* Grouping the lines the way the cart was built.
@@ -353,18 +354,45 @@ export default function CartPage() {
       </div>
 
       {resched && cart?.venues[resched] && (
-        <RescheduleModal venueName={cart.venues[resched].venueName} from={cart.venues[resched].from} to={cart.venues[resched].to}
+        <RescheduleModal venueName={cart.venues[resched].venueName}
+          venueId={cart.venues[resched].venueId ?? null}
+          from={cart.venues[resched].from} to={cart.venues[resched].to}
           onSave={(f, t) => reschedule(resched, f, t)} onClose={() => setResched(null)} />
       )}
     </div>
   );
 }
 
-function RescheduleModal({ venueName, from, to, onSave, onClose }: { venueName: string; from: string; to: string; onSave: (from: string, to: string) => void; onClose: () => void }) {
+function RescheduleModal({ venueName, venueId, from, to, onSave, onClose }: { venueName: string; venueId: number | null; from: string; to: string; onSave: (from: string, to: string) => void; onClose: () => void }) {
   const todayStr = startOfToday().toISOString().slice(0, 10);
   const [f, setF] = useState(from && !isPast(from) ? from : '');
   const [t, setT] = useState(to && !isPast(to) ? to : '');
-  const valid = !!f && (!t || t >= f);
+
+  /* What the venue cannot take, read once when the modal opens. The
+     database answers Taken or Closed and nothing more, so there is
+     nothing here worth hiding from a guest. */
+  const [gone, setGone] = useState<Unavailable[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    const until = new Date(new Date(`${todayStr}T00:00:00Z`).getTime() + 400 * 86_400_000)
+      .toISOString().slice(0, 10);
+    stayAvailability({ id: venueId, name: venueName }, todayStr, until)
+      .then((rows) => { if (live) setGone(rows); });
+    return () => { live = false; };
+  }, [venueId, venueName, todayStr]);
+
+  /* The departure day is not a night, so a stay ending the morning a
+     block begins is fine. Off by one here would refuse dates that are
+     genuinely free. */
+  const clashes = (gone ?? []).filter((u) => {
+    if (!f) return false;
+    const last = t && t > f
+      ? new Date(new Date(`${t}T00:00:00Z`).getTime() - 86_400_000).toISOString().slice(0, 10)
+      : f;
+    return u.date >= f && u.date <= last;
+  });
+
+  const valid = !!f && (!t || t >= f) && clashes.length === 0;
   return (
     <div className="ck-modal-back" onClick={onClose}>
       <div className="ck-modal" onClick={(e) => e.stopPropagation()}>
@@ -379,7 +407,24 @@ function RescheduleModal({ venueName, from, to, onSave, onClose }: { venueName: 
             <label className="ck-field"><span>Arrival</span><input type="date" min={todayStr} value={f} onChange={(e) => setF(e.target.value)} /></label>
             <label className="ck-field"><span>Departure</span><input type="date" min={f || todayStr} value={t} onChange={(e) => setT(e.target.value)} /></label>
           </div>
-          <p className="ck-field-note">Live availability is checked once the availability calendar is on; for now you can set any future dates.</p>
+          {clashes.length > 0 ? (
+            <p className="ck-field-note" style={{ color: 'var(--bad, #8C3A24)' }}>
+              {clashes.some((c) => c.reason === 'Taken') && clashes.some((c) => c.reason === 'Closed')
+                ? 'Some of those nights are already taken and the venue is closed on others.'
+                : clashes[0].reason === 'Taken'
+                  ? `${clashes.length === 1 ? 'That night is' : 'Some of those nights are'} already taken.`
+                  : `The venue is closed ${clashes.length === 1 ? 'that night' : 'on some of those nights'}.`}
+              {' '}Choose different dates to continue.
+            </p>
+          ) : (
+            <p className="ck-field-note">
+              {gone === null
+                ? 'Checking the venue’s calendar…'
+                : gone.length === 0
+                  ? 'The venue has nothing booked in the next year.'
+                  : 'Dates already taken or closed will not be accepted.'}
+            </p>
+          )}
         </div>
         <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Cancel</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave(f, t)}>{from && to ? 'Update dates' : 'Set dates'}</button></div>
       </div>

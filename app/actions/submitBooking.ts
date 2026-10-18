@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking } from '@/lib/acceptance';
 import { checkStay, stayRulesFrom } from '@/lib/stayRules';
+import { stayClashes } from '@/app/actions/availability';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ORDER WRITE PATH  (request-to-book, held pending calendar + payment)
@@ -227,6 +228,33 @@ export async function submitBooking(
     const verdict = checkStay(rules, slice.from, slice.to ?? null, isStay);
     if (!verdict.ok) {
       return { ok: false, error: `${slice.venueName}: ${verdict.error}` };
+    }
+
+    /* ── the nights, re-checked ────────────────────────────────────
+       A time booked by the hour is already asked of free_slots again
+       further down; a week was not asked of anything. The cart is the
+       guest's own browser storage and it may have sat there for days,
+       so the dates are checked against the venue's calendar here —
+       before the order exists, so a clash costs nothing but a message.
+
+       Named rather than vague: "those dates have gone" sends somebody
+       back to a page with nothing to act on. */
+    if (isStay && slice.from) {
+      const clashes = await stayClashes(
+        { id: vid, name: slice.venueName }, slice.from, slice.to ?? '');
+      if (clashes.length) {
+        const taken = clashes.some((c) => c.reason === 'Taken');
+        const shut = clashes.some((c) => c.reason === 'Closed');
+        return {
+          ok: false,
+          error: `${slice.venueName}: ${clashes[0].date}`
+               + (clashes.length > 1 ? ` and ${clashes.length - 1} other night`
+                   + `${clashes.length > 2 ? 's' : ''}` : '')
+               + (taken && shut ? ' are no longer available.'
+                   : taken ? ` ${clashes.length > 1 ? 'have' : 'has'} been taken since you chose them.`
+                   : ' the venue is closed. Please choose other dates.'),
+        };
+      }
     }
   }
 

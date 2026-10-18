@@ -93,3 +93,81 @@ export async function slotsFor(
 
   return { slots, tz: slots[0]?.tz ?? null, unavailable: slots.length === 0 };
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   WHICH NIGHTS ARE ALREADY GONE
+
+   The other half of the same question. free_slots answers it for a
+   treatment at eleven o'clock; this answers it for a week in March.
+
+   The database decides, in public_availability(), and it is deliberately
+   tight-lipped: a date comes back Taken or Closed and nothing else. No
+   reference, no note, no block type. A guest choosing dates needs to
+   know a week has gone; they do not need to know it went for forty
+   thousand dollars, and neither does anyone else reading the same page.
+
+   Absent means free. A year of availability is a handful of rows rather
+   than three hundred and sixty-five.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+export type Unavailable = { date: string; reason: 'Taken' | 'Closed' };
+
+/** Dates a published venue cannot take, between two days.
+ *
+ *  Returns nothing at all for a venue the public cannot already see —
+ *  not an error, nothing — so the shape of the answer never reveals
+ *  whether an unlisted venue exists. */
+export async function stayAvailability(
+  venue: { id?: number | null; name?: string | null },
+  from: string,
+  to: string,
+): Promise<Unavailable[]> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return [];
+
+  const supabase = await createClient();
+  let id = Number(venue.id ?? 0);
+
+  /* Older carts were written before the venue id was kept on the slice,
+     so the name is the fallback. Resolved against the published list
+     only, which is the same gate the function itself applies. */
+  if (!Number.isFinite(id) || id <= 0) {
+    if (!venue.name) return [];
+    const { data } = await supabase
+      .from('published_venues').select('id').eq('venue_name', venue.name).limit(2);
+    /* Two venues of the same name is exactly the duplicate problem, and
+       guessing which one the guest meant would be worse than saying
+       nothing. */
+    if (!data || data.length !== 1) return [];
+    id = Number(data[0].id);
+  }
+
+  const { data, error } = await supabase.rpc('public_availability', {
+    p_venue_id: id, p_from: from, p_to: to,
+  });
+  if (error || !data) return [];
+
+  return (data as { on_date: string; reason: string }[]).map((r) => ({
+    date: String(r.on_date),
+    reason: r.reason === 'Taken' ? 'Taken' : 'Closed',
+  }));
+}
+
+/** Does a stay run across anything already gone?
+ *
+ *  Checkout asks this again before it files anything, because the cart
+ *  is the guest's own browser storage and the week may have sold while
+ *  it sat there. */
+export async function stayClashes(
+  venue: { id?: number | null; name?: string | null },
+  from: string,
+  to: string,
+): Promise<Unavailable[]> {
+  if (!from) return [];
+  /* Departure day is not a night, so it is not checked. */
+  const last = to && to > from
+    ? new Date(new Date(`${to}T00:00:00Z`).getTime() - 86_400_000)
+        .toISOString().slice(0, 10)
+    : from;
+  const found = await stayAvailability(venue, from, last);
+  return found.filter((u) => u.date >= from && u.date <= last);
+}
