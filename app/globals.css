@@ -5597,3 +5597,52 @@ img { max-width: 100%; height: auto; display: block; }
 .sp-time-on .sp-time-left { color: var(--gold, #C4A265); }
 
 .sp-note { font-size: 11.5px; line-height: 1.5; color: var(--muted, #4A4238); margin: 2px 0 0; }
+
+/* ─── The weekly timetable, on a wellness listing ──────────────────────
+   A column per day rather than a grid of hours. A venue runs four or
+   five things across a week, not a conference programme, and a column
+   that reads top to bottom survives a phone — where most of this is
+   read — without becoming a sideways scroll of mostly empty cells. */
+.tt-intro {
+  font-size: 13px; line-height: 1.6; color: var(--muted, #4A4238);
+  margin: 0 0 var(--s4, 20px); max-width: 62ch;
+}
+.tt-week {
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  background: var(--border, #E0D8CC);
+  border: 1px solid var(--border, #E0D8CC);
+}
+.tt-day { background: var(--warm-white, #FDFCF9); padding: 16px 18px 18px; }
+.tt-day-name {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  font-family: var(--serif, Georgia, serif); font-size: 17px; font-weight: 400;
+  letter-spacing: .04em; margin: 0 0 12px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border, #E0D8CC);
+  color: var(--charcoal, #313131);
+}
+.tt-day-count {
+  font-family: inherit; font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted, #4A4238); white-space: nowrap;
+}
+.tt-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tt-row-link {
+  display: grid; grid-template-columns: 62px 1fr; gap: 12px; align-items: baseline;
+  padding: 7px 0; text-decoration: none; color: inherit;
+}
+a.tt-row-link:hover .tt-name { color: var(--gold-dark, #7A644F); }
+.tt-time {
+  font-size: 13.5px; font-variant-numeric: tabular-nums;
+  letter-spacing: .02em; color: var(--charcoal, #313131); white-space: nowrap;
+}
+.tt-what { display: grid; gap: 1px; }
+.tt-name { font-size: 13.5px; line-height: 1.35; }
+.tt-practice, .tt-meta {
+  font-size: 11px; line-height: 1.4; color: var(--muted, #4A4238);
+}
+.tt-meta { letter-spacing: .02em; }
+
+@media (max-width: 640px) {
+  .tt-week { grid-template-columns: 1fr; }
+  .tt-day { padding: 14px 16px 16px; }
+}

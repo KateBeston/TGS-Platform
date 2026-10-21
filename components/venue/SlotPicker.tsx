@@ -43,7 +43,7 @@ const dayLabel = (iso: string) => {
 const zoneName = (tz: string) => tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
 
 export default function SlotPicker({
-  venueId, serviceId, people, value, onChange, onUnavailable,
+  venueId, serviceId, people, value, onChange, onUnavailable, format,
 }: {
   venueId: number;
   serviceId: number;
@@ -53,6 +53,11 @@ export default function SlotPicker({
   /** Called once when there is nothing to show, so the parent can fall
    *  back to asking for a preferred time of day. */
   onUnavailable: () => void;
+  /** How the service is taken. A class is a session on a timetable with
+   *  places in it; an appointment is an hour of the venue's day. Both
+   *  arrive here as times, but a guest reads them differently, so the
+   *  words change even though the grid does not. */
+  format?: string | null;
 }) {
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [day, setDay] = useState<string>('');
@@ -108,11 +113,18 @@ export default function SlotPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slots]);
 
+  const scheduled = format === 'Scheduled session';
+  const unit = scheduled ? 'session' : 'time';
+
   if (slots === null) {
     return (
       <div className="sp">
-        <span className="xb-label">Choose a time</span>
-        <p className="sp-loading">Reading the venue&rsquo;s availability&hellip;</p>
+        <span className="xb-label">Choose a {unit}</span>
+        <p className="sp-loading">
+          {scheduled
+            ? 'Reading the venue’s timetable…'
+            : 'Reading the venue’s availability…'}
+        </p>
       </div>
     );
   }
@@ -147,14 +159,15 @@ export default function SlotPicker({
           >
             <span className="sp-day-label">{dayLabel(d)}</span>
             <span className="sp-day-count">
-              {(byDay.get(d) ?? []).length} time{(byDay.get(d) ?? []).length === 1 ? '' : 's'}
+              {(byDay.get(d) ?? []).length} {unit}
+              {(byDay.get(d) ?? []).length === 1 ? '' : 's'}
             </span>
           </button>
         ))}
       </div>
 
       <span className="xb-label sp-times-label">
-        Times at the venue · {zoneName(tz)}
+        {scheduled ? 'Sessions at the venue' : 'Times at the venue'} · {zoneName(tz)}
       </span>
       <div className="sp-times">
         {times.map((s) => {
@@ -171,9 +184,18 @@ export default function SlotPicker({
                 startsUtc: s.startsUtc, tz: s.tz, slotId: s.slotId,
               })}
             >
-              <span className="sp-time-at">{s.startsLocal}</span>
+              <span className="sp-time-at">
+                {s.startsLocal}
+                {/* A class is a block of the guest's evening, not a start
+                    time, so it is shown as one. */}
+                {scheduled && s.endsLocal ? `–${s.endsLocal}` : ''}
+              </span>
               {mine && <span className="sp-time-mine">{mine} your time</span>}
-              {s.slotId != null && s.placesLeft <= 3 && (
+              {/* Places are the point of a class — a guest deciding between
+                  Tuesday and Thursday wants to know which is filling up,
+                  not only which is nearly gone. For an appointment the
+                  number is noise until it is nearly gone. */}
+              {s.slotId != null && (scheduled || s.placesLeft <= 3) && (
                 <span className="sp-time-left">
                   {s.placesLeft} place{s.placesLeft === 1 ? '' : 's'} left
                 </span>
@@ -182,6 +204,13 @@ export default function SlotPicker({
           );
         })}
       </div>
+
+      {scheduled && (
+        <p className="sp-note">
+          These run to the venue&rsquo;s timetable and are shared with other
+          guests. The places shown are what is left in that session.
+        </p>
+      )}
 
       {showGuestTime && (
         <p className="sp-note">

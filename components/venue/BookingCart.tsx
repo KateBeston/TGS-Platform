@@ -320,6 +320,12 @@ export function BookingCart({
     }
     for (const s of services) {
       const q = expQty[s.id] ?? 0; if (!q) continue;
+      /* A class is a seat in a named session. This cart can only ask how
+         many, so it cannot sell one — the card routes to the service's own
+         page and the picker there. Skipped rather than trusted, so a line
+         left in storage from before the formats existed cannot be totalled
+         as a booking with no session behind it. */
+      if (s.booking_format === 'Scheduled session') continue;
       /* The discounted unit where an unconditional offer applies, so the
          cart, the card and the charge all show the same figure.
          Conditional offers are applied by quote_discounts at checkout and

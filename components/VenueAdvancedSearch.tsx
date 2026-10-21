@@ -15,17 +15,22 @@ import type { Facet } from '@/lib/venues';
 type Opt = { id: number; name: string; slug: string; applies_to?: string | null };
 type Cat = { id: number; name: string; slug: string; in_retreat: boolean; in_wellness: boolean };
 type Prac = { id: number; name: string; slug: string; category_slug: string };
+type Del = { slug: string; name: string; blurb: string };
 
 export default function VenueAdvancedSearch({
-  types, settings, categories, practices, facets,
+  types, settings, categories, practices, deliveries = [], facets,
 }: {
-  types: Opt[]; settings: Opt[]; categories: Cat[]; practices: Prac[]; facets: Facet[];
+  types: Opt[]; settings: Opt[]; categories: Cat[]; practices: Prac[];
+  deliveries?: readonly Del[]; facets: Facet[];
 }) {
   const router = useRouter();
   const [chooserOpen, setChooserOpen] = useState(false);
   const [market, setMarket] = useState<'Retreat' | 'Wellness' | 'Both' | null>(null);
-  const [sel, setSel] = useState<{ types: string[]; settings: string[]; practices: string[]; guests: number }>(
-    { types: [], settings: [], practices: [], guests: 0 },
+  const [sel, setSel] = useState<{
+    types: string[]; settings: string[]; practices: string[];
+    deliveries: string[]; guests: number;
+  }>(
+    { types: [], settings: [], practices: [], deliveries: [], guests: 0 },
   );
 
   const base = useMemo(
@@ -38,16 +43,25 @@ export default function VenueAdvancedSearch({
     (!s.types.length || (f.type != null && s.types.includes(f.type)))
     && (!s.settings.length || f.settings.some((x) => s.settings.includes(x)))
     && (!s.practices.length || f.practices.some((x) => s.practices.includes(x)))
+    && (!s.deliveries.length || (f.deliveries ?? []).some((x) => s.deliveries.includes(x)))
     && (!s.guests || (f.guests != null && f.guests >= s.guests)));
 
   const total = useMemo(() => run(base, sel).length, [base, sel]);
   const exceptTypes = useMemo(() => run(base, { ...sel, types: [] }), [base, sel]);
   const exceptSettings = useMemo(() => run(base, { ...sel, settings: [] }), [base, sel]);
   const exceptPractices = useMemo(() => run(base, { ...sel, practices: [] }), [base, sel]);
+  const exceptDeliveries = useMemo(() => run(base, { ...sel, deliveries: [] }), [base, sel]);
 
   const typeCount = (slug: string) => exceptTypes.filter((f) => f.type === slug).length;
   const settingCount = (slug: string) => exceptSettings.filter((f) => f.settings.includes(slug)).length;
   const practiceCount = (slug: string) => exceptPractices.filter((f) => f.practices.includes(slug)).length;
+  const deliveryCount = (slug: string) =>
+    exceptDeliveries.filter((f) => (f.deliveries ?? []).includes(slug)).length;
+
+  /* Unlike settings, a format nobody offers is not shown at all. Four is
+     a short list and an empty one in it reads as a broken promise rather
+     than as a gap waiting to be filled. */
+  const delsFor = deliveries.filter((d) => facets.some((f) => (f.deliveries ?? []).includes(d.slug)));
 
   const typesFor = types.filter((t) => !market || market === 'Both'
     || t.applies_to === market || t.applies_to === 'Both' || !t.applies_to);
@@ -58,9 +72,9 @@ export default function VenueAdvancedSearch({
   const maxGuests = Math.max(40, ...facets.map((f) => f.guests ?? 0));
   const marketCount = (m: string) => facets.filter((f) => m === 'Both' || f.marketplace === m).length;
 
-  const toggle = (dim: 'types' | 'settings' | 'practices', slug: string) =>
+  const toggle = (dim: 'types' | 'settings' | 'practices' | 'deliveries', slug: string) =>
     setSel((s) => ({ ...s, [dim]: s[dim].includes(slug) ? s[dim].filter((x) => x !== slug) : [...s[dim], slug] }));
-  const clear = () => setSel({ types: [], settings: [], practices: [], guests: 0 });
+  const clear = () => setSel({ types: [], settings: [], practices: [], deliveries: [], guests: 0 });
   const closeAll = () => { setChooserOpen(false); setMarket(null); };
 
   const apply = () => {
@@ -69,6 +83,7 @@ export default function VenueAdvancedSearch({
     if (sel.types[0]) p.set('type', sel.types[0]);
     if (sel.settings[0]) p.set('setting', sel.settings[0]);
     if (sel.practices[0]) p.set('practice', sel.practices[0]);
+    if (sel.deliveries[0]) p.set('delivery', sel.deliveries[0]);
     if (sel.guests) p.set('guests', String(sel.guests));
     closeAll(); clear();
     router.push(`/venues${p.toString() ? `?${p.toString()}` : ''}`);
@@ -185,6 +200,21 @@ export default function VenueAdvancedSearch({
                 );
               })}
             </div>
+
+            {delsFor.length > 0 && (
+              <div className="modal-section">
+                <div className="modal-section-title">How You Take Part</div>
+                <div className="modal-grid">
+                  {delsFor.map((d) => (
+                    <button key={d.slug} type="button" title={d.blurb}
+                      className={`modal-option${sel.deliveries.includes(d.slug) ? ' selected' : ''}`}
+                      onClick={() => toggle('deliveries', d.slug)}>
+                      {d.name} <span className="opt-count">({deliveryCount(d.slug)})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="modal-section">
               <div className="modal-section-title">Group Size</div>

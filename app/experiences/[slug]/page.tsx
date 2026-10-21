@@ -122,6 +122,7 @@ export default async function ExperienceDetail({ params }: Params) {
               durationMinutes={e.duration_minutes} maxParticipants={e.max_participants}
               venueName={e.venue_name} venueId={e.venue_id} listingSlug={e.listing_slug}
               marketplace={e.marketplace} image={img} place={place}
+              bookingFormat={e.booking_format}
             />
 
             {facts.length > 0 && (

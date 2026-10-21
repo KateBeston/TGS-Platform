@@ -33,7 +33,7 @@ export async function loadVenue(marketplace: string, slug: string) {
   const [venue, spaces, rooms, services, serviceLengths, serviceSafety,
          itemOffers, liveOffers, facilities, settings, categories, reviews,
          packages, practitioners, openingHours, policies, profile,
-         distances, locationHighlights, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus] =
+         distances, locationHighlights, excursions, faqs, seasons, transfers, credentials, tabContent, related, promotions, ratePlans, extras, media, cancellationPolicy, legalDocuments, bookingSettings, offerMedia, serviceFocus, packageFocus, timetable] =
     await Promise.all([
       supabase.from('published_venues').select('*').eq('id', id).maybeSingle(),
       supabase.from('published_venue_spaces').select('*').eq('venue_id', id)
@@ -140,7 +140,13 @@ export async function loadVenue(marketplace: string, slug: string) {
       supabase.from('service_outcomes')
         .select('service_id,is_primary,outcomes(id,name,slug,care_level)'),
       supabase.from('package_outcomes')
-        .select('package_id,is_primary,outcomes(id,name,slug,care_level)')
+        .select('package_id,is_primary,outcomes(id,name,slug,care_level)'),
+      /* The weekly class pattern — Tuesday and Thursday at six. The
+         bookable sessions come from free_slots when a guest is choosing a
+         date; this is the standing shape of the week, which is what
+         somebody reads before they get that far. */
+      supabase.from('venue_timetable_public').select('*').eq('venue_id', id)
+        .order('day_of_week').order('starts_at_local'),
     ]);
 
   // You may also like — resolve the related ids to cards, keeping the
@@ -278,6 +284,7 @@ export async function loadVenue(marketplace: string, slug: string) {
     offer_media: offerMedia.data ?? [],
     service_focus: serviceFocus.data ?? [],
     package_focus: packageFocus.data ?? [],
+    timetable: timetable.data ?? [],
     distances: distances.data ?? [],
     location_highlights: locationHighlights.data ?? [],
     excursions: excursions.data ?? [],

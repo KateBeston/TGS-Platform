@@ -23,6 +23,8 @@ export type ExperienceCard = {
   in_room_surcharge: number | null;
   service_type: string | null;
   requires_time_slot: boolean | null;
+  /** 'Scheduled session' | 'Appointment' | 'Open access' | 'Multi-day'. */
+  booking_format: string | null;
   min_participants: number | null;
   max_participants: number | null;
   treatment_tags: string[] | null;

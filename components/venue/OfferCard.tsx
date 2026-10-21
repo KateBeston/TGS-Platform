@@ -200,16 +200,19 @@ export default function OfferCard({ offer }: { offer: Offer }) {
                 not have to open something else first. */}
             <a className="ofc-policies" href="#policies">Policies</a>
             <span className="ofc-foot-spacer" />
-            {o.bookable
-              ? (chosen !== null
-                  /* A length is its own sellable item with its own code, so
-                     it goes in as its own line rather than as this service
-                     with a note on it. */
-                  ? <AddToCart kind="svclen" id={chosen} max={o.maxQty} />
-                  : <AddToCart
-                      kind={o.kind === 'exp' ? 'exp' : o.kind === 'package' ? 'package' : 'extra'}
-                      id={o.id} max={o.maxQty} />)
-              : <a className="ofc-enquire" href="#enquire">Enquire</a>}
+            {/* A class is booked by session, not by quantity. */}
+            {o.bookable && o.sessionHref
+              ? <a className="ofc-enquire" href={o.sessionHref}>Choose a session</a>
+              : o.bookable
+                ? (chosen !== null
+                    /* A length is its own sellable item with its own code, so
+                       it goes in as its own line rather than as this service
+                       with a note on it. */
+                    ? <AddToCart kind="svclen" id={chosen} max={o.maxQty} />
+                    : <AddToCart
+                        kind={o.kind === 'exp' ? 'exp' : o.kind === 'package' ? 'package' : 'extra'}
+                        id={o.id} max={o.maxQty} />)
+                : <a className="ofc-enquire" href="#enquire">Enquire</a>}
           </div>
         </div>
       </article>
@@ -285,9 +288,11 @@ export default function OfferCard({ offer }: { offer: Offer }) {
                 </div>
                 <div className="ofc-modal-acts">
                   <a className="ofc-policies" href="#policies" onClick={() => setOpen(false)}>Policies</a>
-                  {o.bookable
-                    ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
-                    : <a className="ofc-enquire" href="#enquire" onClick={() => setOpen(false)}>Enquire</a>}
+                  {o.bookable && o.sessionHref
+                    ? <a className="ofc-enquire" href={o.sessionHref}>Choose a session</a>
+                    : o.bookable
+                      ? <AddToCart kind={o.kind === 'exp' ? 'exp' : 'extra'} id={o.id} max={o.maxQty} />
+                      : <a className="ofc-enquire" href="#enquire" onClick={() => setOpen(false)}>Enquire</a>}
                 </div>
               </div>
             </div>

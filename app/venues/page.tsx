@@ -88,6 +88,7 @@ export default async function VenuesPage({
       type: sp.type,
       setting: sp.setting,
       practice: sp.practice,
+      delivery: sp.delivery,
       guests: sp.guests ? Number(sp.guests) : undefined,
       sort: sp.sort,
     }),
@@ -117,6 +118,7 @@ export default async function VenuesPage({
           settings={facets.settings}
           categories={facets.categories}
           practices={facets.practices}
+          deliveries={facets.deliveries}
           facets={facets.facets} />
       </div>
 

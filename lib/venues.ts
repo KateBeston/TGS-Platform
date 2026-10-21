@@ -54,6 +54,26 @@ export type Card = {
   has_active_promotion: boolean;
 };
 
+/** How a service is taken, in the guest's words.
+ *
+ *  The database stores the venue's word — "Scheduled session" is what a
+ *  venue sets against a six o'clock yoga class. A guest does not search
+ *  for a scheduled session; they search for a class. The slug is what
+ *  travels in the URL so the link survives a change of wording. */
+export const DELIVERY_FORMATS = [
+  { slug: 'classes', value: 'Scheduled session', name: 'Classes & group sessions',
+    blurb: 'A set time on a timetable, shared with other guests' },
+  { slug: 'private', value: 'Appointment', name: 'Private appointments',
+    blurb: 'One-to-one, at a time you choose' },
+  { slug: 'open-access', value: 'Open access', name: 'Open access',
+    blurb: 'Arrive any time within opening hours' },
+  { slug: 'multi-day', value: 'Multi-day', name: 'Multi-day programmes',
+    blurb: 'Runs across several days' },
+] as const;
+
+export const deliveryBySlug = (slug?: string) =>
+  DELIVERY_FORMATS.find((d) => d.slug === slug) ?? null;
+
 export type Filters = {
   marketplace?: string;
   country?: string;
@@ -64,6 +84,11 @@ export type Filters = {
   type?: string;
   setting?: string;
   practice?: string;
+  /* How the thing is taken rather than what it is. A guest who wants a
+     class wants a room with other people in it at six o'clock; a guest
+     who wants a treatment wants an hour to themselves. Both are "yoga",
+     and until now the search could not tell them apart. */
+  delivery?: string;
   guests?: number;
   sort?: string;
 };
@@ -77,19 +102,24 @@ export type Filters = {
 export async function filterOptions() {
   const supabase = await createClient();
 
-  const [countries, types, settings, categories, counts] = await Promise.all([
-    supabase.from('venue_cards').select('country, country_slug')
-      .not('country', 'is', null),
-    supabase.from('venue_types').select('id,name,slug,applies_to').order('name'),
-    supabase.from('venue_settings').select('id,name,slug').order('display_order'),
-    supabase.from('modality_categories')
-      .select('id,name,slug,in_retreat,in_wellness').order('display_order'),
-    // How many published venues sit behind each. A filter that returns
-    // nothing is worse than one that is not offered, so the count is
-    // shown and the empty ones are pushed down.
-    supabase.from('filter_counts')
-      .select('kind,slug,venues,wellness_venues,retreat_venues'),
-  ]);
+  const [countries, types, settings, categories, counts, live, delivery] =
+    await Promise.all([
+      supabase.from('venue_cards').select('country, country_slug')
+        .not('country', 'is', null),
+      supabase.from('venue_types').select('id,name,slug,applies_to').order('name'),
+      supabase.from('venue_settings').select('id,name,slug').order('display_order'),
+      supabase.from('modality_categories')
+        .select('id,name,slug,in_retreat,in_wellness').order('display_order'),
+      // How many published venues sit behind each. A filter that returns
+      // nothing is worse than one that is not offered, so the count is
+      // shown and the empty ones are pushed down.
+      supabase.from('filter_counts')
+        .select('kind,slug,venues,wellness_venues,retreat_venues'),
+      // The published set, so a delivery format counts only the venues a
+      // guest could actually reach from the results.
+      supabase.from('venue_cards').select('id'),
+      supabase.from('venue_delivery_formats').select('venue_id, booking_format'),
+    ]);
 
   const row = (kind: string, slug: string) =>
     (counts.data ?? []).find((c: any) => c.kind === kind && c.slug === slug);
@@ -105,9 +135,26 @@ export async function filterOptions() {
     });
   }
 
+  /* One venue counts once per format however many classes it runs, and
+     only if it is published — the view carries a row per format per
+     venue, which is a count of services, not of venues. */
+  const published = new Set(((live.data ?? []) as any[]).map((v) => v.id));
+  const deliveryVenues = new Map<string, Set<number>>();
+  for (const r of ((delivery.data ?? []) as any[])) {
+    if (!published.has(r.venue_id)) continue;
+    const s = deliveryVenues.get(r.booking_format) ?? new Set<number>();
+    s.add(r.venue_id); deliveryVenues.set(r.booking_format, s);
+  }
+
   return {
     countries: [...seen.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     types: types.data ?? [],
+    /* Offered in a fixed order rather than by popularity. These four are
+       a short, stable list a guest learns the shape of, unlike settings,
+       where twenty-one of them need the useful ones first. */
+    deliveries: DELIVERY_FORMATS.map((d) => ({
+      ...d, count: deliveryVenues.get(d.value)?.size ?? 0,
+    })),
     // Every setting is offered, ordered so the ones with venues come
     // first. The empty ones stay listed rather than disappearing, since
     // a list that changes shape as venues are added is confusing.
@@ -159,6 +206,18 @@ export async function venueCards(f: Filters = {}) {
   if (f.practice) {
     const { data } = await supabase.from('venue_categories_public')
       .select('venue_id').eq('slug', f.practice);
+    await narrow((data ?? []).map((r: any) => r.venue_id));
+  }
+
+  /* Delivery is a property of the venue's services, not of the venue, so
+     it narrows the same way. An unknown slug narrows to nothing rather
+     than being ignored — a filter the guest can see applied must not
+     quietly return everything. */
+  if (f.delivery) {
+    const d = deliveryBySlug(f.delivery);
+    if (!d) return { cards: [] as Card[], error: null };
+    const { data } = await supabase.from('venue_delivery_formats')
+      .select('venue_id').eq('booking_format', d.value);
     await narrow((data ?? []).map((r: any) => r.venue_id));
   }
 
@@ -238,11 +297,13 @@ export function placeOf(c: Card) {
 export type Facet = {
   id: number; marketplace: string | null; type: string | null;
   settings: string[]; practices: string[]; guests: number | null;
+  /** Delivery slugs, so the dialog counts without a second round trip. */
+  deliveries: string[];
 };
 
 export async function venueFacets() {
   const supabase = await createClient();
-  const [venues, vset, vprac, types, settings, cats, pracs] = await Promise.all([
+  const [venues, vset, vprac, types, settings, cats, pracs, vdel] = await Promise.all([
     supabase.from('venue_cards').select('id, marketplace, venue_type, max_guests'),
     supabase.from('venue_settings_public').select('venue_id, slug').eq('relation', 'Immediate'),
     supabase.from('venue_practices_public').select('venue_id, practice_id'),
@@ -250,6 +311,7 @@ export async function venueFacets() {
     supabase.from('venue_settings').select('id,name,slug').order('display_order'),
     supabase.from('modality_categories').select('id,name,slug,in_retreat,in_wellness').order('display_order'),
     supabase.from('experience_practices').select('id,slug,name,category_slug'),
+    supabase.from('venue_delivery_formats').select('venue_id, booking_format'),
   ]);
 
   const pracSlug = new Map<number, string>((pracs.data ?? []).map((p: any) => [p.id, p.slug]));
@@ -262,11 +324,19 @@ export async function venueFacets() {
     const s = pracSlug.get(r.practice_id); if (!s) continue;
     const a = byPractice.get(r.venue_id) ?? []; a.push(s); byPractice.set(r.venue_id, a);
   }
+  const delSlug = new Map<string, string>(DELIVERY_FORMATS.map((d) => [d.value, d.slug]));
+  const byDelivery = new Map<number, string[]>();
+  for (const r of (vdel.data ?? []) as any[]) {
+    const s = delSlug.get(r.booking_format); if (!s) continue;
+    const a = byDelivery.get(r.venue_id) ?? [];
+    if (!a.includes(s)) a.push(s);
+    byDelivery.set(r.venue_id, a);
+  }
   const typeSlugByName = new Map<string, string>((types.data ?? []).map((t: any) => [t.name, t.slug]));
   const facets: Facet[] = (venues.data ?? []).map((v: any) => ({
     id: v.id, marketplace: v.marketplace, type: typeSlugByName.get(v.venue_type) ?? null,
     settings: bySetting.get(v.id) ?? [], practices: byPractice.get(v.id) ?? [],
-    guests: v.max_guests ?? null,
+    guests: v.max_guests ?? null, deliveries: byDelivery.get(v.id) ?? [],
   }));
 
   return {
@@ -274,6 +344,7 @@ export async function venueFacets() {
     settings: (settings.data ?? []) as any[],
     categories: (cats.data ?? []) as any[],
     practices: (pracs.data ?? []) as any[],
+    deliveries: DELIVERY_FORMATS.map((d) => ({ ...d })),
     facets,
   };
 }

@@ -10,6 +10,7 @@ import { FavouriteButton } from '@/components/SavedVenues';
 import { ImageCarousel } from './ImageCarousel';
 import VenueEnquiry from '@/components/VenueEnquiry';
 import VenueCard from '@/components/VenueCard';
+import Timetable from './Timetable';
 import { Review, ReviewScores } from './RetreatVenue';
 import {
   Accessibility, Climate, Credentials, Distances, LocationHighlights, Nearby, ExperienceBlock, Glance, InEveryRoom, OpeningHours,
@@ -215,6 +216,23 @@ export default function WellnessVenue({ v }: { v: Record<string, any> }) {
             subtitle={cheapest
               ? `From ${money(cheapest, v.services[0]?.currency)}`
               : undefined} />
+
+          {/* The week before the menu, where there is a week to show. A
+              guest choosing a bathhouse or a yoga studio is asking which
+              evenings they could actually come, and that question comes
+              before the price of any one class. */}
+          {!!v.timetable?.length && (
+            <Section tone="white" label="The week" title="Classes and group sessions">
+              <Timetable rows={v.timetable} timezone={v.timezone ?? null}
+                /* The timetable view carries the service id; the slug for
+                   its page is already in hand on this listing, so a row
+                   is a way in rather than a notice to read. */
+                serviceHref={(r) => {
+                  const s = v.services.find((x: any) => x.id === r.service_id);
+                  return s?.slug ? `/experiences/${s.slug}` : null;
+                }} />
+            </Section>
+          )}
 
           <FeaturedOffers offers={v.services.map((x: any) => serviceToOffer(x, v.offer_media ?? [], v.service_focus ?? []))} />
 

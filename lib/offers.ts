@@ -45,6 +45,14 @@ export type Offer = {
      number. Packages and excursions therefore show an enquiry route until the
      cart and submitBooking learn about them as their own kinds. */
   bookable: boolean;
+  /* Where a scheduled class sends the guest instead of a quantity box.
+     A class is a seat in a session at a named hour, and the cart on this
+     page has no way to choose one — it can only ask how many. Adding
+     "2" with no session is a line the venue cannot honour and a place
+     the class never reserved, so the card routes to the service's own
+     page, where the session picker reads real remaining places. Null for
+     everything taken at any hour, which is most things. */
+  sessionHref?: string | null;
   detail: OfferDetail | null;
   /* The same thing, running longer. The advertised length is not in here
      — it is the card's own price and duration — so an empty list means
@@ -193,6 +201,9 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     featured: !!s.is_featured,
     maxQty: 10,
     bookable: s.is_bookable !== false,
+    sessionHref: s.booking_format === 'Scheduled session' && s.slug
+      ? `/experiences/${s.slug}`
+      : null,
     minutes: s.duration_minutes ?? null,
     safety: (s.safety ?? []).map((f: any) => ({
       label: f.guest_label,

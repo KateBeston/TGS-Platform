@@ -29,6 +29,10 @@ type Props = {
   maxParticipants: number | null;
   venueName: string | null; venueId: number | null; listingSlug: string | null; marketplace: string | null;
   image: string | null; place: string | null;
+  /** How it is taken: a scheduled class, a private appointment, open
+   *  access or a multi-day programme. Null reads as an appointment,
+   *  which is what everything was before formats existed. */
+  bookingFormat?: string | null;
 };
 
 const TIMES = ['Morning', 'Midday', 'Afternoon', 'Evening'];
@@ -67,13 +71,25 @@ export default function ExperienceBooking(p: Props) {
 
   const venueKey = p.marketplace && p.listingSlug ? `/${p.marketplace}/${p.listingSlug}` : '/experiences';
 
+  /* A class is taken in places, a treatment by guests. The same number
+     either way — but "2 places" is what a guest booking into a six
+     o'clock yoga class expects to see on the cart line. */
+  const scheduled = p.bookingFormat === 'Scheduled session';
+  const headCount = (n: number) => scheduled
+    ? `${n} place${n > 1 ? 's' : ''}`
+    : `${n} ${n > 1 ? 'guests' : 'guest'}`;
+
   /* What the guest has settled on, in the one shape the cart and the
-     confirmation panel both read. */
+     confirmation panel both read. A session carries its finish time —
+     a class is an hour and a quarter of somebody's evening, and that
+     is the part they are deciding about. */
   const chosenDetail = slot
-    ? [fmtVenueDate(slot.date), `${slot.startsLocal} ${zoneName(slot.tz)} time`,
-       `${ppl} ${ppl > 1 ? 'guests' : 'guest'}`].join(' · ')
-    : [date ? fmtDate(date) : 'Date to confirm', time,
-       `${ppl} ${ppl > 1 ? 'guests' : 'guest'}`].filter(Boolean).join(' · ');
+    ? [fmtVenueDate(slot.date),
+       `${slot.startsLocal}${scheduled && slot.endsLocal ? `–${slot.endsLocal}` : ''}`
+         + ` ${zoneName(slot.tz)} time`,
+       headCount(ppl)].join(' · ')
+    : [date ? fmtDate(date) : 'Date to confirm', time, headCount(ppl)]
+        .filter(Boolean).join(' · ');
 
   const canAdd = slot != null || live === false;
 
@@ -96,7 +112,8 @@ export default function ExperienceBooking(p: Props) {
       const timing = slot ? {
         slotDate: slot.date, startsLocal: slot.startsLocal, endsLocal: slot.endsLocal,
         startsUtc: slot.startsUtc, slotTz: slot.tz, slotId: slot.slotId,
-      } : {};
+        bookingFormat: p.bookingFormat ?? null,
+      } : { bookingFormat: p.bookingFormat ?? null };
       const existing = slice.items.find((it: any) => it.key === itemKey);
       if (existing) {
         existing.qty = ppl;
@@ -106,7 +123,9 @@ export default function ExperienceBooking(p: Props) {
       } else slice.items.push({
         key: itemKey, kind: 'exp', id: p.id, label: p.name, detail,
         qty: ppl, max, amount: unit != null ? unit * ppl : null, unit,
-        image: p.image ?? null, eyebrow: 'Wellness experience', qtyLabel: 'Guests',
+        image: p.image ?? null,
+        eyebrow: scheduled ? 'Class or group session' : 'Wellness experience',
+        qtyLabel: scheduled ? 'Places' : 'Guests',
         ...timing,
       });
       slice.total = slice.items.reduce((s: number, it: any) => s + (it.amount || 0), 0);
@@ -142,6 +161,7 @@ export default function ExperienceBooking(p: Props) {
           value={slot}
           onChange={(c) => { setSlot(c); setLive(true); }}
           onUnavailable={() => setLive(false)}
+          format={p.bookingFormat ?? null}
         />
       )}
 
@@ -162,7 +182,7 @@ export default function ExperienceBooking(p: Props) {
       )}
 
       <div className="xb-field">
-        <span className="xb-label">Guests</span>
+        <span className="xb-label">{scheduled ? 'Places' : 'Guests'}</span>
         <div className="xb-stepper">
           <button type="button" onClick={() => setPpl((n) => Math.max(1, n - 1))} disabled={ppl <= 1} aria-label="Fewer">&minus;</button>
           <span>{ppl}</span>
@@ -176,7 +196,9 @@ export default function ExperienceBooking(p: Props) {
 
       {/* The button says why it cannot be pressed. */}
       <button type="button" className="xb-btn xb-btn-primary" onClick={add} disabled={!canAdd}>
-        {canAdd ? 'Add to booking' : live === null ? 'Checking availability' : 'Choose a time'}
+        {canAdd ? 'Add to booking'
+          : live === null ? 'Checking availability'
+            : scheduled ? 'Choose a session' : 'Choose a time'}
       </button>
       <p className="xb-note">
         {live === false
