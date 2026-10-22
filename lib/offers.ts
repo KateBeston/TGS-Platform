@@ -149,7 +149,18 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
      How it is sold is the first thing a guest needs: a single treatment,
      a course of six and a class pass are bought in completely different
      ways, and the card described all three identically. */
-  if (s.service_type) facts.push({ label: 'How it is offered', value: s.service_type });
+  /* A list since 22 October 2026: yoga is commonly a drop-in class AND
+     a class pass AND a course, and one of the three was being shown as
+     though it were the whole answer. Older rows may still hold a bare
+     string, so both shapes read the same way. */
+  const asText = (v: unknown): string | null => {
+    if (Array.isArray(v)) return v.filter(Boolean).join(', ') || null;
+    return typeof v === 'string' && v.trim() ? v.trim() : null;
+  };
+  const offered = asText(s.service_type);
+  if (offered) facts.push({ label: 'How it is offered', value: offered });
+  const deliveredAs = asText((s as { delivery_settings?: unknown }).delivery_settings);
+  if (deliveredAs) facts.push({ label: 'Delivered as', value: deliveredAs });
   /* What it actually is, as against what this venue calls it. "Female
      Wellness" says nothing; "Lymphatic drainage" does. */
   if (s.practice && s.practice !== (s.website_display_name ?? s.name)) {

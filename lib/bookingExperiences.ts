@@ -21,7 +21,8 @@ export type ExperienceCard = {
   couples_available: boolean | null;
   available_in_room: boolean | null;
   in_room_surcharge: number | null;
-  service_type: string | null;
+  service_type: string[] | string | null;
+  delivery_settings?: string[] | string | null;
   requires_time_slot: boolean | null;
   /** 'Scheduled session' | 'Appointment' | 'Open access' | 'Multi-day'. */
   booking_format: string | null;
