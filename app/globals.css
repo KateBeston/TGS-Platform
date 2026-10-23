@@ -2912,6 +2912,20 @@ img { max-width: 100%; height: auto; display: block; }
   .trending-item-large { grid-column: span 2; grid-row: span 1; }
 }
 
+/* Trending destinations — the same fault as the wellness tiles.
+   Two columns at 375px, 4/3, gives a tile 117px tall, and a 26px serif
+   name over a tagline came to more than that. The content block is
+   anchored to the bottom, so the surplus went out through the top and
+   overflow:hidden cut it: "BALI — SACRED ISLAND" lost its first line by
+   47px. Portrait, with the name and tagline sized for the tile. */
+@media (max-width: 520px) {
+  .trending-item { aspect-ratio: 3 / 4; }
+  .trending-item-large { aspect-ratio: 4 / 3; }
+  .trending-item-name { font-size: 17px; }
+  .trending-item-tagline { font-size: 10px; letter-spacing: 1.1px; }
+  .trending-item-content { left: 16px; right: 16px; bottom: 16px; }
+}
+
 @media (max-width: 700px) {
   .hero-search { grid-template-columns: 1fr; }
   .search-divider { display: none; }
@@ -3035,6 +3049,24 @@ img { max-width: 100%; height: auto; display: block; }
 /* Selections apply immediately, so the bar dims while the results catch up.
    Without it a fast click feels like nothing happened. */
 .progressive-bar.is-pending { opacity: .6; transition: opacity .18s ease; pointer-events: none; }
+
+/* ── the search bar on a phone ──────────────────────────────────────
+   Four segments abreast plus a Search button, with no responsive rule
+   anywhere: it measured 644px against a 375px viewport, which is what
+   made /venues 630px wide and the only page on the site still scrolling
+   sideways. Stacked, each segment full width with its rule underneath
+   rather than beside it, and the button across the bottom. */
+@media (max-width: 560px) {
+  .progressive-bar-row { flex-direction: column; }
+  .progressive-bar { flex-direction: column; }
+  .progressive-segment {
+    border-right: none; border-bottom: 1px solid var(--charcoal-08);
+    padding: 12px 16px;
+  }
+  .progressive-segment:last-of-type { border-bottom: none; }
+  .progressive-segment.active::after { bottom: -1px; }
+  .progressive-search-btn { width: 100%; padding: 15px 20px; }
+}
 .progressive-search-btn { background: var(--charcoal); color: var(--warm-white); border: none; padding: 0 32px; font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: background 0.3s; flex-shrink: 0; white-space: nowrap; }
 .progressive-search-btn:hover { background: var(--gold-dark); }
 
