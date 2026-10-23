@@ -4265,6 +4265,28 @@ img { max-width: 100%; height: auto; display: block; }
   .hx-tile-name{font-size:16px;letter-spacing:.04em}
   .hx-tile-large .hx-tile-name{font-size:23px}
   .hx-tile-body{left:16px;right:16px;bottom:16px}
+
+  /* ── and make the tile tall enough to hold that name ──────────────
+     Two columns at 375px gives a tile 156px wide, and at 4/3 that is
+     only 117px tall. "INDIGENOUS & EARTH TRADITIONS" and "PLANT
+     MEDICINE & CEREMONY" wrap to three lines, so their text block came
+     to 132px — taller than the tile holding it.
+
+     The block is absolutely positioned against the bottom, so the extra
+     height went out through the TOP of the tile: the browser resolved
+     its top edge to -31.5px, and overflow:hidden on the tile sliced the
+     first line clean off. The three shorter names fitted, which is why
+     only those two looked broken.
+
+     It also read as the photograph not filling the card. It always did
+     — but on a tile that short the dense end of the overlay gradient
+     covers nearly all of it, so what shows through is mostly gradient.
+
+     Portrait at 3/4 gives 207px, which clears the longest name by
+     59px: room for a longer one, and for a translation of it. The wide
+     tile keeps its landscape shape, being full width already. */
+  .hx-tile{aspect-ratio:3 / 4}
+  .hx-tile-large{aspect-ratio:4 / 3}
 }
 
 /* Booking-cart drawer — full width on phones (was fixed 380/560px, overflowing narrow screens) */
