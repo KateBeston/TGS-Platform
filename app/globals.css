@@ -5646,3 +5646,59 @@ a.tt-row-link:hover .tt-name { color: var(--gold-dark, #7A644F); }
   .tt-week { grid-template-columns: 1fr; }
   .tt-day { padding: 14px 16px 16px; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   WHAT WOULD NOT FIT ON A PHONE
+
+   Measured at 375px rather than guessed at. Every page on the site was
+   393px wide against a 375px viewport, so every page scrolled sideways
+   and the bar at the top ran its wordmark underneath the SIGN UP
+   button with LOGIN half off the screen.
+
+   One cause, in three places. Nothing else on the site was actually
+   broken: the tab strip on a venue page overflows on purpose, because
+   it is a scroller, and it is left alone here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* The carousel's waiting slides sit 28px to the right of the stage and
+   slide in from there. The stage never clipped them, so four images
+   each added 28px to the width of the document. Hiding the overflow is
+   what a carousel wants at every width, not only on a phone. */
+.ic-stage { overflow: hidden; }
+
+/* A grid item will not shrink below the natural width of its contents
+   unless it is told it may, which is how a date input kept its full
+   width and pushed out through the side of the booking panel. */
+.bb-field { min-width: 0; }
+.bb-field input { max-width: 100%; }
+
+@media (max-width: 560px) {
+  /* Three groups abreast — menu, wordmark, two buttons — do not fit in
+     375px at their full size. The word MENU goes (the hamburger still
+     says it), the emblem and wordmark come down a little, and the two
+     buttons tighten. Both buttons stay: the drawer carries no way to
+     sign in, so hiding them would leave a phone with no route to an
+     account at all. */
+  .nav { padding: 0 14px; }
+  .nav-inner { gap: 10px; }
+  .nav-left { gap: 9px; }
+  .nav-hamburger-label { display: none; }
+  .nav-logo { width: 30px; height: 30px; }
+  .nav-logo-area { gap: 8px; }
+  .nav-brand-text { font-size: 11px; letter-spacing: .14em; }
+  .nav-right { min-width: 0; gap: 6px; }
+  .nav-auth-btns { gap: 6px; }
+  .nav-authbtn { padding: 7px 9px; font-size: 9.5px; letter-spacing: .05em; }
+}
+
+@media (max-width: 720px) {
+  /* Fixed at 460px wide, which is wider than the phone it was sitting
+     on. Pinned to both edges instead, and raised to meet the shorter
+     bar. 100dvh rather than 100vh so the browser's own chrome does not
+     push the Review booking button below the fold. */
+  .bc-box {
+    left: 10px; right: 10px; width: auto; max-width: none;
+    top: 78px; max-height: calc(100dvh - 96px);
+  }
+}
