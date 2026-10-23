@@ -2741,9 +2741,12 @@ img { max-width: 100%; height: auto; display: block; }
 /* Three actions, sized to their words and pushed right.
    A row of full-width buttons is a form. Three small actions in the corner is
    a card that happens to be actionable, which is what this is. */
+/* The bottom inset matches the sides, so the row sits inside the card
+   rather than against the edge of it. It was 0: the buttons finished
+   1px from the bottom of the card, which read as them hanging off it. */
 .venue-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;
-  margin-top:auto;padding:16px 22px 0}
-.venue-card .venue-actions{padding:14px 18px 0}
+  margin-top:auto;padding:16px 22px 22px}
+.venue-card .venue-actions{padding:14px 18px 18px}
 
 .va-explore, .va-book{
   font-family:var(--sans);font-size:9px;font-weight:500;letter-spacing:.18em;
