@@ -343,7 +343,13 @@ export function BookingCart({
           : d.price != null ? Number(d.price) : null;
         out.push({
           key: `svclen-${d.id}`,
-          label: `${sv.name} · ${d.duration_minutes} min`,
+          /* The offering belongs in the label, not just the price.
+             Without it a sixty-minute class and a sixty-minute one-to-one
+             are two cart lines reading "Reiki · 60 min" at two different
+             prices, and the venue's booking email shows the same thing
+             twice with no way to tell which was which. */
+          label: [sv.name, d.offered_as, `${d.duration_minutes} min`]
+            .filter(Boolean).join(' · '),
           detail: [d.note, sv.service_category].filter(Boolean).join(' · ')
                   || 'Wellness service',
           amount: unit != null ? unit * q : null,

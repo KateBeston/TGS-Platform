@@ -143,30 +143,54 @@ export default function OfferCard({ offer }: { offer: Offer }) {
             </div>
           )}
 
-          {/* The same treatment at other lengths. The advertised one is
-              first and selected, so a card with lengths reads the same as
-              one without until somebody chooses. */}
-          {!!o.lengths?.length && (
-            <div className="ofc-lengths" role="group" aria-label="Length">
-              {[{ id: null as number | null, minutes: o.minutes ?? null,
-                  price: o.price, note: null as string | null },
-                ...o.lengths].map((L) => {
-                const on = chosen === L.id;
-                return (
-                  <button key={L.id ?? 'advertised'} type="button"
-                    className={`ofc-length${on ? ' is-on' : ''}`}
-                    aria-pressed={on}
-                    title={L.note ?? undefined}
-                    onClick={() => setChosen(L.id)}>
-                    {L.minutes ? `${L.minutes} min` : 'Standard'}
-                    {L.price != null && (
-                      <small>{money(L.price, o.currency)}</small>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Every priced version of this service. The advertised one is
+              first and selected, so a card with options reads the same as
+              one without until somebody chooses.
+
+              A row varies by length, by how it is taken, or by both, so the
+              label has to say whichever distinguishes it: "90 min" where
+              only the length differs, "Class" where only the offering does,
+              and "Class · 90 min" where a venue prices more than one length
+              of the same offering and the name alone would not tell two
+              buttons apart. */}
+          {!!o.lengths?.length && (() => {
+            const named = o.lengths.some((L) => L.offeredAs);
+            /* Whether any offering appears at more than one length. Only
+               then does the length need saying beside the name. */
+            const counts = new Map<string, number>();
+            for (const L of o.lengths) {
+              if (L.offeredAs) counts.set(L.offeredAs, (counts.get(L.offeredAs) ?? 0) + 1);
+            }
+            const label = (L: { minutes: number | null; offeredAs?: string | null }) => {
+              if (!L.offeredAs) return L.minutes ? `${L.minutes} min` : 'Standard';
+              return (counts.get(L.offeredAs) ?? 0) > 1 && L.minutes
+                ? `${L.offeredAs} · ${L.minutes} min`
+                : L.offeredAs;
+            };
+            return (
+              <div className="ofc-lengths" role="group"
+                   aria-label={named ? 'How you would like to take this' : 'Length'}>
+                {[{ id: null as number | null, minutes: o.minutes ?? null,
+                    price: o.price, note: null as string | null,
+                    offeredAs: null as string | null },
+                  ...o.lengths].map((L) => {
+                  const on = chosen === L.id;
+                  return (
+                    <button key={L.id ?? 'advertised'} type="button"
+                      className={`ofc-length${on ? ' is-on' : ''}`}
+                      aria-pressed={on}
+                      title={L.note ?? undefined}
+                      onClick={() => setChosen(L.id)}>
+                      {label(L)}
+                      {L.price != null && (
+                        <small>{money(L.price, o.currency)}</small>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           <div className="ofc-price">
             <span className="ofc-fig">

@@ -60,7 +60,13 @@ export type Offer = {
      because each is its own sellable item with its own code and goes in
      the cart as its own line. */
   lengths?: { id: number; minutes: number; price: number | null;
-              was?: number | null; note: string | null }[];
+              was?: number | null; note: string | null;
+              /* How this priced version is taken — one of the eighteen the
+                 venue ticks against "How it is offered". Null where the row
+                 varies by length alone, which is every row that predates
+                 the column. A one-to-one at $79 and a class at $50 are two
+                 of these, not one with two prices. */
+              offeredAs?: string | null }[];
   /** The advertised length in minutes, for labelling the default choice
    *  beside the others. Carried as a number rather than read back out of
    *  the Duration fact's prose. */
@@ -157,8 +163,20 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     if (Array.isArray(v)) return v.filter(Boolean).join(', ') || null;
     return typeof v === 'string' && v.trim() ? v.trim() : null;
   };
+  /* Only where no priced version names its own offering.
+   *
+   * Once the card lists "Class $50" and "Single session $79" as things a
+   * guest can choose, a fact row repeating the same words without prices is
+   * a second, worse answer to the question the chooser already answers —
+   * and the two can disagree, because the ticks on the service and the
+   * priced rows beneath it are recorded separately. The chooser wins: it is
+   * the one a guest can act on. Same rule as the "to $X for longer
+   * sessions" line below. */
+  const pricedOfferings = (s.lengths ?? []).some((d: any) => d.offered_as);
   const offered = asText(s.service_type);
-  if (offered) facts.push({ label: 'How it is offered', value: offered });
+  if (offered && !pricedOfferings) {
+    facts.push({ label: 'How it is offered', value: offered });
+  }
   const deliveredAs = asText((s as { delivery_settings?: unknown }).delivery_settings);
   if (deliveredAs) facts.push({ label: 'Delivered as', value: deliveredAs });
   /* What it actually is, as against what this venue calls it. "Female
@@ -245,6 +263,7 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
         price: d.offer ? Number(d.offer.now_price) : Number(d.price),
         was: d.offer ? Number(d.offer.was) : null,
         note: d.note ?? null,
+        offeredAs: d.offered_as ?? null,
       })),
     detail: hasDetail ? {
       whoFor: (s.expected_outcomes ?? []).length ? (s.expected_outcomes ?? []).join(', ') : null,

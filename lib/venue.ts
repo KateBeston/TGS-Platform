@@ -46,6 +46,11 @@ export async function loadVenue(marketplace: string, slug: string) {
          own item code. Gated in the view on both the length's switch and
          the parent service's. */
       supabase.from('published_venue_service_durations').select('*').eq('venue_id', id)
+        /* Grouped by how it is taken, then by length within it, so the
+           chips on the card read in the same order the portal lists them
+           rather than interleaving a class between two one-to-one lengths.
+           Length-only rows come first, being the plain case. */
+        .order('offered_as', { nullsFirst: true })
         .order('duration_minutes'),
       /* Contraindications and risks per service, authored on the practice
          behind it. The signs belong in the sauna, not at the front door. */
