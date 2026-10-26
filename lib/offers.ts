@@ -163,19 +163,38 @@ export function serviceToOffer(s: any, media: any[], focus: any[]): Offer {
     if (Array.isArray(v)) return v.filter(Boolean).join(', ') || null;
     return typeof v === 'string' && v.trim() ? v.trim() : null;
   };
-  /* Only where no priced version names its own offering.
+  /* ── HOW IT IS OFFERED, AND WHAT OF THAT CAN ACTUALLY BE BOOKED ─────
    *
-   * Once the card lists "Class $50" and "Single session $79" as things a
-   * guest can choose, a fact row repeating the same words without prices is
-   * a second, worse answer to the question the chooser already answers —
-   * and the two can disagree, because the ticks on the service and the
-   * priced rows beneath it are recorded separately. The chooser wins: it is
-   * the one a guest can act on. Same rule as the "to $X for longer
-   * sessions" line below. */
-  const pricedOfferings = (s.lengths ?? []).some((d: any) => d.offered_as);
-  const offered = asText(s.service_type);
-  if (offered && !pricedOfferings) {
-    facts.push({ label: 'How it is offered', value: offered });
+   * Two separate records answer this and nothing links them: the ticks on
+   * the service (service_type) say the ways it is offered, and the priced
+   * rows beneath it say what each way costs. A venue can tick four and
+   * price one.
+   *
+   * So once anything is priced, the ticks are split rather than repeated.
+   * The priced ones are already buttons with prices beside them, and
+   * listing the same words again as plain text would answer the guest's
+   * question twice, worse the second time. The ticked ones with no price
+   * are not dropped either — a venue saying they also run it as a workshop
+   * is worth knowing — they are demoted to a request rather than left
+   * looking bookable when there is no button for them.
+   *
+   * Where nothing is priced, this behaves exactly as it always has: one
+   * row listing every way it is offered. */
+  const asList = (v: unknown): string[] => {
+    if (Array.isArray(v)) return v.map(String).map((x) => x.trim()).filter(Boolean);
+    return typeof v === 'string' && v.trim() ? [v.trim()] : [];
+  };
+  const priced = new Set(
+    (s.lengths ?? []).map((d: any) => d.offered_as).filter(Boolean) as string[]);
+  const ticked = asList(s.service_type);
+
+  if (priced.size) {
+    const onRequest = ticked.filter((t) => !priced.has(t));
+    if (onRequest.length) {
+      facts.push({ label: 'Also on request', value: onRequest.join(', ') });
+    }
+  } else if (ticked.length) {
+    facts.push({ label: 'How it is offered', value: ticked.join(', ') });
   }
   const deliveredAs = asText((s as { delivery_settings?: unknown }).delivery_settings);
   if (deliveredAs) facts.push({ label: 'Delivered as', value: deliveredAs });
