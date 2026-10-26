@@ -9,6 +9,7 @@ import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
+import { clearCartToken } from '@/lib/cartToken';
 
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
 type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
@@ -147,7 +148,11 @@ export default function CheckoutPage() {
       trackStepOnce('checkout', 'complete');
       trackCartEvent({ eventType: 'book', metadata: { orderReference: res.orderReference } });
       setSnap(snapshot);
-      try { localStorage.removeItem('tgs_cart'); clearAcks(); } catch { /* ignore */ }
+      /* The token goes with the cart. The holds it made are now a real
+         booking, and a fresh token means the next person on a shared
+         computer cannot inherit them. */
+      try { localStorage.removeItem('tgs_cart'); clearAcks(); clearCartToken(); }
+      catch { /* ignore */ }
       await new Promise((r) => setTimeout(r, 650));
       setSubmitting(false);
       setDone(res.orderReference);

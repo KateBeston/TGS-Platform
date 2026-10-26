@@ -48,6 +48,11 @@ export type SlotsResult = {
    covers the whole picker without paging. */
 const MAX_DAYS = 62;
 
+/* Checked rather than trusted: the token comes from the guest's own
+   localStorage, where anything could have been put, and a value that is not
+   a uuid would be refused by the database on every call. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const hhmm = (t: unknown): string => String(t ?? '').slice(0, 5);
 
 export async function slotsFor(
@@ -55,6 +60,18 @@ export async function slotsFor(
   serviceId: number,
   people = 1,
   fromDate?: string,
+  /* This cart's token, so held times are handled correctly.
+   *
+   * free_slots has two forms and only this one knows about slot_holds. The
+   * other was being called, so every live hold was invisible and two guests
+   * could be offered the same two o'clock.
+   *
+   * It cuts both ways, which is why the token has to travel: the hold-aware
+   * form subtracts every live hold EXCEPT the ones carrying this token. With
+   * the token, a guest keeps seeing the time they themselves are holding.
+   * Without it they would watch their own choice vanish from the picker the
+   * moment they added it. */
+  cartToken?: string | null,
 ): Promise<SlotsResult> {
   const empty: SlotsResult = { slots: [], tz: null, unavailable: true };
 
@@ -71,12 +88,18 @@ export async function slotsFor(
     .toISOString().slice(0, 10);
 
   const supabase = await createClient();
+  /* p_cart_token is always passed, null included, because passing it is what
+     selects the form of free_slots that looks at slot_holds. A null token
+     means every live hold counts against this guest, which is the right
+     answer for somebody who is not holding anything. */
+  const token = cartToken && UUID.test(cartToken) ? cartToken : null;
   const { data, error } = await supabase.rpc('free_slots', {
     p_venue_id: venueId,
     p_service_id: serviceId,
     p_from: from,
     p_to: to,
     p_people: Math.max(1, Math.floor(people) || 1),
+    p_cart_token: token,
   });
 
   if (error || !data?.length) return empty;

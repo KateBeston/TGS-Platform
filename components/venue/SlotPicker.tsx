@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { slotsFor, type Slot } from '@/app/actions/availability';
+import { cartToken } from '@/lib/cartToken';
 
 /* ═══════════════════════════════════════════════════════════════════════
    CHOOSING A REAL TIME
@@ -74,7 +75,10 @@ export default function SlotPicker({
   useEffect(() => {
     let live = true;
     setSlots(null);
-    slotsFor(venueId, serviceId, people)
+    /* The cart's token goes with the question. free_slots subtracts every
+       live hold except this cart's, so without it the guest would lose
+       sight of the very time they are holding. */
+    slotsFor(venueId, serviceId, people, undefined, cartToken())
       .then((r) => {
         if (!live) return;
         setSlots(r.slots);

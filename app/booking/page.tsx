@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trackCartEvent } from '@/lib/track';
 import { stayAvailability, type Unavailable } from '@/app/actions/availability';
+import { cartToken } from '@/lib/cartToken';
+import { releaseSlot } from '@/app/actions/slotHold';
 
 type Item = { key: string; kind: string; id: number; label: string; detail: string; qty: number; max: number; amount: number | null; unit: number | null; image: string | null; eyebrow: string; qtyLabel: string };
 type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; venueImage: string | null; from: string; to: string; guests: string; buyout: boolean; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
@@ -110,13 +112,43 @@ export default function CartPage() {
   const deleteItem = (k: string, ik: string) => {
     if (!cart) return;
     const v = cart.venues[k];
+    /* Give the time back before the line goes.
+     *
+     * A held slot is withheld from everybody else, so a guest who changes
+     * their mind must not leave it held for twenty minutes. Fire and
+     * forget: the cart should empty the moment they press it, and an
+     * unreleased hold expires on its own, so waiting on the round trip
+     * would make the page feel slow to protect against nothing. */
+    const going = v.items.find((it) => it.key === ik) as (Item & {
+      holdId?: number | null }) | undefined;
+    const token = cartToken();
+    if (going?.holdId && token) {
+      releaseSlot(token, going.holdId)
+        .catch(() => { /* it expires by itself */ });
+    }
+
     const items = v.items.filter((it) => it.key !== ik);
     const venues = { ...cart.venues };
     if (items.length) venues[k] = recompute({ ...v, items }); else delete venues[k];
     write({ ...cart, venues });
   };
   const reschedule = (k: string, f: string, t: string) => { if (!cart) return; write({ ...cart, venues: { ...cart.venues, [k]: { ...cart.venues[k], from: f, to: t } } }); setResched(null); };
-  const clearAll = () => write({ venues: {} });
+  const clearAll = () => {
+    /* Every held time given back, not left to expire. Emptying the cart is
+       an explicit "I do not want these", and twenty minutes is a long time
+       to withhold a slot from somebody who does. */
+    const token = cartToken();
+    if (token && cart) {
+      for (const v of Object.values(cart.venues)) {
+        for (const it of v.items as (Item & { holdId?: number | null })[]) {
+          if (it.holdId) {
+            releaseSlot(token, it.holdId).catch(() => { /* expires anyway */ });
+          }
+        }
+      }
+    }
+    write({ venues: {} });
+  };
 
   /* The whole booking as a quote, not one venue.
    *

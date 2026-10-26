@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { trackCartEvent } from '@/lib/track';
+import { cartToken } from '@/lib/cartToken';
+import { holdSlot } from '@/app/actions/slotHold';
 import SlotPicker, { type Chosen } from './SlotPicker';
 
 /* Experience booking control.
@@ -63,6 +65,20 @@ export default function ExperienceBooking(p: Props) {
      would flash the fallback control on every page load. */
   const [live, setLive] = useState<boolean | null>(p.venueId ? null : false);
   const [slot, setSlot] = useState<Chosen | null>(null);
+  /* Holding the time, and what came back if it could not be held. */
+  const [holding, setHolding] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
+  const [heldUntil, setHeldUntil] = useState<string | null>(null);
+
+  /* The hold's deadline in the guest's own clock, to the minute. Their
+     clock rather than the venue's: this is about how long THEY have to
+     decide, not about when the treatment is. */
+  const holdClock = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleTimeString('en-AU',
+        { hour: 'numeric', minute: '2-digit' });
+    } catch { return 'shortly'; }
+  };
 
   const max = p.maxParticipants && p.maxParticipants > 0 ? p.maxParticipants : 20;
   const unit = p.basePrice ?? null;
@@ -93,7 +109,44 @@ export default function ExperienceBooking(p: Props) {
 
   const canAdd = slot != null || live === false;
 
-  const add = () => {
+  const add = async () => {
+    /* ── Hold the time before it goes in the cart ─────────────────────
+       A two o'clock is one two o'clock. Until this, two guests could put
+       the same one in their carts and both reach checkout: free_slots was
+       being asked the form of the question that ignores holds, and nothing
+       had ever written a hold anyway.
+
+       Only a real chosen time can be held. A request-to-book line carries
+       a preferred date and a time of day, which is not a slot and has
+       nothing to hold.
+
+       A refusal with words is shown and stops the add — that is the double
+       booking being prevented, and the guest needs to know. A refusal
+       without words means the hold itself failed rather than the time being
+       gone, and the guest carries on as everybody did before holds existed;
+       blocking a booking because our own hold did not take would be worse
+       than the race it was meant to fix. */
+    let held: { holdId: number; holdsUntil: string } | null = null;
+    if (slot && p.venueId != null) {
+      const token = cartToken();
+      if (token) {
+        setHolding(true);
+        const r = await holdSlot({
+          venueId: p.venueId, serviceId: p.id,
+          date: slot.date, startsLocal: slot.startsLocal,
+          people: ppl, cartToken: token,
+        });
+        setHolding(false);
+        if (!r.ok) {
+          if (r.refused) { setRefused(r.refused); return; }
+        } else {
+          held = { holdId: r.holdId, holdsUntil: r.holdsUntil };
+          setHeldUntil(r.holdsUntil);
+        }
+      }
+    }
+    setRefused(null);
+
     try {
       const cart = JSON.parse(localStorage.getItem('tgs_cart') || '{}');
       if (!cart.venues) cart.venues = {};
@@ -113,6 +166,10 @@ export default function ExperienceBooking(p: Props) {
         slotDate: slot.date, startsLocal: slot.startsLocal, endsLocal: slot.endsLocal,
         startsUtc: slot.startsUtc, slotTz: slot.tz, slotId: slot.slotId,
         bookingFormat: p.bookingFormat ?? null,
+        /* Carried on the line so the hold can be given back when the line
+           is taken out, and so the cart can say how long it is held for. */
+        holdId: held?.holdId ?? null,
+        holdsUntil: held?.holdsUntil ?? null,
       } : { bookingFormat: p.bookingFormat ?? null };
       const existing = slice.items.find((it: any) => it.key === itemKey);
       if (existing) {
@@ -143,6 +200,15 @@ export default function ExperienceBooking(p: Props) {
           <div className="xb-done-tick" aria-hidden="true">✓</div>
           <div className="xb-done-title">Added to your booking</div>
           <div className="xb-done-sub">{p.name} · {chosenDetail}</div>
+          {/* A real deadline, said plainly. The hold exists, so this is a
+              statement of fact rather than a countdown invented to hurry
+              anybody along — and no seconds, because nobody needs that
+              much precision to decide on a treatment. */}
+          {heldUntil && (
+            <div className="xb-done-held">
+              We are holding this time until {holdClock(heldUntil)}.
+            </div>
+          )}
         </div>
         <Link href="/booking" className="xb-btn xb-btn-primary">Review booking</Link>
         <button type="button" className="xb-btn xb-btn-ghost"
@@ -194,11 +260,22 @@ export default function ExperienceBooking(p: Props) {
         <div className="xb-total"><span>Estimated total</span><span className="xb-total-amt">{money(total)}</span></div>
       )}
 
+      {/* Somebody else got there first. Said where the guest is looking,
+          rather than as an error, because it is an ordinary thing to
+          happen and the next thing they need is another time. */}
+      {refused && (
+        <div className="xb-refused" role="status">
+          {refused} Please choose another.
+        </div>
+      )}
+
       {/* The button says why it cannot be pressed. */}
-      <button type="button" className="xb-btn xb-btn-primary" onClick={add} disabled={!canAdd}>
-        {canAdd ? 'Add to booking'
-          : live === null ? 'Checking availability'
-            : scheduled ? 'Choose a session' : 'Choose a time'}
+      <button type="button" className="xb-btn xb-btn-primary" onClick={add}
+              disabled={!canAdd || holding}>
+        {holding ? 'Holding your time'
+          : canAdd ? 'Add to booking'
+            : live === null ? 'Checking availability'
+              : scheduled ? 'Choose a session' : 'Choose a time'}
       </button>
       <p className="xb-note">
         {live === false
