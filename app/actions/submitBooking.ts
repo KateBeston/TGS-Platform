@@ -1,7 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers'
-import { notify, INTERNAL } from '@/lib/notify';
+import { notify, INTERNAL, askVenueToConfirm } from '@/lib/notify';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking } from '@/lib/acceptance';
@@ -269,6 +269,9 @@ export async function submitBooking(
   if (orderErr || !order) return { ok: false, error: orderErr?.message ?? 'Could not open the order.' };
 
   let orderSubtotal = 0;
+  /* Every booking this checkout wrote, in the order it wrote them, so each
+     can be placed once the whole order is down. */
+  const madeBookingIds: number[] = [];
 
   // ── a booking per venue, a booking_item per line ──
   for (const [key, slice] of venues) {
@@ -444,6 +447,10 @@ export async function submitBooking(
       const { error: liErr } = await db.from('booking_items').insert(withBooking);
       if (liErr) return { ok: false, error: liErr.message };
     }
+    /* Placed once the lines are down, below. The venue's question is built
+       out of these rows, so asking before they existed would show a venue
+       an empty booking. */
+    madeBookingIds.push(booking.id as number);
     /* What the order is worth, which is what will be charged. */
     orderSubtotal += chargeable;
   }
@@ -512,6 +519,77 @@ export async function submitBooking(
       }
     }
   } catch { /* never fail a booking over the audit trail */ }
+
+  /* ═════════════════════════════════════════════════════════════════════
+     PUTTING THE BOOKING IN FRONT OF THE VENUE
+
+     Until this existed, checkout wrote the booking at 'Pending' and
+     stopped. Nothing here referenced place_booking, send_booking_request,
+     venue_books_instantly or booking_requests, so a real guest never
+     entered the confirmation flow at all: no token reached the venue, no
+     dates were held, the payout ladder was never built, and the
+     confirmation emails could not fire because nothing called the function
+     that queues them. Every booking taken on the site waited for somebody
+     to notice it and place it by hand in the portal.
+
+     place_booking decides which way each one goes. A venue that has turned
+     instant booking on, turned owner approval off and connected a calendar
+     gets told; everybody else gets asked. While there is no payment on this
+     site, its money guard sends every booking with a balance down the asked
+     route whatever the venue's settings say — which is the behaviour we
+     want until Stripe is wired, not a thing to work around.
+
+     One booking per venue, so a guest who booked three venues at once
+     produces three requests and each venue sees only its own.
+
+     Non-fatal, like the audit trail and the emails below. The booking and
+     its lines are already written; a guest must not see a failure for
+     something that already happened. A booking left at 'Pending' is
+     visible in the portal and can be placed by hand, which is exactly
+     where every booking sat before this ran at all.
+     ═════════════════════════════════════════════════════════════════════ */
+  for (const bookingId of madeBookingIds) {
+    try {
+      const { data: placed, error: placeErr } = await db
+        .rpc('place_booking', { p_booking_id: bookingId });
+
+      if (placeErr) {
+        console.error('[submitBooking] place_booking failed', bookingId, placeErr.message);
+        continue;
+      }
+
+      const p = (placed ?? {}) as Record<string, unknown>;
+      if (!p.ok) {
+        /* A refusal with a reason, not a crash — "no booking settings on
+           this venue yet", "those dates are already held". Worth the log
+           line, because it is the difference between a venue that was
+           never asked and one that could not be. */
+        console.error('[submitBooking] not placed', bookingId, p.why);
+        continue;
+      }
+
+      /* Confirmed outright. answer_booking_request has already frozen the
+         terms, built the payout ladder and queued the guest's
+         confirmation, the venue's copy and the guest's text, so the
+         notification runner takes it from here and there is nothing to
+         ask. */
+      if (p.path === 'Instant') continue;
+
+      /* Asked. place_booking hands back the token it minted and the
+         address send_booking_request resolved; the portal builds and sends
+         the question. No token means the request was already open from an
+         earlier attempt, and asking twice is worse than not asking. */
+      if (p.token && p.to) {
+        await askVenueToConfirm({
+          requestId: Number(p.request_id),
+          token: String(p.token),
+          to: String(p.to),
+        });
+      }
+    } catch (e) {
+      console.error('[submitBooking] placing threw', bookingId, e);
+    }
+  }
 
   /* Tell the guest, and tell us.
    *

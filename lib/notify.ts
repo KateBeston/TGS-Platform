@@ -63,6 +63,63 @@ export function notify(input: SendRequest): void {
 export const INTERNAL = process.env.INTERNAL_ALERT_EMAIL ?? 'hello@theglobalsanctum.com';
 
 /* ═══════════════════════════════════════════════════════════════════════
+   ASKING A VENUE TO CONFIRM
+
+   Separate from requestSend because it is not a template send. The venue's
+   question is built from the booking's own lines, the venue's check-in
+   times and its flexibility — by askVenueToConfirm, in the portal, next to
+   the template library. This asks for that to happen; it does not rebuild
+   it here.
+
+   Called after place_booking has already opened the request and held the
+   dates, so by the time this runs the booking is live either way. Which is
+   why, like notify above, a failure is logged rather than raised: a guest
+   must not see an error for a booking that already succeeded.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+type AskVenue = {
+  /** The request place_booking opened. */
+  requestId: number;
+  /** The one-time token the venue's yes and no links carry. */
+  token: string;
+  /** Where it goes, as send_booking_request resolved it. Passed on rather
+   *  than worked out again: the portal already decided whether a venue's
+   *  post goes to its bookings address or its own, and two places deciding
+   *  that is one too many. */
+  to: string;
+};
+
+export async function askVenueToConfirm(
+  input: AskVenue,
+): Promise<{ ok: boolean; error?: string }> {
+  const secret = process.env.INTERNAL_API_SECRET;
+  if (!secret) {
+    console.error('[ask-venue] INTERNAL_API_SECRET is not set; nobody asked.');
+    return { ok: false, error: 'No internal secret configured.' };
+  }
+
+  try {
+    const res = await fetch(`${PORTAL}/api/ask-venue`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify(input),
+      /* Same budget as a send. A slow portal must not hold up the screen
+         that tells a guest their booking is in. */
+      signal: AbortSignal.timeout(8000),
+    });
+    const json = await res.json().catch(() => ({ ok: false, error: 'Unreadable reply' }));
+    if (!json.ok) console.error('[ask-venue] portal refused:', input.requestId, json.error);
+    return json;
+  } catch (e) {
+    console.error('[ask-venue] could not reach the portal:', e);
+    return { ok: false, error: String(e) };
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    TELLING THE PORTAL SOMETHING HAPPENED
 
    Separate from requestSend because they are different acts. One asks for
