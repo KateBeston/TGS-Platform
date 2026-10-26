@@ -9,7 +9,7 @@ import AcceptanceDocList from '@/components/AcceptanceDocList';
 import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
-import { trackStepOnce } from '@/lib/track';
+import { trackStepOnce, trackStepBack, useAbandonIfLeft } from '@/lib/track';
 
 /* Before you book: the health step.
  *
@@ -123,6 +123,11 @@ export default function HealthStepPage() {
       setReady(true);
     })();
   }, [router]);
+
+  /* Before the early return below, because a hook cannot be called
+     conditionally. `ready` is what gates it: a cart that sent us straight
+     back to /booking never really visited this step. */
+  useAbandonIfLeft('health', ready);
 
   if (!ready) return <div className="cart-wrap" />;
 
@@ -245,7 +250,8 @@ export default function HealthStepPage() {
       </div>
 
       <div className="step-acts">
-        <Link className="step-back" href="/booking">&larr; Back to your booking</Link>
+        <Link className="step-back" href="/booking"
+              onClick={() => trackStepBack('health')}>&larr; Back to your booking</Link>
         <button type="button" className="step-go" disabled={!agreed} onClick={onwards}>
           Continue
         </button>

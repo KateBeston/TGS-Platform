@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 /* Events, fired on a confirmed success rather than on a click.
  *
  * The audit is explicit about this and it matters more than it sounds.
@@ -150,4 +152,104 @@ export function trackStepOnce(
   if (stepsSeen.has(key)) return;
   stepsSeen.add(key);
   trackStep(step, what, metadata);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LEAVING A STEP WITHOUT FINISHING IT
+
+   Every screen reported itself being reached and host and health reported
+   being finished, so the funnel could already say how far somebody got.
+   What it could not say was whether they left, or when: checkout_abandon
+   was in the event vocabulary and in the booking_funnel view, and nothing
+   had ever fired it, so the `abandoned` column was false on every row
+   since the table was created.
+
+   The portal's funnel screen works around that by treating "got past the
+   cart and never booked" as abandonment. That is a fair inference and it
+   is not the same fact. It cannot tell a cart left open in a background
+   tab from one closed in irritation, it has no time of leaving, and it
+   cannot say which screen lost them — only which was furthest.
+
+   ── going back is not giving up ──────────────────────────────────────
+   Someone returning to the cart to change a date has not abandoned
+   anything, so the back links report step_back and mark the step as left
+   on purpose. Without that, every correction a guest made would be filed
+   as an abandonment and the number would be worthless in the flattering
+   direction.
+
+   ── why not visibilitychange ─────────────────────────────────────────
+   It fires on switching tabs, which is not leaving. Using it would have
+   reported an abandonment every time somebody checked their email, and a
+   metric that counts ordinary behaviour as failure gets ignored within a
+   week. pagehide fires on a real navigation away or a closed tab, and the
+   cart_events fetch already sets keepalive so the row survives it.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/** Steps left deliberately, by going back. Not abandonment. */
+const stepsLeftOnPurpose = new Set<string>();
+/** Steps already reported as abandoned, so unmount and pagehide together
+ *  cannot report the same leaving twice. */
+const stepsAbandoned = new Set<string>();
+/** Reports waiting to be sent, keyed by step, so a strict-mode remount can
+ *  call one off before it goes. */
+const pending: Partial<Record<BookingStepName, ReturnType<typeof setTimeout>>> = {};
+
+/** Going back from a step. Reports it, and stops the leaving being read as
+ *  an abandonment. */
+export function trackStepBack(step: BookingStepName) {
+  stepsLeftOnPurpose.add(step);
+  trackStep(step, 'back');
+}
+
+/** Report this step abandoned, unless it was finished or left on purpose. */
+function abandonStep(step: BookingStepName) {
+  if (stepsSeen.has(`${step}:complete`)) return;
+  if (stepsLeftOnPurpose.has(step)) return;
+  if (stepsAbandoned.has(step)) return;
+  stepsAbandoned.add(step);
+  trackCartEvent({ eventType: 'checkout_abandon', step });
+}
+
+/** Watch a step for the guest leaving it unfinished.
+ *
+ *  `active` so a screen that redirects straight back out — the step was not
+ *  required for this cart — does not report itself abandoned on the way
+ *  past. Pass whatever the page uses to mean "this screen is really being
+ *  shown".
+ *
+ *  Both routes out are covered: unmount catches in-app navigation, which
+ *  is how Next moves between these screens and never fires pagehide, and
+ *  pagehide catches the tab being closed or sent somewhere else entirely.
+ */
+export function useAbandonIfLeft(step: BookingStepName, active: boolean) {
+  useEffect(() => {
+    if (!active) return undefined;
+
+    /* Strict mode mounts, unmounts and mounts again in development. Taken
+       at face value that unmount is a guest leaving, so every page load in
+       development would file an abandonment — and worse, the once-guard
+       would then swallow the real one when it came.
+
+       So the report is queued rather than sent, and a remount in the same
+       tick cancels it. A genuine in-app navigation has no remount and the
+       timer fires; a closed tab is caught by pagehide instead, which needs
+       no timer because the fetch is sent with keepalive. */
+    if (pending[step]) {
+      clearTimeout(pending[step]);
+      delete pending[step];
+    }
+
+    const onPageHide = () => abandonStep(step);
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      /* If they finished, trackStepOnce has already recorded it and
+         abandonStep does nothing when the timer runs. */
+      pending[step] = setTimeout(() => {
+        delete pending[step];
+        abandonStep(step);
+      }, 0);
+    };
+  }, [step, active]);
 }

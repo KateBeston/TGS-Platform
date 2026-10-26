@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
-import { trackCartEvent, trackStepOnce } from '@/lib/track';
+import { trackCartEvent, trackStepOnce, trackStepBack, useAbandonIfLeft } from '@/lib/track';
 import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
@@ -38,6 +38,11 @@ export default function CheckoutPage() {
   const [snap, setSnap] = useState<Cart | null>(null);
   const [tgsDocs, setTgsDocs] = useState<AcceptanceDoc[]>([]);
   const [venueDocs, setVenueDocs] = useState<VenueAcceptanceDoc[]>([]);
+  /* Whether the review screen was actually shown, rather than passed
+     through on the way back to an outstanding step. Only a real visit can
+     be abandoned, so a guest bounced off this screen must not be counted
+     as having given up on it. */
+  const [onReview, setOnReview] = useState(false);
 
   useEffect(() => {
     try { const r = localStorage.getItem('tgs_cart'); setCart(r ? JSON.parse(r) : null); const c = localStorage.getItem('tgs_contact'); if (c) setContact(JSON.parse(c)); } catch { /* ignore */ }
@@ -54,7 +59,11 @@ export default function CheckoutPage() {
     let live = true;
     (async () => {
       const steps = await resolveSteps(createClient() as never, cart);
-      if (!live || !steps.length) { trackStepOnce('checkout', 'view'); return; }
+      if (!live || !steps.length) {
+        trackStepOnce('checkout', 'view');
+        setOnReview(true);
+        return;
+      }
       const dest = nextDestination(steps, readAcks());
       if (dest !== '/checkout') {
         /* Sent back because a step is outstanding. Worth its own event:
@@ -65,9 +74,14 @@ export default function CheckoutPage() {
         return;
       }
       trackStepOnce('checkout', 'view');
+      setOnReview(true);
     })();
     return () => { live = false; };
   }, [cart, router]);
+
+  /* Watches for the guest leaving the review without booking. Reports
+     nothing if they finished, or if they went back to the cart. */
+  useAbandonIfLeft('checkout', onReview);
 
   /* What the guest is asked to accept. Read from the register rather than
      hardcoded, so it is exactly what submitBooking will record. */
@@ -126,6 +140,11 @@ export default function CheckoutPage() {
     clearTimeout(t1); clearTimeout(t2);
     if (res.ok) {
       setStep(3);
+      /* Both, and this one first. `book` is the funnel's outcome; this is
+         the review screen reporting that it was finished rather than left,
+         which is what stops the abandonment watch below filing a completed
+         booking as an abandoned one on the way to the confirmation. */
+      trackStepOnce('checkout', 'complete');
       trackCartEvent({ eventType: 'book', metadata: { orderReference: res.orderReference } });
       setSnap(snapshot);
       try { localStorage.removeItem('tgs_cart'); clearAcks(); } catch { /* ignore */ }
@@ -210,7 +229,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       )}
-      <div className="cart-head"><div><div className="ck-eyebrow">Checkout</div><h1 className="cart-h1">Complete your booking</h1></div><Link className="cart-head-actions" href="/booking" style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gold-dark)', textDecoration: 'underline' }}>Back to cart</Link></div>
+      <div className="cart-head"><div><div className="ck-eyebrow">Checkout</div><h1 className="cart-h1">Complete your booking</h1></div><Link className="cart-head-actions" href="/booking" onClick={() => trackStepBack('checkout')} style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gold-dark)', textDecoration: 'underline' }}>Back to cart</Link></div>
 
       <div className="cart-cols">
         <div className="cart-main">
