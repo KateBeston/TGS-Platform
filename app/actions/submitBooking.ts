@@ -1,7 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers'
-import { notify, INTERNAL, askVenueToConfirm } from '@/lib/notify';
+import { notify, INTERNAL, askVenueToConfirm, sendSignedCopy } from '@/lib/notify';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking } from '@/lib/acceptance';
@@ -554,6 +554,22 @@ export async function submitBooking(
             ...sig,
           })),
         );
+      }
+
+      /* The signer's copy, once both registers have been written. Last,
+         and non-fatal: a booking that exists without its receipt is
+         recoverable, and a booking lost because an email failed is not.
+         The portal reads the rows back rather than being told what they
+         say, so this cannot confirm an acceptance that was not recorded. */
+      try {
+        await sendSignedCopy({
+          orderId: order.id,
+          to: linkEmail,
+          reference,
+          firstName: (name ?? '').split(' ')[0] ?? '',
+        });
+      } catch (e) {
+        console.error('[submitBooking] the signed copy did not go', e);
       }
     }
   } catch { /* never fail a booking over the audit trail */ }

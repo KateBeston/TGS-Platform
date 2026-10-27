@@ -119,6 +119,46 @@ export async function askVenueToConfirm(
   }
 }
 
+/** The signer's copy of what they just agreed to.
+ *
+ *  Only the order is sent. The portal reads the acceptance rows back and
+ *  describes those, so it is not possible to confirm somebody agreed to
+ *  something that was never recorded -- which is the one thing a document
+ *  like this must not be able to do.
+ *
+ *  Non-fatal everywhere it is called. A booking that exists without its
+ *  receipt is recoverable; a booking lost because an email failed is not. */
+export async function sendSignedCopy(input: {
+  orderId: number;
+  to: string;
+  reference?: string;
+  firstName?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const secret = process.env.INTERNAL_API_SECRET;
+  if (!secret) {
+    console.error('[signed-copy] INTERNAL_API_SECRET is not set; no copy sent.');
+    return { ok: false, error: 'No internal secret configured.' };
+  }
+
+  try {
+    const res = await fetch(`${PORTAL}/api/signed-copy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${secret}`,
+      },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(8000),
+    });
+    const json = await res.json().catch(() => ({ ok: false, error: 'Unreadable reply' }));
+    if (!json.ok) console.error('[signed-copy] portal refused:', input.orderId, json.error);
+    return json;
+  } catch (e) {
+    console.error('[signed-copy] could not reach the portal:', e);
+    return { ok: false, error: String(e) };
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    TELLING THE PORTAL SOMETHING HAPPENED
 
