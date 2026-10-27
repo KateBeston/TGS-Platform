@@ -96,14 +96,29 @@ export type CartEvent = {
   metadata?: Record<string, unknown> | null;
 };
 
-export function trackCartEvent(e: CartEvent) {
+/** The id every cart event in this tab shares.
+ *
+ *  Lifted out of trackCartEvent so the checkout contact step can record
+ *  the same id against the person it just identified. Two copies of this
+ *  logic would be two session ids, and the funnel would stop joining.
+ *  Returns null off the browser, where there is no session to speak of.
+ */
+export function cartSessionId(): string | null {
   try {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return null;
     let sid = sessionStorage.getItem('tgs_sid');
     if (!sid) {
       sid = (self.crypto as { randomUUID?: () => string })?.randomUUID?.() ?? String(Math.random()).slice(2) + Date.now();
       sessionStorage.setItem('tgs_sid', sid);
     }
+    return sid;
+  } catch { return null; }
+}
+
+export function trackCartEvent(e: CartEvent) {
+  try {
+    if (typeof window === 'undefined') return;
+    const sid = cartSessionId();
     fetch('/api/cart-event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

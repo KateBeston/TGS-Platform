@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
-import { trackCartEvent, trackStepOnce, trackStepBack, useAbandonIfLeft } from '@/lib/track';
+import { trackCartEvent, trackStepOnce, trackStepBack, useAbandonIfLeft, cartSessionId } from '@/lib/track';
+import { recordCheckoutContact } from '@/app/actions/checkoutContact';
 import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
@@ -129,7 +130,20 @@ export default function CheckoutPage() {
     ? currencies[0]
     : `${currencies.slice(0, -1).join(', ')} and ${currencies[currencies.length - 1]}`;
 
-  const saveContact = (c: Contact) => { setContact(c); try { localStorage.setItem('tgs_contact', JSON.stringify(c)); } catch { /* ignore */ } setModal(false); };
+  /* Kept locally so the review screen fills in at once, and sent to the
+     server so the person exists in the portal from the moment they
+     identify themselves rather than only if they finish. Fire and forget:
+     a failure here must never stand between somebody and a booking, and
+     the final submit records them regardless. */
+  const saveContact = (c: Contact) => {
+    setContact(c);
+    try { localStorage.setItem('tgs_contact', JSON.stringify(c)); } catch { /* ignore */ }
+    setModal(false);
+    void recordCheckoutContact({
+      first: c.first, last: c.last, email: c.email, phone: c.phone,
+      sessionId: cartSessionId(),
+    }).catch(() => { /* never block the booking */ });
+  };
 
   const submit = async () => {
     if (!cart || !contactDone || !agreed || submitting) return;
