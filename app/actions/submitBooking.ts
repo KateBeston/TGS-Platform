@@ -60,10 +60,23 @@ function orderRef(): string {
   return `TGS-${s}${r}`;
 }
 
+/** What the agreement panel recorded somebody doing, where one was shown.
+ *
+ *  Optional, so a caller that does not present the panel still books, and
+ *  the acceptance rows are written exactly as they were before. */
+export type AgreementEvidence = {
+  sectionsRead?: string[];
+  typedAffirmation?: string | null;
+  signatureKind?: 'drawn' | 'typed' | null;
+  signatureName?: string | null;
+  signatureImage?: string | null;
+};
+
 export async function submitBooking(
   cart: Cart,
   contact: Contact,
   acknowledged: string[] = [],
+  agreement: AgreementEvidence | null = null,
 ): Promise<SubmitResult> {
   // ── validate the request ──
   const name = (contact?.name ?? '').trim();
@@ -480,6 +493,29 @@ export async function submitBooking(
       const h = await headers();
       const ip = (h.get('x-forwarded-for') ?? '').split(',')[0].trim() || null;
       const ua = h.get('user-agent') ?? null;
+      /* What the panel recorded them doing, where one was shown. Trimmed
+         and capped on the way in: these are stored verbatim as evidence,
+         so an unbounded string from a browser does not belong in them. */
+      const sig = agreement
+        ? {
+          sections_read: Array.isArray(agreement.sectionsRead)
+            ? agreement.sectionsRead.slice(0, 50).map((s) => String(s).slice(0, 200))
+            : null,
+          typed_affirmation: agreement.typedAffirmation
+            ? String(agreement.typedAffirmation).slice(0, 200) : null,
+          signature_kind: agreement.signatureKind === 'drawn'
+            || agreement.signatureKind === 'typed' ? agreement.signatureKind : null,
+          signature_name: agreement.signatureName
+            ? String(agreement.signatureName).slice(0, 200) : null,
+          /* A drawn signature is a PNG data URL. Capped well above what a
+             signature pad produces and well below what would bloat a row. */
+          signature_image: agreement.signatureImage
+            && String(agreement.signatureImage).startsWith('data:image/png;base64,')
+            && String(agreement.signatureImage).length <= 400_000
+            ? String(agreement.signatureImage) : null,
+        }
+        : {};
+
       const base = {
         order_id: order.id,
         signatory_name: name,
@@ -488,6 +524,7 @@ export async function submitBooking(
         source: 'Checkout',
         ip_address: ip,
         user_agent: ua,
+        ...sig,
       };
       const rows = [
         ...tgsDocs.map((d) => ({
@@ -514,6 +551,7 @@ export async function submitBooking(
             effective_from_at_acceptance: d.effective_from,
             body_sha256: d.body_sha256, body_length: d.body_length,
             notes: `Order ${reference}`,
+            ...sig,
           })),
         );
       }

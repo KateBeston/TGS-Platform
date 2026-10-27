@@ -7,13 +7,15 @@ import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent, trackStepOnce, trackStepBack, useAbandonIfLeft, cartSessionId } from '@/lib/track';
 import { recordCheckoutContact } from '@/app/actions/checkoutContact';
 import { useKeepHolds } from '@/lib/holdKeeper';
+import AgreementPanel, { type AgreementResult } from '@/components/AgreementPanel';
+import { agreementsForCart, type ResolvedAgreements } from '@/app/actions/agreements';
 import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
 import { resolveSteps, readAcks, nextDestination, clearAcks } from '@/lib/bookingSteps';
 import { clearCartToken } from '@/lib/cartToken';
 
-type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
+type Item = { key: string; kind: string; id?: number; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
 type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
 type Contact = { first: string; last: string; email: string; phone: string; marketing?: boolean };
@@ -43,7 +45,9 @@ export default function CheckoutPage() {
   const [loaded, setLoaded] = useState(false);
   const [contact, setContact] = useState<Contact | null>(null);
   const [modal, setModal] = useState(false);
-  const [agreed, setAgreed] = useState(false);
+  /* What this basket actually calls for, resolved from its item codes.
+     Null until it has been asked for; an empty result is a real answer. */
+  const [agreements, setAgreements] = useState<ResolvedAgreements | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [err, setErr] = useState('');
@@ -103,6 +107,30 @@ export default function CheckoutPage() {
      the hold has become a booking item by then and renewing it would be
      holding a time against its own booking. */
   useKeepHolds(!done && onReview);
+
+  /* What this basket calls for, asked once when the cart settles.
+     The lines carry the kind and id they were added with, and the
+     database turns those into item codes and then into agreements, so
+     the browser never has to know which document belongs to what. */
+  useEffect(() => {
+    if (!cart) return;
+    let live = true;
+    const lines = Object.values(cart.venues)
+      .flatMap((v) => v.items ?? [])
+      .map((i) => ({ kind: i.kind, id: i.id }))
+      .filter((i) => i.kind && i.id != null);
+    (async () => {
+      const resolved = await agreementsForCart(lines);
+      if (live) setAgreements(resolved);
+    })().catch(() => {
+      /* An empty result still renders, as nothing to agree to rather
+         than a broken screen. The server refuses the booking if a
+         required document was never accepted, so this cannot wave
+         somebody through. */
+      if (live) setAgreements({ documents: [], alerts: [], missingText: [] });
+    });
+    return () => { live = false; };
+  }, [cart]);
 
   /* What the guest is asked to accept. Read from the register rather than
      hardcoded, so it is exactly what submitBooking will record. */
@@ -166,13 +194,19 @@ export default function CheckoutPage() {
     }).catch(() => { /* never block the booking */ });
   };
 
-  const submit = async () => {
-    if (!cart || !contactDone || !agreed || submitting) return;
+  const submit = async (signed: AgreementResult) => {
+    if (!cart || !contactDone || submitting) return;
     const snapshot = cart;
     setSubmitting(true); setErr(''); setStep(0);
     const t1 = setTimeout(() => setStep(1), 550);
     const t2 = setTimeout(() => setStep(2), 1150);
-    const res = await submitBooking(snapshot as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone }, Object.keys(readAcks()).filter((k) => readAcks()[k]));
+    const res = await submitBooking(snapshot as any, { name: `${contact!.first} ${contact!.last ?? ''}`.trim(), email: contact!.email, phone: contact!.phone }, Object.keys(readAcks()).filter((k) => readAcks()[k]), {
+      sectionsRead: signed.sectionsRead,
+      typedAffirmation: signed.typed,
+      signatureKind: signed.signature?.kind ?? null,
+      signatureName: signed.signature?.kind === 'typed' ? signed.signature.name : null,
+      signatureImage: signed.signature?.kind === 'drawn' ? signed.signature.dataUrl : null,
+    });
     clearTimeout(t1); clearTimeout(t2);
     if (res.ok) {
       setStep(3);
@@ -317,27 +351,39 @@ export default function CheckoutPage() {
               <li>Payment is made to the venue, so the venue&rsquo;s name may appear on your card or bank statement rather than The Global Sanctum.</li>
               {foreignCurrency && <li>This booking is priced and charged in {currencyList}. Any amount shown in another currency is indicative only, and your card issuer sets the conversion rate and any foreign transaction fee.</li>}
             </ul>
-            {(tgsDocs.length > 0 || venueDocs.length > 0) && (
-              <div className="ck-docs">
-                <div className="ck-docs-h">What you&rsquo;re agreeing to</div>
-                <ul className="ck-docs-list">
-                  {tgsDocs.map((d) => (
-                    <li key={`t-${d.document_id}`}>
-                      <Link href={`/legal/${d.slug}`}>{d.name}</Link>
-                      {d.version_label && <span className="ck-docs-v">{d.version_label}</span>}
-                    </li>
-                  ))}
-                  {venueDocs.map((d) => (
-                    <li key={`v-${d.document_id}`}>
-                      <Link href={`/legal/venue/${d.venue_id}/${d.slug}`}>{d.name}</Link>
-                      <span className="ck-docs-v">{venueNameById.get(d.venue_id) ?? 'Venue'}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {/* What this basket calls for, read one part at a time.
+                Resolved from the item codes behind the cart rather than
+                from the booking as a whole, so a sauna class brings its
+                waiver and a venue's own house rules arrive alongside
+                TGS's terms, named as the venue's rather than ours. */}
+            {agreements && (agreements.documents.length > 0) ? (
+              <AgreementPanel
+                heading="Before you book"
+                intro="Open and read each one. Once you have opened them all you can agree to the lot in a single tick, then confirm below."
+                sections={agreements.documents.map((d) => ({
+                  key: `${d.party === 'the venue' ? 'v' : 't'}-${d.versionId}`,
+                  title: d.name,
+                  summary: [d.summary, d.party === 'the venue'
+                    ? `From ${d.venueName ?? 'the venue'}, not The Global Sanctum.`
+                    : null].filter(Boolean).join(' '),
+                  body: d.body,
+                }))}
+                masterLabel={`I have read and agree to all ${agreements.documents.length} of the above.`}
+                masterHint="Open each one above to enable this"
+                statement="I confirm my booking is with the venue and that their terms and cancellation policy govern it. The Global Sanctum introduces and arranges the booking and is not a party to my stay."
+                affirmPhrase="I agree"
+                signatureLabel="Sign below to confirm"
+                confirmLabel="Request to book"
+                busy={submitting}
+                error={err || null}
+                onConfirm={submit}
+              />
+            ) : (
+              <>
+                <p className="cart-secure">Preparing what you need to agree to…</p>
+                <button type="button" className="cart-cta cart-cta-primary" disabled>Request to book</button>
+              </>
             )}
-            <label className="ck-agree"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} /><span>I agree to the <Link href="/legal/terms-and-conditions">Terms &amp; Conditions</Link>, the <Link href="/legal/booking-terms-and-conditions">Booking Terms</Link>, the <Link href="/legal/refund-cancellation-policy">Refund &amp; Cancellation Policy</Link> and the <Link href="/legal/privacy-policy">Privacy Policy</Link>{(tgsDocs.length > 0 || venueDocs.length > 0) ? ', together with the documents listed above' : ''}, and I understand the venue&rsquo;s own terms apply to my stay.</span></label>
-            <button type="button" className="cart-cta cart-cta-primary" disabled={!contactDone || !agreed || submitting} onClick={submit}>{submitting ? 'Sending your request…' : 'Request to book'}</button>
             {err && <p className="ck-err">{err}</p>}
             {!contactDone && <p className="cart-secure">Add your contact details above to request this booking.</p>}
             <p className="cart-secure">We use secure transmission and encrypted storage to protect your personal information.</p>
