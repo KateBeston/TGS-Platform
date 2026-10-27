@@ -15,7 +15,17 @@ import { clearCartToken } from '@/lib/cartToken';
 type Item = { key: string; kind: string; label: string; detail: string; qty: number; amount: number | null; eyebrow: string };
 type VenueSlice = { venueName: string; venueId?: number | null; location: string; currency: string | null; from: string; to: string; guests: string; cancellation: string | null; freeCancelDays: number | null; backHref: string; items: Item[]; total: number };
 type Cart = { venues: Record<string, VenueSlice> };
-type Contact = { first: string; last: string; email: string; phone: string };
+type Contact = { first: string; last: string; email: string; phone: string; marketing?: boolean };
+
+/* The marketing consent wording, in one place.
+ *
+ * Shown on screen and stored with the consent from this same constant, so
+ * the two cannot drift. A consent record that does not say what the person
+ * agreed to proves nothing, and copy that has moved on since they agreed
+ * is worse than no record at all. */
+const MARKETING_CONSENT_TEXT =
+  'Keep me posted on new venues, experiences and offers from The Global Sanctum. '
+  + 'I can unsubscribe at any time.';
 
 function money(a: number | null, c: string | null) { if (a == null) return '—'; try { return new Intl.NumberFormat('en-AU', { style: 'currency', currency: c || 'AUD', maximumFractionDigits: 0 }).format(a); } catch { return `${c || 'AUD'} ${Math.round(a)}`; } }
 function fmtDate(s: string) { if (!s) return null; try { return new Date(s).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return s; } }
@@ -142,6 +152,8 @@ export default function CheckoutPage() {
     void recordCheckoutContact({
       first: c.first, last: c.last, email: c.email, phone: c.phone,
       sessionId: cartSessionId(),
+      marketing: c.marketing === true,
+      consentText: MARKETING_CONSENT_TEXT,
     }).catch(() => { /* never block the booking */ });
   };
 
@@ -346,6 +358,10 @@ function ContactModal({ initial, onSave, onClose }: { initial: Contact | null; o
   const [email, setEmail] = useState(initial?.email ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
   const [ok, setOk] = useState(false);
+  /* Unticked unless they ticked it before. Deliberately not part of
+     `valid`: the booking must not depend on somebody agreeing to
+     marketing, or it stops being a choice. */
+  const [marketing, setMarketing] = useState(initial?.marketing === true);
   const valid = first.trim() && email.trim() && ok;
   return (
     <div className="ck-modal-back" onClick={onClose}>
@@ -356,8 +372,9 @@ function ContactModal({ initial, onSave, onClose }: { initial: Contact | null; o
           <div className="ck-two"><label className="ck-field"><span>Email</span><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. hello@email.com" /></label><label className="ck-field"><span>Phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+61" /></label></div>
           <p className="ck-field-note">All communications about the booking will be sent here.</p>
           <label className="ck-agree"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /><span>I&rsquo;m authorised to share these details and agree to The Global Sanctum&rsquo;s <Link href="/legal/privacy-policy">privacy policy</Link>.</span></label>
+          <label className="ck-agree ck-agree-optional"><input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} /><span>{MARKETING_CONSENT_TEXT}</span></label>
         </div>
-        <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Save &amp; complete later</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave({ first, last, email, phone })}>Done</button></div>
+        <div className="ck-modal-foot"><button type="button" className="ck-outline" onClick={onClose}>Save &amp; complete later</button><button type="button" className="ck-done" disabled={!valid} onClick={() => onSave({ first, last, email, phone, marketing })}>Done</button></div>
       </div>
     </div>
   );

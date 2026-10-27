@@ -26,6 +26,12 @@ export async function recordCheckoutContact(input: {
   email: string;
   phone?: string | null;
   sessionId?: string | null;
+  /* Optional and unticked by default. Consent has to be actively given,
+     so a pre-ticked or bundled box is not consent at all. */
+  marketing?: boolean | null;
+  /* The wording as it was shown on screen, stored with the consent. A
+     record that does not say what somebody agreed to proves nothing. */
+  consentText?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const email = String(input?.email ?? '').trim().toLowerCase();
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
@@ -64,6 +70,11 @@ export async function recordCheckoutContact(input: {
       p_phone: clean(input.phone, 40),
       p_session_id: sessionId,
       p_auth_user: authUser,
+      /* Only ever true or false from the box itself, and the database
+         only ever grants on true — it never withdraws a consent given
+         somewhere else because somebody left the box alone here. */
+      p_marketing: input.marketing === true,
+      p_consent_text: input.marketing === true ? clean(input.consentText, 500) : null,
     });
 
     if (error) return { ok: false, error: error.message };

@@ -5067,6 +5067,10 @@ img { max-width: 100%; height: auto; display: block; }
 .ck-agree{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--muted);margin:16px 0;line-height:1.6}
 .ck-agree a{color:var(--gold-dark);text-decoration:underline}
 .ck-agree input{margin-top:2px}
+/* The optional one. Sits closer to the required tickbox above it and
+   reads a shade lighter, so it is plainly a choice rather than another
+   thing standing between somebody and their booking. */
+.ck-agree-optional{margin-top:-6px;padding-top:12px;border-top:1px solid var(--border,#E0D8CC)}
 
 /* ── Experience booking control ── */
 .xb { display: flex; flex-direction: column; gap: 12px; }
