@@ -10,6 +10,7 @@ import {
   resolveSteps, readAcks, recordAck, nextDestination, cartShape, type BookingStep,
 } from '@/lib/bookingSteps';
 import { trackStepOnce, trackStepBack, useAbandonIfLeft } from '@/lib/track';
+import { useKeepHolds } from '@/lib/holdKeeper';
 
 /* Before you book: the health step.
  *
@@ -128,6 +129,11 @@ export default function HealthStepPage() {
      conditionally. `ready` is what gates it: a cart that sent us straight
      back to /booking never really visited this step. */
   useAbandonIfLeft('health', ready);
+
+  /* Keeps any held time alive while this form is being filled in. A
+     twenty minute hold was being spent on reading and typing, and the
+     slot lapsed under people who were still right here. */
+  useKeepHolds(ready);
 
   if (!ready) return <div className="cart-wrap" />;
 
