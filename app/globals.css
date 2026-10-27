@@ -5769,3 +5769,70 @@ a.tt-row-link:hover .tt-name { color: var(--gold-dark, #7A644F); }
     top: 78px; max-height: calc(100dvh - 96px);
   }
 }
+
+/* ── Agreement panel ──
+   The one shape every agreement in TGS is presented in: read each part,
+   then tick, type and sign. In TGS's own palette rather than the one in
+   the pattern it was modelled on. */
+.ag-panel{background:var(--warm-white);border:1px solid var(--border);padding:22px}
+.ag-head-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.ag-title{font-size:20px;margin:0;color:var(--charcoal)}
+.ag-count{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dark);white-space:nowrap}
+.ag-intro{font-size:13px;line-height:1.6;color:var(--muted);margin:8px 0 18px}
+
+.ag-sections{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.ag-section{background:var(--warm-cream);border:1px solid var(--border)}
+.ag-section.is-read{background:var(--warm-white)}
+.ag-section-head{display:flex;align-items:flex-start;gap:12px;padding:14px 16px}
+.ag-mark{flex:0 0 auto;width:14px;height:14px;margin-top:3px;border:1px solid var(--border);border-radius:50%;background:#fff}
+.ag-mark.is-read{border-color:var(--gold-dark);background:var(--gold-dark);
+  box-shadow:inset 0 0 0 3px var(--warm-white)}
+.ag-section-text{flex:1 1 auto;min-width:0}
+.ag-section-title{font-size:14px;font-weight:600;color:var(--charcoal)}
+.ag-section-summary{font-size:12px;line-height:1.55;color:var(--muted);margin-top:3px}
+.ag-open{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;background:none;border:none;
+  cursor:pointer;font:inherit;font-size:12px;color:var(--gold-dark);padding:2px 0}
+.ag-chev{width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+  transform:rotate(45deg);transition:transform .15s}
+.ag-chev.is-open{transform:rotate(-135deg)}
+.ag-body{border-top:1px solid var(--border);padding:14px 16px 16px;max-height:340px;overflow:auto;
+  font-size:13px;line-height:1.65;color:var(--muted)}
+.ag-body p{margin:0 0 11px}
+.ag-body p:last-child{margin-bottom:0}
+
+.ag-master,.ag-tick{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.55;
+  color:var(--charcoal);border:1px solid var(--border);background:var(--warm-cream);padding:13px 15px;margin-bottom:10px}
+.ag-master input,.ag-tick input{margin-top:2px;flex:0 0 auto}
+.ag-master.is-locked{opacity:.6}
+.ag-master-hint,.ag-tick-hint{display:block;font-size:11px;color:var(--muted);margin-top:4px}
+
+.ag-affirm{margin:16px 0}
+.ag-statement{font-size:13px;line-height:1.65;color:var(--muted);margin:0 0 12px}
+.ag-field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.ag-field input{border:1px solid var(--border);background:#fff;padding:10px 12px;font:inherit;
+  font-size:14px;color:var(--charcoal)}
+
+.ag-sign{margin:16px 0}
+.ag-sign-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px}
+.ag-sign-label{font-size:12px;color:var(--muted)}
+.ag-sign-modes{display:inline-flex;border:1px solid var(--border)}
+.ag-mode{background:#fff;border:none;cursor:pointer;font:inherit;font-size:12px;padding:6px 11px;color:var(--muted)}
+.ag-mode.is-on{background:var(--gold-dark);color:var(--warm-white)}
+.ag-pad-wrap{position:relative;border:1px solid var(--border);background:#fff;height:132px}
+.ag-pad{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.ag-pad-hint{position:absolute;top:14px;left:15px;font-size:13px;color:var(--muted);opacity:.6;pointer-events:none}
+.ag-clear{display:block;margin-left:auto;margin-top:6px;background:none;border:none;cursor:pointer;
+  font:inherit;font-size:12px;color:var(--gold-dark);text-decoration:underline}
+.ag-typed-sign{width:100%;border:1px solid var(--border);background:#fff;padding:14px 12px;font:inherit;
+  font-size:19px;color:var(--charcoal)}
+
+.ag-error{font-size:12px;color:#9B2C2C;margin:0 0 10px}
+.ag-confirm{width:100%;border:none;cursor:pointer;font:inherit;font-size:14px;padding:14px 18px;
+  background:var(--gold-dark);color:var(--warm-white)}
+.ag-confirm:disabled{background:var(--border);color:var(--muted);cursor:default}
+
+@media (max-width:560px){
+  .ag-panel{padding:16px}
+  .ag-section-head{flex-wrap:wrap}
+  .ag-open{margin-left:26px}
+}
