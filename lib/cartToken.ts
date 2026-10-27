@@ -71,6 +71,20 @@ export function cartToken(): string | null {
   }
 }
 
+/** This cart's token if it already has one, without making one.
+ *
+ *  For the places that only want to act on holds that exist. A browser
+ *  with no token has no holds, so minting one there would create a name
+ *  for a cart nobody has started. */
+export function existingCartToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const existing = localStorage.getItem(KEY);
+    return existing && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(existing)
+      ? existing : null;
+  } catch { return null; }
+}
+
 /** Forget this cart's token. Called where the cart itself is cleared. */
 export function clearCartToken() {
   if (typeof window === 'undefined') return;

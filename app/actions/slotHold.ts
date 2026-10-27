@@ -86,6 +86,42 @@ export async function holdSlot(input: {
   return { ok: true, holdId: Number(row.hold_id), holdsUntil: String(row.holds_until) };
 }
 
+/** Keep every time this cart is holding, while the guest is still here.
+ *
+ *  Twenty minutes is long enough to choose a time and too short to fill in
+ *  the health form, read the terms and check out. Nothing extended it, so
+ *  a hold lapsed under somebody mid-booking and they found out at submit.
+ *
+ *  The database decides what may be renewed: live holds only, never a
+ *  lapsed one, and nothing more than two hours old. So calling this often
+ *  is safe and calling it forever does not work. */
+export async function renewHolds(
+  cartToken: string,
+): Promise<{ renewed: number; holdsUntil: string | null }> {
+  if (!UUID.test(cartToken)) return { renewed: 0, holdsUntil: null };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('renew_cart_holds', {
+    p_cart_token: cartToken,
+  });
+
+  if (error) {
+    /* Not worth telling the guest. A renewal that does not happen leaves
+       the hold exactly as it was, which is the position they were in
+       before any of this existed. */
+    console.error('[renewHolds] could not renew', error.message);
+    return { renewed: 0, holdsUntil: null };
+  }
+
+  const row = (Array.isArray(data) ? data[0] : data) as
+    { renewed: number | null; holds_until: string | null } | null;
+
+  return {
+    renewed: Number(row?.renewed ?? 0),
+    holdsUntil: row?.holds_until ?? null,
+  };
+}
+
 /** Give a held time back, when it is taken out of the cart. */
 export async function releaseSlot(
   cartToken: string, holdId: number,

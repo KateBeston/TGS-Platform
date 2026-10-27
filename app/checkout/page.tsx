@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { submitBooking } from '@/app/actions/submitBooking';
 import { trackCartEvent, trackStepOnce, trackStepBack, useAbandonIfLeft, cartSessionId } from '@/lib/track';
 import { recordCheckoutContact } from '@/app/actions/checkoutContact';
+import { useKeepHolds } from '@/lib/holdKeeper';
 import CheckoutIdentity from '@/components/CheckoutIdentity';
 import { createClient } from '@/lib/supabase/client';
 import { fetchTgsAcceptanceDocs, fetchVenueAcceptanceDocs, contextsFromBooking, type AcceptanceDoc, type VenueAcceptanceDoc } from '@/lib/acceptance';
@@ -94,6 +95,14 @@ export default function CheckoutPage() {
   /* Watches for the guest leaving the review without booking. Reports
      nothing if they finished, or if they went back to the cart. */
   useAbandonIfLeft('checkout', onReview);
+
+  /* Keeps whatever times this cart is holding while the guest is still on
+     this screen. Twenty minutes was long enough to choose a time and too
+     short to then read the terms and check out, so a hold lapsed under
+     people who were sitting right here. Stops once they have booked:
+     the hold has become a booking item by then and renewing it would be
+     holding a time against its own booking. */
+  useKeepHolds(!done && onReview);
 
   /* What the guest is asked to accept. Read from the register rather than
      hardcoded, so it is exactly what submitBooking will record. */
