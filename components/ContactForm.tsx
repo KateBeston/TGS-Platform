@@ -64,7 +64,12 @@ export default function ContactForm({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
-      trackOnce('contact_submitted', { role: f.role || 'unstated' });
+      // Not counted when the reply says nothing was recorded: a
+      // honeypot hit answers with a success so the script learns
+      // nothing, and that success must not become a conversion.
+      if (out?.recorded !== false) {
+        trackOnce('contact_submitted', { role: f.role || 'unstated' });
+      }
       setSent(true);
     } catch (e: any) {
       setProblem(String(e?.message ?? e));

@@ -116,9 +116,14 @@ export default function VenueApplication({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
-      trackOnce('venue_application_submitted', {
-        marketplace: f.marketplace || 'unstated',
-      });
+      // Not counted when the reply says nothing was recorded. A honeypot
+      // hit answers with a success so the script learns nothing from the
+      // difference, and that success must not reach the conversion count.
+      if (out?.recorded !== false) {
+        trackOnce('venue_application_submitted', {
+          marketplace: f.marketplace || 'unstated',
+        });
+      }
       setDone(out.reference ?? 'received');
     } catch (e: any) {
       setProblem(String(e?.message ?? e));

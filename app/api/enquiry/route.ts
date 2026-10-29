@@ -21,7 +21,14 @@ export async function POST(req: NextRequest) {
   // Filled means a script. Answered with a success so it learns nothing
   // from the difference.
   if (String(body?.website ?? '').trim()) {
-    return NextResponse.json({ ok: true });
+    /* recorded:false tells our own client not to count this as a
+       conversion. The 200 and the ok:true are unchanged, so a script still
+       learns nothing from the shape of the reply — but Google Analytics no
+       longer records a submission that was never written down. Without
+       this the honeypot kept junk out of the database and let it straight
+       into the conversion figures, which is the number anyone actually
+       looks at. */
+    return NextResponse.json({ ok: true, recorded: false });
   }
 
   const email = String(body?.email ?? '').trim().toLowerCase();

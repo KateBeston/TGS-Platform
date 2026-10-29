@@ -42,6 +42,12 @@ function EnquireModal({ venueId, venueName, marketplace, onClose }: {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ firstName: '', email: '', guests: '', notes: '' });
+  /* The honeypot. /api/enquiry has always checked for a filled `website`
+     field and answered a success without writing anything — but this form
+     never sent one, so the check could not fire here. The venue card is the
+     most visible enquiry route on the site and it was the only one without
+     the trap. */
+  const [trap, setTrap] = useState('');
 
   const submit = async () => {
     setError(null);
@@ -60,6 +66,7 @@ function EnquireModal({ venueId, venueName, marketplace, onClose }: {
           guestCount: form.guests ? Number(form.guests) : null,
           notes: form.notes.trim() || null,
           source: 'Venue card',
+          website: trap,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -93,6 +100,15 @@ function EnquireModal({ venueId, venueName, marketplace, onClose }: {
           </div>
         ) : (
           <div className="enq-body">
+            {/* Off-screen rather than display:none, which is the one thing
+                a bot checks for. Out of the tab order and out of the
+                accessibility tree, so nobody using a keyboard or a screen
+                reader ever meets it. */}
+            <div className="trap" aria-hidden="true">
+              <label htmlFor="enq-site">Website</label>
+              <input id="enq-site" tabIndex={-1} autoComplete="off"
+                value={trap} onChange={(e) => setTrap(e.target.value)} />
+            </div>
             <label className="enq-field">
               <span>Your name</span>
               <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />

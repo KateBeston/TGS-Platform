@@ -49,8 +49,12 @@ export default function VenueEnquiry({
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out?.error ?? 'That did not go through.');
-      // On the confirmed response, not on the click.
-      trackOnce('enquiry_submitted', { venue_id: venueId, marketplace });
+      // On the confirmed response, not on the click — and not at all
+      // when the reply says nothing was recorded, which is how a
+      // honeypot hit comes back.
+      if (out?.recorded !== false) {
+        trackOnce('enquiry_submitted', { venue_id: venueId, marketplace });
+      }
       setSent(true);
     } catch (e: any) {
       setProblem(String(e?.message ?? e));
